@@ -1024,7 +1024,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v4.7</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v4.8</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1149,7 +1149,8 @@
         <span style="font-family:var(--font-mono);font-size:11px;background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);padding:3px 9px;border-radius:3px;">.csv</span>
       </div>
       <div style="font-size:11px;margin-top:10px;color:var(--dim);">
-        Colunas esperadas: <code style="color:var(--chalk);">data&nbsp;&nbsp;veiculo&nbsp;&nbsp;os&nbsp;&nbsp;tipo&nbsp;&nbsp;setor&nbsp;&nbsp;categoria&nbsp;&nbsp;descricao&nbsp;&nbsp;responsavel&nbsp;&nbsp;observacoes</code>
+        Aceita o relatório de OS exportado do sistema (blocos por data, colunas Veículo/O.S./Tipo/Observação/Abertura) — Setor fica como "Não classificado" e você reclassifica depois.<br>
+        Também aceita CSV genérico com colunas: <code style="color:var(--chalk);">data&nbsp;&nbsp;veiculo&nbsp;&nbsp;os&nbsp;&nbsp;tipo&nbsp;&nbsp;setor&nbsp;&nbsp;categoria&nbsp;&nbsp;descricao&nbsp;&nbsp;responsavel&nbsp;&nbsp;observacoes</code>
       </div>
       <input type="file" id="csv-input" accept=".csv,.txt,.xlsx,.xls">
     </div>
@@ -1194,6 +1195,7 @@
           <option value="Mecânica">Mecânica</option>
           <option value="Socorro">Socorro</option>
           <option value="Terceiro">Terceiro</option>
+          <option value="Não classificado">Não classificado</option>
         </select>
       </div>
       <div class="import-field">
@@ -1610,6 +1612,7 @@
             <option value="Mecânica">Mecânica</option>
             <option value="Socorro">Socorro</option>
             <option value="Terceiro">Terceiro</option>
+            <option value="Não classificado">Não classificado</option>
           </select>
           <select id="ed-categoria">
             <option value="">— selecione o setor —</option>
@@ -1992,6 +1995,7 @@ const SETOR_CATEGORIAS = {
   'Mecânica':    ['Arla','Arrefecimento','Cubo de Rodas','Desempenho','Diferencial','Embreagem','Filtros','Geometria','Geral','Improcedente','Inspeção','Lubrificação','Óleo de Caixa','Óleo Diferencial','Óleo Motor e Filtros','Sistema de Descarga','Sistema de Direção','Sistema de Freio','Suspensão','Vedação'],
   'Socorro':     ['Correia','Embreagem','Sistema de Partida'],
   'Terceiro':    ['Tacógrafo'],
+  'Não classificado': [],
 };
 
 const CHAVE_MAP = {
@@ -3712,7 +3716,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v4.7 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v4.8 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // GNS — Garantia de Nível de Serviço
@@ -4602,11 +4606,115 @@ function parseXLSXFile(file){
   reader.readAsArrayBuffer(file);
 }
 
+// ── Tokenizer CSV genérico (RFC4180: aspas, campos multi-linha, delimitador customizável) ──
+function parseDelimitedText(text, delimiter){
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        field += c;
+      }
+    } else {
+      if(c === '"'){ inQuotes = true; }
+      else if(c === delimiter){ row.push(field); field = ''; }
+      else if(c === '\r'){ /* ignora, trata \n abaixo */ }
+      else if(c === '\n'){ row.push(field); field=''; rows.push(row); row=[]; }
+      else { field += c; }
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+// ── Normaliza "Corretiva(01-Corretiva)" / "Preventiva(...)" → "Corretiva"/"Preventiva" ──
+// ── Ajusta texto TODO EM MAIÚSCULAS para caixa normal, preservando siglas conhecidas
+//    (LE, LD, OBS, SCR...) e códigos com número (F00, MOBS2...), capitalizando início de linha/frase ──
+const SIGLAS_PRESERVAR = new Set(['LE','LD','OBS','SCR','ASAM','HA','JB','CRT','ARLA','GNV','LED','ABS','ECU']);
+function smartCaseText(text){
+  if(!text) return text;
+  let capitalizeNext = true;
+  let result = String(text).replace(/[A-Za-zÀ-ÖØ-öø-ÿ0-9]+/g, (word, offset, full) => {
+    const before = full.slice(0, offset);
+    if(offset === 0 || /\n\s*-?\s*$/.test(before)) capitalizeNext = true;
+    const isAllCaps  = /^[A-ZÀ-Ö0-9]+$/.test(word);
+    const hasDigit    = /\d/.test(word);
+    const isKnownSigla = SIGLAS_PRESERVAR.has(word.toUpperCase());
+    let out;
+    if(isAllCaps && (hasDigit || isKnownSigla)){
+      out = word.toUpperCase(); // preserva sigla conhecida ou código com número (F00, MOBS2...)
+    } else {
+      const lower = word.toLowerCase();
+      out = capitalizeNext ? lower.charAt(0).toUpperCase() + lower.slice(1) : lower;
+    }
+    capitalizeNext = false;
+    return out;
+  });
+  // Depois de "OBS:" a próxima palavra também inicia frase nova
+  result = result.replace(/(\bOBS:?\s*)([a-zà-ÿ])/g, (m,p1,p2) => p1 + p2.toUpperCase());
+  return result;
+}
+
+function normalizeTipoOS(raw){
+  const base = String(raw||'').split('(')[0].trim();
+  if(/corretiva/i.test(base)) return 'Corretiva';
+  if(/preventiva/i.test(base)) return 'Preventiva';
+  return base;
+}
+
+// ── Extrai o número de frota de "087 - 222407" → "222407" ──
+function extractFrota(raw){
+  const s = String(raw||'').trim();
+  const parts = s.split('-').map(p=>p.trim());
+  return parts.length > 1 ? parts[parts.length-1] : s;
+}
+
+// ── Parser dedicado ao relatório de OS (blocos "Data - DD/MM/AAAA", cabeçalho repetido, rodapés "Total...") ──
+function parseRelatorioOS(text){
+  const table = parseDelimitedText(text, ';');
+  const rows = [];
+  for(const r of table){
+    const col0 = (r[0]||'').trim();
+    const col1 = (r[1]||'').trim();
+    // Linha de dado válida: Veículo no formato "NNN - NNNNNN" e O.S. numérica
+    if(/^\d+\s*-\s*\d+$/.test(col0) && /^\d+$/.test(col1)){
+      const veiculo   = extractFrota(col0);
+      const os        = col1;
+      const tipo      = normalizeTipoOS(r[2]);
+      const descricao = smartCaseText((r[3]||'').trim());
+      const aberturaData = (r[4]||'').trim().split(' ')[0]; // só a data, ignora hora
+      const observacoes  = (r[7]||'').trim(); // coluna H = Planos
+      // Colunas F (Fechamento) e G (Tempo) são ignoradas propositalmente
+      rows.push({
+        data: aberturaData, veiculo, os, tipo,
+        setor: 'Não classificado', categoria: '',
+        responsavel: '', descricao, observacoes
+      });
+    }
+  }
+  return rows;
+}
+
 // ── CSV parser ───────────────────────────────────────────────────────────────
 function parseCSVFile(file){
   const reader = new FileReader();
   reader.onload = e => {
-    const text  = e.target.result;
+    const text = e.target.result;
+
+    // Tenta primeiro o formato do relatório de OS (blocos por data, delimitador ;)
+    const osRows = parseRelatorioOS(text);
+    if(osRows.length){
+      processImportRows(osRows);
+      return;
+    }
+
+    // Fallback: CSV genérico simples (uma linha de cabeçalho, uma OS por linha)
     const lines = text.split(/\r?\n/).filter(l => l.trim());
     if(lines.length < 2){ alert('CSV sem dados.'); return; }
 
@@ -4620,7 +4728,9 @@ function parseCSVFile(file){
     }
     processImportRows(rows);
   };
-  reader.readAsText(file, 'UTF-8');
+  // O relatório de OS exportado por esse sistema costuma vir em ISO-8859-1 (Latin-1),
+  // não UTF-8 — lendo como UTF-8 os acentos ficariam corrompidos.
+  reader.readAsText(file, 'ISO-8859-1');
 }
 
 document.getElementById('in-setor').addEventListener('change', updateCategorias);
