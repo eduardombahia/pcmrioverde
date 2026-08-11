@@ -933,6 +933,88 @@
     .charts{grid-template-columns:1fr;}
     .field-row{grid-template-columns:1fr;}
   }
+
+  /* ══════════════════════════════════════════════════════
+     Otimização para celular (telas até 600px)
+     ══════════════════════════════════════════════════════ */
+  @media(max-width:600px){
+    header{padding:20px 5vw 18px;}
+    .eyebrow{font-size:10.5px;}
+    h1{font-size:clamp(22px,7vw,28px);}
+    .sub{font-size:13px;line-height:1.45;}
+    main{padding:16px 4vw 60px;}
+    .app-shell{gap:12px;}
+
+    /* Sidebar/tabs mais compactos e tocáveis */
+    .sidebar{padding:8px;}
+    .sidebar .tab-btn{padding:12px 10px;font-size:12.5px;}
+    .sidebar-toggle{height:40px;}
+
+    /* KPIs em duas colunas, cartões menores */
+    .kpis{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px;}
+    .kpi{padding:12px 14px;}
+    .kpi .n{font-size:24px;}
+    .kpi .l{font-size:10px;letter-spacing:.05em;}
+
+    /* Gráficos empilhados e mais enxutos */
+    .charts{gap:10px;margin-bottom:18px;}
+    .card{padding:14px 14px 16px;}
+    .card h3{font-size:12.5px;margin-bottom:12px;}
+    .card-h-row{flex-wrap:wrap;}
+    .bar-row{gap:8px;margin-bottom:8px;font-size:11.5px;}
+    .bar-label{width:100px;font-size:11px;}
+    .bar-track{height:12px;}
+    .bar-val{width:26px;font-size:11px;}
+    .months{height:120px;gap:5px;}
+    .month-bars{gap:2px;}
+    .month-bars .seg{width:6px;}
+    .month-name{font-size:9px;}
+    .legend{font-size:10.5px;gap:12px;}
+
+    /* Filtros empilhados, sem apertar */
+    .filters{flex-direction:column;align-items:stretch;padding:12px 14px;gap:8px;}
+    .filters select,.filters input[type=text]{width:100%;font-size:16px;padding:10px;}
+    .filters .count{margin-left:0;text-align:center;order:99;}
+    .toggle{justify-content:center;padding:10px;}
+    .clear-btn{width:100%;padding:10px;}
+    .add-btn{width:100%;justify-content:center;padding:12px 16px;font-size:13px;}
+
+    /* Tabelas: fonte menor, células compactas, scroll horizontal suave */
+    .table-wrap,.frota-card,.gns-list-card{-webkit-overflow-scrolling:touch;max-height:none;}
+    table,.frota-card table,.gns-list-card table{font-size:11.5px;}
+    thead th,tbody td,.frota-card thead th,.frota-card tbody td,
+    .gns-list-card thead th,.gns-list-card tbody td{padding:8px 9px;}
+    tbody td.desc{min-width:160px;}
+
+    /* Toolbars diversas */
+    .frota-toolbar,.gns-toolbar{flex-direction:column;align-items:stretch;}
+    .frota-toolbar input,.gns-toolbar input,.gns-toolbar select{width:100%;font-size:16px;}
+    .gns-count{margin-left:0;text-align:center;}
+    .gns-kpis{gap:8px;}
+    .gns-kpi{min-width:calc(50% - 8px);padding:10px 12px;}
+    .gns-kpi .gns-kpi-n{font-size:20px;}
+
+    /* Formulário do hodômetro */
+    .hodo-manual-form{grid-template-columns:1fr;}
+    .hodo-search-input{width:100%;}
+    .hodo-left-head{flex-direction:column;align-items:stretch;}
+
+    /* Drawer ocupa a tela toda, evita zoom automático do iOS nos campos */
+    .drawer{width:100vw;}
+    .drawer-head{padding:16px 18px 14px;}
+    .drawer-body{padding:16px 18px;}
+    .drawer-foot{padding:14px 18px;flex-direction:column-reverse;}
+    .drawer-foot button{width:100%;}
+    .field input[type=text],.field input[type=date],.field input[type=number],
+    .field select,.field textarea,.gns-field input,.gns-field select,.gns-field textarea{
+      font-size:16px;
+    }
+  }
+
+  @media(max-width:380px){
+    .kpis{grid-template-columns:1fr;}
+    .gns-kpi{min-width:100%;}
+  }
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a1a1a'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' font-family='sans-serif'%3E%F0%9F%94%A7%3C/text%3E%3C/svg%3E">
