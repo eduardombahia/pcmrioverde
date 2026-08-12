@@ -1024,7 +1024,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v5.0</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v4.8</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1048,9 +1048,9 @@
   </button>
   <nav class="tab-nav-vertical">
     <button class="tab-btn active" data-tab="painel"><span class="tab-icon">📊</span><span class="tab-label">Painel</span></button>
+    <button class="tab-btn" data-tab="ordens"><span class="tab-icon">🗂️</span><span class="tab-label">Ordens de Serviço</span></button>
     <button class="tab-btn" data-tab="frota"><span class="tab-icon">🚌</span><span class="tab-label">Frota</span></button>
     <button class="tab-btn" data-tab="importar"><span class="tab-icon">📥</span><span class="tab-label">Importar OS</span></button>
-    <button class="tab-btn" data-tab="editar"><span class="tab-icon">✏️</span><span class="tab-label">Editar OS</span></button>
     <button class="tab-btn" data-tab="hodometro"><span class="tab-icon">🛣️</span><span class="tab-label">Hodômetro</span></button>
     <button class="tab-btn" data-tab="gns"><span class="tab-icon">🚧</span><span class="tab-label">GNS</span></button>
     <button class="tab-btn" data-tab="log"><span class="tab-icon">📋</span><span class="tab-label">Log</span></button>
@@ -1080,6 +1080,12 @@
       <div id="catbars"></div>
     </div>
   </section>
+
+
+</div><!-- /tab-painel -->
+
+<!-- ═══════════════ ORDENS DE SERVIÇO TAB ═══════════════ -->
+<div id="tab-ordens" class="tab-panel">
 
   <section class="filters">
     <select id="f-operacao"><option value="">Operação: todas</option></select>
@@ -1114,7 +1120,7 @@
     </table>
   </div>
 
-</div><!-- /tab-painel -->
+</div><!-- /tab-ordens -->
 
 <!-- ═══════════════ FROTA TAB ═══════════════ -->
 <div id="tab-frota" class="tab-panel">
@@ -1463,52 +1469,7 @@
 
 
 <!-- ═══════════════ EDITAR OS TAB ═══════════════ -->
-<div id="tab-editar" class="tab-panel">
-  <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
-    <input type="text" id="ed-search" placeholder="Buscar por OS, veículo, descrição, chave…"
-      style="flex:1;min-width:200px;background:var(--panel-2);border:1px solid var(--line);
-             color:var(--chalk);font-family:var(--font-body);font-size:13px;
-             padding:9px 11px;border-radius:3px;outline:none;">
-    <select id="ed-filter-tipo"
-      style="background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
-             font-family:var(--font-body);font-size:13px;padding:9px 10px;border-radius:3px;outline:none;">
-      <option value="">Tipo: todos</option>
-      <option value="Corretiva">Corretiva</option>
-      <option value="Preventiva">Preventiva</option>
-    </select>
-    <select id="ed-filter-setor"
-      style="background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
-             font-family:var(--font-body);font-size:13px;padding:9px 10px;border-radius:3px;outline:none;">
-      <option value="">Setor: todos</option>
-    </select>
-    <select id="ed-filter-origin"
-      style="background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
-             font-family:var(--font-body);font-size:13px;padding:9px 10px;border-radius:3px;outline:none;">
-      <option value="">Origem: todas</option>
-      <option value="planilha">Planilha</option>
-      <option value="manual">Manual</option>
-    </select>
-    <span id="ed-tab-count" style="font-family:var(--font-mono);font-size:12px;color:var(--dim);white-space:nowrap;"></span>
-  </div>
-  <div style="background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:auto;max-height:600px;">
-    <table style="width:100%;border-collapse:collapse;font-size:12.8px;">
-      <thead>
-        <tr>
-          <th style="position:sticky;top:0;background:var(--panel-2);text-align:left;padding:10px 12px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);">Data</th>
-          <th style="position:sticky;top:0;background:var(--panel-2);text-align:left;padding:10px 12px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);">Veículo</th>
-          <th style="position:sticky;top:0;background:var(--panel-2);text-align:left;padding:10px 12px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);">OS</th>
-          <th style="position:sticky;top:0;background:var(--panel-2);text-align:left;padding:10px 12px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);">Tipo</th>
-          <th style="position:sticky;top:0;background:var(--panel-2);text-align:left;padding:10px 12px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);">Setor</th>
-          <th style="position:sticky;top:0;background:var(--panel-2);text-align:left;padding:10px 12px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);">Categoria</th>
-          <th style="position:sticky;top:0;background:var(--panel-2);text-align:left;padding:10px 12px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);">Descrição</th>
-          <th style="position:sticky;top:0;background:var(--panel-2);text-align:left;padding:10px 12px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);">Origem</th>
-          <th style="position:sticky;top:0;background:var(--panel-2);padding:10px 12px;border-bottom:1px solid var(--line);"></th>
-        </tr>
-      </thead>
-      <tbody id="ed-tab-tbody"></tbody>
-    </table>
-  </div>
-</div>
+
 
 </div>
 </div>
@@ -2812,7 +2773,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-' + tab).classList.add('active');
     if(tab === 'frota') renderFrota();
-    if(tab === 'editar') renderEditTab();
+    if(tab === 'ordens') { refreshSelectsPreservingValue(); applyFilters(); }
     if(tab === 'hodometro') renderHodoTab();
     if(tab === 'gns') renderGnsTab();
     if(tab === 'log') renderLogTab();
@@ -3246,106 +3207,7 @@ document.getElementById('edit-drawer-submit').addEventListener('click', ()=>{
 });
 
 
-// ════════════════════════════════════════════════════════
-// EDITAR OS TAB — tabela de busca com botão editar
-// ════════════════════════════════════════════════════════
 
-function populateEdFilterSetor(){
-  const sel = document.getElementById('ed-filter-setor');
-  if(!sel) return;
-  const setores = [...new Set(allRows().map(r=>r.setor).filter(Boolean))].sort();
-  sel.innerHTML = '<option value="">Setor: todos</option>' +
-    setores.map(s=>`<option value="${s}">${s}</option>`).join('');
-}
-
-function renderEditTab(){
-  populateEdFilterSetor();
-  const q    = (document.getElementById('ed-search').value || '').toLowerCase();
-  const tipo = document.getElementById('ed-filter-tipo').value;
-  const setor= document.getElementById('ed-filter-setor').value;
-  const orig = document.getElementById('ed-filter-origin').value;
-
-  let rows = allRows().filter(r => {
-    if(tipo  && r.tipo   !== tipo)  return false;
-    if(setor && r.setor  !== setor) return false;
-    if(orig  && r.origin !== orig)  return false;
-    if(q){
-      const hay = [r.os,r.veiculo,r.descricao,r.chave_erro,r.setor,r.categoria,r.responsavel]
-        .join(' ').toLowerCase();
-      if(!hay.includes(q)) return false;
-    }
-    return true;
-  });
-
-  // Sort: newest first
-  rows.sort((a,b) => b.data.localeCompare(a.data));
-
-  document.getElementById('ed-tab-count').textContent = `${rows.length} registro(s)`;
-
-  document.getElementById('ed-tab-tbody').innerHTML = rows.map(r => {
-    const editId = r.origin === 'manual' ? r._id : r._edit_id;
-    const hasOverride = r.origin !== 'manual' && (() => {
-      const key = `${r.os}_${r.chave_erro}_${r.veiculo}`;
-      return !!overrides[key];
-    })();
-    return `<tr>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--line);color:var(--dim);font-family:var(--font-mono);font-size:11px;">${fmtDate(r.data)}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--line);color:var(--amber);font-family:var(--font-mono);">${r.veiculo}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--line);color:var(--chalk);font-family:var(--font-mono);">${r.os}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--line);"><span class="pill ${r.tipo}">${r.tipo}</span></td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--line);color:var(--chalk);">${r.setor||''}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--line);color:var(--dim);font-size:11.5px;">${r.categoria||''}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--line);color:var(--dim);font-size:11.5px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.descricao||''}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--line);">
-        <span class="edit-origin-badge ${r.origin}">${r.origin}</span>
-        ${hasOverride ? '<span style="color:var(--yellow);font-size:10px;font-family:var(--font-mono);margin-left:4px;" title="Editado manualmente">✎</span>' : ''}
-      </td>
-      <td style="padding:8px 12px;border-bottom:1px solid var(--line);">
-        <button class="edit-btn ed-tab-edit-btn" data-id="${editId}" data-origin="${r.origin}" title="Editar">✏️ Editar</button>
-        ${r.origin !== 'manual' && hasOverride
-          ? `<button class="icon-btn ed-tab-reset-btn" data-os="${r.os}" data-chave="${r.chave_erro||''}" data-veiculo="${r.veiculo}" title="Reverter para original" style="margin-left:4px;">↩</button>`
-          : ''}
-      </td>
-    </tr>`;
-  }).join('');
-
-  // Wire edit buttons
-  document.querySelectorAll('.ed-tab-edit-btn').forEach(btn => {
-    btn.addEventListener('click', () => openEditDrawer(btn.dataset.id, btn.dataset.origin));
-  });
-
-  // Wire reset (revert to original) buttons
-  document.querySelectorAll('.ed-tab-reset-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const key = `${btn.dataset.os}_${btn.dataset.chave}_${btn.dataset.veiculo}`;
-      if(confirm('Reverter este registro para os dados originais da planilha?')){
-        delete overrides[key];
-        saveOverrides();
-        // Restore DATA record
-        const didx = DATA.findIndex(r =>
-          String(r.os) === btn.dataset.os &&
-          (r.chave_erro||'') === btn.dataset.chave &&
-          String(r.veiculo) === btn.dataset.veiculo
-        );
-        // Re-read from original DATA — we need the pristine copy
-        // Since we mutate DATA in place, we stored original in a separate const
-        // Actually restore from ORIGINAL_DATA
-        if(didx >= 0 && ORIGINAL_DATA[didx]){
-          Object.assign(DATA[didx], ORIGINAL_DATA[didx]);
-        }
-        saveOverrides();
-        renderAll();
-        renderEditTab();
-      }
-    });
-  });
-}
-
-// Filter/search listeners for edit tab
-['ed-search','ed-filter-tipo','ed-filter-setor','ed-filter-origin'].forEach(id => {
-  const el = document.getElementById(id);
-  if(el) el.addEventListener(el.tagName==='SELECT' ? 'change' : 'input', renderEditTab);
-});
 
 
 // ════════════════════════════════════════════════════════
@@ -3807,7 +3669,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v5.0 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v4.8 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // GNS — Garantia de Nível de Serviço
