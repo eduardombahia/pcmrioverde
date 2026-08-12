@@ -1024,7 +1024,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v5.2</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v4.8</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1049,10 +1049,11 @@
   <nav class="tab-nav-vertical">
     <button class="tab-btn active" data-tab="painel"><span class="tab-icon">📊</span><span class="tab-label">Painel</span></button>
     <button class="tab-btn" data-tab="ordens"><span class="tab-icon">🗂️</span><span class="tab-label">Ordens de Serviço</span></button>
+    <button class="tab-btn" data-tab="solicitacoes"><span class="tab-icon">🛠️</span><span class="tab-label">Solicitações de Reparo</span></button>
+    <button class="tab-btn" data-tab="gns"><span class="tab-icon">🚧</span><span class="tab-label">GNS</span></button>
+    <button class="tab-btn" data-tab="hodometro"><span class="tab-icon">🛣️</span><span class="tab-label">Hodômetro</span></button>
     <button class="tab-btn" data-tab="frota"><span class="tab-icon">🚌</span><span class="tab-label">Frota</span></button>
     <button class="tab-btn" data-tab="importar"><span class="tab-icon">📥</span><span class="tab-label">Importar OS</span></button>
-    <button class="tab-btn" data-tab="hodometro"><span class="tab-icon">🛣️</span><span class="tab-label">Hodômetro</span></button>
-    <button class="tab-btn" data-tab="gns"><span class="tab-icon">🚧</span><span class="tab-label">GNS</span></button>
     <button class="tab-btn" data-tab="log"><span class="tab-icon">📋</span><span class="tab-label">Log</span></button>
   </nav>
 </aside>
@@ -1121,6 +1122,88 @@
   </div>
 
 </div><!-- /tab-ordens -->
+
+<!-- ═══════════════ SOLICITAÇÕES DE REPARO TAB ═══════════════ -->
+<div id="tab-solicitacoes" class="tab-panel">
+  <div class="gns-kpis" id="sol-kpis"></div>
+
+  <div class="gns-layout">
+    <!-- ── Formulário ── -->
+    <div class="gns-form-card" id="sol-form-card">
+      <h3 id="sol-form-title">➕ Nova Solicitação de Reparo</h3>
+
+      <div class="gns-field">
+        <label>Nº da Solicitação <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
+        <input type="text" id="sol-num" readonly style="color:var(--amber);cursor:default;">
+      </div>
+
+      <div class="gns-field">
+        <label for="sol-data">Data</label>
+        <input type="date" id="sol-data">
+      </div>
+
+      <div class="gns-field">
+        <label for="sol-veiculo">Veículo *</label>
+        <input type="text" id="sol-veiculo" list="dl-veiculo" placeholder="ex: 222423" autocomplete="off">
+      </div>
+
+      <div class="gns-field">
+        <label for="sol-operacao">Operação <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
+        <input type="text" id="sol-operacao" readonly style="color:var(--amber);cursor:default;" placeholder="—">
+      </div>
+
+      <div class="gns-field">
+        <label for="sol-descricao">Descrição</label>
+        <textarea id="sol-descricao" placeholder="Descreva o reparo solicitado…"></textarea>
+      </div>
+
+      <div class="gns-field">
+        <label for="sol-motorista">Motorista</label>
+        <input type="text" id="sol-motorista" placeholder="Nome do motorista">
+      </div>
+
+      <div class="gns-field">
+        <label for="sol-lider">Líder Requisitante</label>
+        <input type="text" id="sol-lider" placeholder="Nome do líder requisitante">
+      </div>
+
+      <div id="sol-form-error" style="color:var(--red);font-size:12px;margin-top:6px;display:none;"></div>
+
+      <div class="gns-actions">
+        <button class="btn-submit" id="sol-submit-btn">Salvar Solicitação</button>
+        <button class="btn-cancel" id="sol-cancel-btn" style="display:none;">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- ── Listagem ── -->
+    <div>
+      <div class="gns-toolbar">
+        <input type="text" id="sol-search" placeholder="Buscar por nº, veículo, motorista, líder…">
+        <button class="btn-secondary" id="sol-export-btn" title="Exportar como CSV">⬇ Exportar</button>
+        <span class="gns-count" id="sol-count"></span>
+      </div>
+
+      <div class="gns-list-card">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="num">Nº Solicitação</th>
+              <th data-sort="data">Data</th>
+              <th data-sort="veiculo">Veículo</th>
+              <th data-sort="operacao">Operação</th>
+              <th data-sort="descricao">Descrição</th>
+              <th data-sort="motorista">Motorista</th>
+              <th data-sort="lider">Líder Requisitante</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="sol-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /tab-solicitacoes -->
 
 <!-- ═══════════════ FROTA TAB ═══════════════ -->
 <div id="tab-frota" class="tab-panel">
@@ -2047,13 +2130,14 @@ function hideOverlay(){
 
 // Flags de "primeiro carregamento" — precisam vir true nos 8 documentos antes de pintar a tela pela primeira vez
 let pcmRecebeuMR = false, pcmRecebeuFrota = false, pcmRecebeuOv = false, pcmRecebeuMeta = false,
-    pcmRecebeuHodo = false, pcmRecebeuLog = false, pcmRecebeuDel = false, pcmRecebeuGns = false;
+    pcmRecebeuHodo = false, pcmRecebeuLog = false, pcmRecebeuDel = false, pcmRecebeuGns = false,
+    pcmRecebeuSol = false;
 let pcmPrimeiraCarga = true;
 let pcmLastBackup = null;
 
 function pcmTentaRenderInicial(timeoutId){
   if(pcmPrimeiraCarga && pcmRecebeuMR && pcmRecebeuFrota && pcmRecebeuOv && pcmRecebeuMeta &&
-     pcmRecebeuHodo && pcmRecebeuLog && pcmRecebeuDel && pcmRecebeuGns){
+     pcmRecebeuHodo && pcmRecebeuLog && pcmRecebeuDel && pcmRecebeuGns && pcmRecebeuSol){
     pcmPrimeiraCarga = false;
     purgeManualDuplicates();
     showSyncStatus('✅ Sincronizado com a nuvem', 'var(--green)');
@@ -2205,6 +2289,18 @@ async function initFirestore(){
       if(!pcmPrimeiraCarga) renderAll();
       pcmTentaRenderInicial(timeoutId);
     }, err => { console.warn('Firestore gns:', err); pcmRecebeuGns = true; pcmTentaRenderInicial(timeoutId); });
+
+    // ── solicitações de reparo — tempo real ──
+    db.collection('pcm').doc('solicitacoes').onSnapshot(snap => {
+      if(snap.exists && snap.data().records){
+        solRecords = snap.data().records;
+        solNextId  = solRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
+        try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
+      }
+      pcmRecebeuSol = true;
+      if(!pcmPrimeiraCarga) renderAll();
+      pcmTentaRenderInicial(timeoutId);
+    }, err => { console.warn('Firestore solicitacoes:', err); pcmRecebeuSol = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── meta (último backup) — tempo real ──
     db.collection('pcm').doc('meta').onSnapshot(snap => {
@@ -2774,6 +2870,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('tab-' + tab).classList.add('active');
     if(tab === 'frota') renderFrota();
     if(tab === 'ordens') { refreshSelectsPreservingValue(); applyFilters(); }
+    if(tab === 'solicitacoes') renderSolTab();
     if(tab === 'hodometro') renderHodoTab();
     if(tab === 'gns') renderGnsTab();
     if(tab === 'log') renderLogTab();
@@ -3669,7 +3766,236 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v5.2 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v4.8 · ${new Date().toLocaleString('pt-BR')}`);
+
+// ════════════════════════════════════════════════════════
+// SOLICITAÇÕES DE REPARO
+// ════════════════════════════════════════════════════════
+const SOL_KEY = 'pcm_solicitacoes_v1';
+let solRecords = [];   // [{ id, num, data, veiculo, operacao, descricao, motorista, lider, createdAt }]
+let solNextId  = 1;
+let solEditId  = null; // null = nova, número = edição
+let solSortCol = 'data';
+let solSortDir = 'desc';
+
+function loadSol(){
+  try{
+    const raw = localStorage.getItem(SOL_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      solRecords = parsed || [];
+      solNextId  = solRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
+    }
+  } catch(e){ solRecords = []; }
+  return solRecords;
+}
+
+function saveSol(){
+  try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
+  if(window._db){
+    window._db.collection('pcm').doc('solicitacoes')
+      .set({ records: solRecords, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e => console.warn('Firestore Solicitações save:', e));
+  }
+}
+
+loadSol();
+// Pre-populate the auto número field so it shows on first open
+setTimeout(() => {
+  const numEl = document.getElementById('sol-num');
+  if(numEl && !numEl.value) numEl.value = solNextNum();
+  const dataEl = document.getElementById('sol-data');
+  if(dataEl && !dataEl.value) dataEl.value = new Date().toISOString().slice(0,10);
+}, 0);
+
+// Generate next sequential número (e.g. "SR-007")
+function solNextNum(){
+  const max = solRecords.reduce((m, r) => {
+    const n = parseInt((r.num||'').replace(/\D/g,''), 10);
+    return isNaN(n) ? m : Math.max(m, n);
+  }, 0);
+  return 'SR-' + String(max + 1).padStart(3, '0');
+}
+
+// ── KPIs ─────────────────────────────────────────────────
+function renderSolKpis(){
+  const total = solRecords.length;
+  const hoje  = new Date().toISOString().slice(0,10);
+  const hojeN = solRecords.filter(r => r.data === hoje).length;
+  const veiculosUnicos = new Set(solRecords.map(r => r.veiculo).filter(Boolean)).size;
+
+  document.getElementById('sol-kpis').innerHTML = `
+    <div class="gns-kpi"><div class="gns-kpi-n">${total}</div><div class="gns-kpi-l">Total de Solicitações</div></div>
+    <div class="gns-kpi andamento"><div class="gns-kpi-n">${hojeN}</div><div class="gns-kpi-l">Hoje</div></div>
+    <div class="gns-kpi media"><div class="gns-kpi-n">${veiculosUnicos}</div><div class="gns-kpi-l">Veículos distintos</div></div>
+  `;
+}
+
+// ── Auto-preenchimento de Operação a partir do Veículo ────
+function updateSolOperacao(){
+  const veiculo = document.getElementById('sol-veiculo').value.trim();
+  const opEl = document.getElementById('sol-operacao');
+  opEl.value = veiculo ? (getOperacao(veiculo) || '') : '';
+}
+document.getElementById('sol-veiculo').addEventListener('input', updateSolOperacao);
+
+// ── Render table ──────────────────────────────────────────
+function renderSolTab(){
+  renderSolKpis();
+
+  const search = (document.getElementById('sol-search')?.value||'').toLowerCase();
+
+  let rows = solRecords.filter(r => {
+    if(search){
+      const hay = [r.num, r.veiculo, r.operacao, r.descricao, r.motorista, r.lider].join(' ').toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  rows.sort((a,b) => {
+    let va = a[solSortCol], vb = b[solSortCol];
+    if(va === undefined) va = '';
+    if(vb === undefined) vb = '';
+    if(va < vb) return solSortDir==='asc' ? -1 : 1;
+    if(va > vb) return solSortDir==='asc' ? 1 : -1;
+    return 0;
+  });
+
+  document.getElementById('sol-count').textContent = `${rows.length} registro${rows.length!==1?'s':''}`;
+
+  const tbody = document.getElementById('sol-tbody');
+  if(!rows.length){
+    tbody.innerHTML=`<tr><td colspan="8" class="gns-empty">Nenhuma solicitação registrada ainda.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => `<tr>
+      <td><span class="gns-num">${r.num||'—'}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11.5px;">${fmtDateBR(r.data)}</td>
+      <td>${r.veiculo||'—'}</td>
+      <td>${r.operacao||'—'}</td>
+      <td>${r.descricao||'—'}</td>
+      <td>${r.motorista||'—'}</td>
+      <td>${r.lider||'—'}</td>
+      <td>
+        <button class="gns-act-btn" onclick="solEditOpen(${r.id})">✏️</button>
+        <button class="gns-act-btn danger" onclick="solDelete(${r.id})">🗑</button>
+      </td>
+    </tr>`).join('');
+
+  document.querySelectorAll('#tab-solicitacoes .gns-list-card thead th[data-sort]').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.dataset.sort === solSortCol) th.classList.add('sort-'+solSortDir);
+  });
+}
+
+// ── Sort click ────────────────────────────────────────────
+document.querySelectorAll('#tab-solicitacoes .gns-list-card thead th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.sort;
+    if(solSortCol === col) solSortDir = solSortDir==='asc'?'desc':'asc';
+    else { solSortCol = col; solSortDir = 'asc'; }
+    renderSolTab();
+  });
+});
+
+// ── Filter/search live ────────────────────────────────────
+document.getElementById('sol-search').addEventListener('input', renderSolTab);
+
+// ── Form reset ────────────────────────────────────────────
+function solResetForm(){
+  solEditId = null;
+  document.getElementById('sol-form-title').textContent = '➕ Nova Solicitação de Reparo';
+  document.getElementById('sol-submit-btn').textContent = 'Salvar Solicitação';
+  document.getElementById('sol-cancel-btn').style.display = 'none';
+  document.getElementById('sol-num').value = solNextNum();   // auto next number
+  document.getElementById('sol-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('sol-veiculo').value = '';
+  document.getElementById('sol-operacao').value = '';
+  document.getElementById('sol-descricao').value = '';
+  document.getElementById('sol-motorista').value = '';
+  document.getElementById('sol-lider').value = '';
+  document.getElementById('sol-form-error').style.display = 'none';
+}
+
+// ── Edit open ─────────────────────────────────────────────
+function solEditOpen(id){
+  const r = solRecords.find(x => x.id === id);
+  if(!r) return;
+  solEditId = id;
+  document.getElementById('sol-form-title').textContent = `✏️ Editar Solicitação ${r.num||'#'+id}`;
+  document.getElementById('sol-submit-btn').textContent = 'Salvar alterações';
+  document.getElementById('sol-cancel-btn').style.display = '';
+  document.getElementById('sol-num').value = r.num || '';
+  document.getElementById('sol-data').value = r.data || '';
+  document.getElementById('sol-veiculo').value = r.veiculo || '';
+  document.getElementById('sol-operacao').value = r.operacao || '';
+  document.getElementById('sol-descricao').value = r.descricao || '';
+  document.getElementById('sol-motorista').value = r.motorista || '';
+  document.getElementById('sol-lider').value = r.lider || '';
+  document.getElementById('sol-form-error').style.display = 'none';
+  document.getElementById('sol-form-card').scrollIntoView({behavior:'smooth'});
+}
+
+// ── Delete ────────────────────────────────────────────────
+function solDelete(id){
+  const r = solRecords.find(x => x.id === id);
+  if(!r) return;
+  if(!confirm(`Excluir a solicitação ${r.num||'#'+id}? Esta ação não pode ser desfeita.`)) return;
+  solRecords = solRecords.filter(x => x.id !== id);
+  saveSol();
+  addLog('sistema', `Solicitação de reparo excluída: ${r.num||'#'+id}`, `Veículo ${r.veiculo||'—'}`);
+  if(solEditId === id) solResetForm();
+  renderSolTab();
+}
+
+// ── Submit ────────────────────────────────────────────────
+document.getElementById('sol-submit-btn').addEventListener('click', () => {
+  const errEl = document.getElementById('sol-form-error');
+  errEl.style.display = 'none';
+
+  const num       = document.getElementById('sol-num').value.trim();
+  const data      = document.getElementById('sol-data').value;
+  const veiculo   = document.getElementById('sol-veiculo').value.trim();
+  const operacao  = document.getElementById('sol-operacao').value.trim() || getOperacao(veiculo) || '';
+  const descricao = document.getElementById('sol-descricao').value.trim();
+  const motorista = document.getElementById('sol-motorista').value.trim();
+  const lider     = document.getElementById('sol-lider').value.trim();
+
+  if(!data)    { errEl.textContent='Informe a data.'; errEl.style.display=''; return; }
+  if(!veiculo) { errEl.textContent='Informe o veículo.'; errEl.style.display=''; return; }
+
+  if(solEditId !== null){
+    const idx = solRecords.findIndex(r => r.id === solEditId);
+    if(idx >= 0){
+      solRecords[idx] = { ...solRecords[idx], num, data, veiculo, operacao, descricao, motorista, lider };
+      addLog('os-edit', `Solicitação de reparo editada: ${num}`, `Veículo ${veiculo} · ${fmtDateBR(data)}`);
+    }
+  } else {
+    const rec = { id:solNextId++, num, data, veiculo, operacao, descricao, motorista, lider, createdAt:new Date().toISOString() };
+    solRecords.push(rec);
+    addLog('os-nova', `Solicitação de reparo criada: ${num}`, `Veículo ${veiculo} · ${fmtDateBR(data)}`);
+  }
+
+  saveSol();
+  solResetForm();
+  renderSolTab();
+});
+
+// ── Cancel ────────────────────────────────────────────────
+document.getElementById('sol-cancel-btn').addEventListener('click', solResetForm);
+
+// ── Export CSV ────────────────────────────────────────────
+document.getElementById('sol-export-btn').addEventListener('click', () => {
+  const header = ['Nº Solicitação','Data','Veículo','Operação','Descrição','Motorista','Líder Requisitante'];
+  const rows = solRecords.map(r => [r.num, fmtDateBR(r.data), r.veiculo, r.operacao||'', r.descricao||'', r.motorista||'', r.lider||'']);
+  const csv = [header, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a'); a.href=url; a.download='solicitacoes_reparo_export.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
 
 // ════════════════════════════════════════════════════════
 // GNS — Garantia de Nível de Serviço
