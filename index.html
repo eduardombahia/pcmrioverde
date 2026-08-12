@@ -2082,6 +2082,26 @@ function hideOverlay(){
   if(ov){ ov.classList.add('hidden'); setTimeout(()=>{ if(ov.parentNode) ov.remove(); }, 500); }
 }
 
+// Flags de "primeiro carregamento" — precisam vir true nos 8 documentos antes de pintar a tela pela primeira vez
+let pcmRecebeuMR = false, pcmRecebeuFrota = false, pcmRecebeuOv = false, pcmRecebeuMeta = false,
+    pcmRecebeuHodo = false, pcmRecebeuLog = false, pcmRecebeuDel = false, pcmRecebeuGns = false;
+let pcmPrimeiraCarga = true;
+let pcmLastBackup = null;
+
+function pcmTentaRenderInicial(timeoutId){
+  if(pcmPrimeiraCarga && pcmRecebeuMR && pcmRecebeuFrota && pcmRecebeuOv && pcmRecebeuMeta &&
+     pcmRecebeuHodo && pcmRecebeuLog && pcmRecebeuDel && pcmRecebeuGns){
+    pcmPrimeiraCarga = false;
+    purgeManualDuplicates();
+    showSyncStatus('✅ Sincronizado com a nuvem', 'var(--green)');
+    setTimeout(() => updateBackupLabel(pcmLastBackup), 2000);
+    clearTimeout(timeoutId);
+    hideOverlay();
+    renderAll();
+    console.info('PCM: Firestore sync completo (tempo real ativo).');
+  }
+}
+
 async function initFirestore(){
   // Hard timeout — if Firestore takes more than 8s, fall back to local cache
   const timeoutId = setTimeout(() => {
@@ -2099,129 +2119,138 @@ async function initFirestore(){
 
     showSyncStatus('🔄 Conectando ao banco de dados…', 'var(--amber)');
 
-    // Load all docs in parallel
-    const [mrSnap, frotaSnap, ovSnap, metaSnap, hodoSnap, logSnap, delSnap, gnsSnap] = await Promise.all([
-      db.collection('pcm').doc('manualRecords').get(),
-      db.collection('pcm').doc('frota').get(),
-      db.collection('pcm').doc('overrides').get(),
-      db.collection('pcm').doc('meta').get(),
-      db.collection('pcm').doc('hodometro').get(),
-      db.collection('pcm').doc('log').get(),
-      db.collection('pcm').doc('deletedKeys').get(),
-      db.collection('pcm').doc('gns').get(),
-    ]);
+    // A partir daqui, cada documento tem um listener em tempo real (onSnapshot) em vez de
+    // uma leitura única (.get()). Isso significa que qualquer alteração feita por você ou por
+    // outra pessoa em qualquer aba/dispositivo aparece automaticamente aqui, sem precisar recarregar.
 
-    // ── manualRecords ──
-    if(mrSnap.exists && mrSnap.data().records){
-      manualRecords = mrSnap.data().records;
-      manualRecords.forEach(r => { r.origin = 'manual'; });
-      // Sync to localStorage cache
-      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(manualRecords)); }catch(e){}
-      nextManualId = manualRecords.reduce((m,r) => Math.max(m, r._id||0), 0) + 1;
-    }
+    // ── manualRecords — tempo real ──
+    db.collection('pcm').doc('manualRecords').onSnapshot(snap => {
+      if(snap.exists && snap.data().records){
+        manualRecords = snap.data().records;
+        manualRecords.forEach(r => { r.origin = 'manual'; });
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(manualRecords)); }catch(e){}
+        nextManualId = manualRecords.reduce((m,r) => Math.max(m, r._id||0), 0) + 1;
+      }
+      pcmRecebeuMR = true;
+      if(!pcmPrimeiraCarga){ purgeManualDuplicates(); renderAll(); }
+      pcmTentaRenderInicial(timeoutId);
+    }, err => { console.warn('Firestore manualRecords:', err); pcmRecebeuMR = true; pcmTentaRenderInicial(timeoutId); });
 
-    // ── frota ──
-    if(frotaSnap.exists && frotaSnap.data().data){
-      frota = frotaSnap.data().data;
-      const firestoreVersion = Number(frotaSnap.data().seedVersion||0);
-      if(firestoreVersion < FROTA_SEED_VERSION){
-        // Merge seed data (placas + operacoes) into Firestore frota
-        Object.entries(FROTA_SEED).forEach(([v, d]) => {
-          if(!frota[v]) frota[v] = d;
-          else { frota[v].placa = d.placa; frota[v].operacao = d.operacao; }
-        });
+    // ── frota — tempo real ──
+    db.collection('pcm').doc('frota').onSnapshot(snap => {
+      if(snap.exists && snap.data().data){
+        frota = snap.data().data;
+        const firestoreVersion = Number(snap.data().seedVersion||0);
+        if(firestoreVersion < FROTA_SEED_VERSION){
+          // Merge seed data (placas + operacoes) into Firestore frota
+          Object.entries(FROTA_SEED).forEach(([v, d]) => {
+            if(!frota[v]) frota[v] = d;
+            else { frota[v].placa = d.placa; frota[v].operacao = d.operacao; }
+          });
+          db.collection('pcm').doc('frota')
+            .set({ data: frota, seedVersion: FROTA_SEED_VERSION, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+            .catch(e => console.warn('Firestore frota merge:', e));
+        }
+        try{ localStorage.setItem(FROTA_STORAGE_KEY, JSON.stringify(frota)); }catch(e){}
+      } else {
+        // Documento ainda não existe: envia a base semente
         db.collection('pcm').doc('frota')
           .set({ data: frota, seedVersion: FROTA_SEED_VERSION, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-          .catch(e => console.warn('Firestore frota merge:', e));
+          .catch(e => console.warn('Firestore frota seed:', e));
       }
-      try{ localStorage.setItem(FROTA_STORAGE_KEY, JSON.stringify(frota)); }catch(e){}
-    } else {
-      // First time: push seed to Firestore
-      db.collection('pcm').doc('frota')
-        .set({ data: frota, seedVersion: FROTA_SEED_VERSION, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-        .catch(e => console.warn('Firestore frota seed:', e));
-    }
+      pcmRecebeuFrota = true;
+      if(!pcmPrimeiraCarga) renderAll();
+      pcmTentaRenderInicial(timeoutId);
+    }, err => { console.warn('Firestore frota:', err); pcmRecebeuFrota = true; pcmTentaRenderInicial(timeoutId); });
 
-    // ── overrides ──
-    if(ovSnap.exists && ovSnap.data().data){
-      overrides = ovSnap.data().data;
-      try{ localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides)); }catch(e){}
-      // Re-apply overrides to DATA
-      Object.entries(overrides).forEach(([key, updates]) => {
-        const parts = key.split('_');
-        const os = parts[0], chave = parts[1], veiculo = parts.slice(2).join('_');
-        const idx = DATA.findIndex(r =>
-          String(r.os) === os &&
-          (r.chave_erro||'') === chave &&
-          String(r.veiculo) === veiculo
-        );
-        if(idx >= 0) Object.assign(DATA[idx], updates);
-      });
-    }
-
-    // ── deletedKeys (OS excluídas da planilha) ──
-    if(delSnap.exists && delSnap.data().data){
-      deletedKeys = delSnap.data().data;
-      try{ localStorage.setItem(DELETED_KEYS_KEY, JSON.stringify(deletedKeys)); }catch(e){}
-    }
-
-    // ── hodômetro ──
-    if(hodoSnap.exists && hodoSnap.data().data){
-      let hd = hodoSnap.data().data;
-      // Migrate old array-of-all-vehicles format
-      if(Array.isArray(hd)){
-        const obj = {};
-        hd.forEach(r => { obj[String(r.veiculo)] = [r]; });
-        hd = obj;
+    // ── overrides — tempo real ──
+    db.collection('pcm').doc('overrides').onSnapshot(snap => {
+      if(snap.exists && snap.data().data){
+        overrides = snap.data().data;
+        try{ localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides)); }catch(e){}
       }
-      // Migrate old single-object-per-vehicle format → history array
-      Object.keys(hd).forEach(v => {
-        if(!Array.isArray(hd[v])) hd[v] = [hd[v]];
-        hd[v].forEach(entry => {
-          if(entry.ts === undefined || entry.ts === null){
-            const parsed = parseHodoDate(entry.dataHora);
-            entry.ts = parsed ? parsed.getTime() : null;
-          }
+      reaplicarOverrides();
+      pcmRecebeuOv = true;
+      if(!pcmPrimeiraCarga) renderAll();
+      pcmTentaRenderInicial(timeoutId);
+    }, err => { console.warn('Firestore overrides:', err); pcmRecebeuOv = true; pcmTentaRenderInicial(timeoutId); });
+
+    // ── deletedKeys (OS excluídas da planilha) — tempo real ──
+    db.collection('pcm').doc('deletedKeys').onSnapshot(snap => {
+      if(snap.exists && snap.data().data){
+        deletedKeys = snap.data().data;
+        try{ localStorage.setItem(DELETED_KEYS_KEY, JSON.stringify(deletedKeys)); }catch(e){}
+      }
+      pcmRecebeuDel = true;
+      if(!pcmPrimeiraCarga) renderAll();
+      pcmTentaRenderInicial(timeoutId);
+    }, err => { console.warn('Firestore deletedKeys:', err); pcmRecebeuDel = true; pcmTentaRenderInicial(timeoutId); });
+
+    // ── hodômetro — tempo real ──
+    db.collection('pcm').doc('hodometro').onSnapshot(snap => {
+      if(snap.exists && snap.data().data){
+        let hd = snap.data().data;
+        // Migrate old array-of-all-vehicles format
+        if(Array.isArray(hd)){
+          const obj = {};
+          hd.forEach(r => { obj[String(r.veiculo)] = [r]; });
+          hd = obj;
+        }
+        // Migrate old single-object-per-vehicle format → history array
+        Object.keys(hd).forEach(v => {
+          if(!Array.isArray(hd[v])) hd[v] = [hd[v]];
+          hd[v].forEach(entry => {
+            if(entry.ts === undefined || entry.ts === null){
+              const parsed = parseHodoDate(entry.dataHora);
+              entry.ts = parsed ? parsed.getTime() : null;
+            }
+          });
         });
-      });
-      hodoData = hd;
-      try{ localStorage.setItem(HODO_KEY, JSON.stringify(hodoData)); }catch(e){}
-    }
+        hodoData = hd;
+        try{ localStorage.setItem(HODO_KEY, JSON.stringify(hodoData)); }catch(e){}
+      }
+      pcmRecebeuHodo = true;
+      if(!pcmPrimeiraCarga) renderAll();
+      pcmTentaRenderInicial(timeoutId);
+    }, err => { console.warn('Firestore hodometro:', err); pcmRecebeuHodo = true; pcmTentaRenderInicial(timeoutId); });
 
-    // ── log ──
-    if(logSnap.exists && logSnap.data().entries){
-      const cloudEntries = logSnap.data().entries;
-      // Merge: keep local + cloud, deduplicate by id, sort newest first
-      const merged = [...logEntries, ...cloudEntries];
-      const seen = new Set();
-      logEntries = merged.filter(e => { if(seen.has(e.id)) return false; seen.add(e.id); return true; });
-      logEntries.sort((a,b) => new Date(b.ts) - new Date(a.ts));
-      pruneLog();
-      try{ localStorage.setItem(LOG_KEY, JSON.stringify(logEntries)); }catch(err){}
-    }
+    // ── log — tempo real ──
+    db.collection('pcm').doc('log').onSnapshot(snap => {
+      if(snap.exists && snap.data().entries){
+        const cloudEntries = snap.data().entries;
+        // Merge: keep local + cloud, deduplicate by id, sort newest first
+        const merged = [...logEntries, ...cloudEntries];
+        const seen = new Set();
+        logEntries = merged.filter(e => { if(seen.has(e.id)) return false; seen.add(e.id); return true; });
+        logEntries.sort((a,b) => new Date(b.ts) - new Date(a.ts));
+        pruneLog();
+        try{ localStorage.setItem(LOG_KEY, JSON.stringify(logEntries)); }catch(err){}
+      }
+      pcmRecebeuLog = true;
+      if(!pcmPrimeiraCarga) renderAll();
+      pcmTentaRenderInicial(timeoutId);
+    }, err => { console.warn('Firestore log:', err); pcmRecebeuLog = true; pcmTentaRenderInicial(timeoutId); });
 
-    // ── gns ──
-    if(gnsSnap.exists && gnsSnap.data().records){
-      gnsRecords = gnsSnap.data().records;
-      gnsNextId  = gnsRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
-      try{ localStorage.setItem(GNS_KEY, JSON.stringify(gnsRecords)); }catch(e){}
-    }
+    // ── gns — tempo real ──
+    db.collection('pcm').doc('gns').onSnapshot(snap => {
+      if(snap.exists && snap.data().records){
+        gnsRecords = snap.data().records;
+        gnsNextId  = gnsRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
+        try{ localStorage.setItem(GNS_KEY, JSON.stringify(gnsRecords)); }catch(e){}
+      }
+      pcmRecebeuGns = true;
+      if(!pcmPrimeiraCarga) renderAll();
+      pcmTentaRenderInicial(timeoutId);
+    }, err => { console.warn('Firestore gns:', err); pcmRecebeuGns = true; pcmTentaRenderInicial(timeoutId); });
 
-    // ── meta (last backup) ──
-    const lastBackup = metaSnap.exists ? metaSnap.data().lastBackup : null;
-    if(lastBackup) localStorage.setItem(BACKUP_DATE_KEY, lastBackup);
-
-    // ── Purge duplicates now that we have fresh data ──
-    purgeManualDuplicates();
-
-    showSyncStatus('✅ Sincronizado com a nuvem', 'var(--green)');
-    setTimeout(() => updateBackupLabel(lastBackup), 2000);
-
-    clearTimeout(timeoutId);
-    hideOverlay();
-
-    renderAll();
-    console.info('PCM: Firestore sync completo.');
+    // ── meta (último backup) — tempo real ──
+    db.collection('pcm').doc('meta').onSnapshot(snap => {
+      pcmLastBackup = snap.exists ? snap.data().lastBackup : null;
+      if(pcmLastBackup) localStorage.setItem(BACKUP_DATE_KEY, pcmLastBackup);
+      pcmRecebeuMeta = true;
+      if(!pcmPrimeiraCarga) updateBackupLabel(pcmLastBackup);
+      pcmTentaRenderInicial(timeoutId);
+    }, err => { console.warn('Firestore meta:', err); pcmRecebeuMeta = true; pcmTentaRenderInicial(timeoutId); });
 
   } catch(err){
     console.warn('PCM: Firestore indisponível, usando cache local.', err);
@@ -2259,6 +2288,28 @@ function saveManualRecords(list){
 
 DATA.forEach((r,i)=>{ r.origin = 'planilha'; r._edit_id = i; });
 const ORIGINAL_DATA = DATA.map(r => ({...r}));
+
+// Reseta DATA para os valores originais da planilha e reaplica os overrides atuais.
+// Idempotente: pode ser chamada quantas vezes for preciso (ex: a cada atualização em tempo real
+// vinda de outra aba/usuário) sem acumular resíduos de overrides antigos.
+function reaplicarOverrides(){
+  DATA.forEach((r,i)=>{
+    Object.assign(r, ORIGINAL_DATA[i]);
+    r.origin = 'planilha';
+    r._edit_id = i;
+  });
+  Object.entries(overrides).forEach(([key, updates]) => {
+    const parts = key.split('_');
+    const os = parts[0], chave = parts[1], veiculo = parts.slice(2).join('_');
+    const idx = DATA.findIndex(r =>
+      String(r.os) === os &&
+      (r.chave_erro||'') === chave &&
+      String(r.veiculo) === veiculo
+    );
+    if(idx >= 0) Object.assign(DATA[idx], updates);
+  });
+}
+
 let manualRecords = loadManualRecords();
 let nextManualId = 1;
 manualRecords.forEach(r=>{ r.origin = 'manual'; if(r._id >= nextManualId) nextManualId = r._id + 1; });
@@ -2840,16 +2891,8 @@ function saveOverrides(){
 
 overrides = loadOverrides();
 
-// Apply stored overrides to DATA on load
-Object.entries(overrides).forEach(([key, updates]) => {
-  const [os, chave, veiculo] = key.split('_');
-  const idx = DATA.findIndex(r =>
-    String(r.os) === os &&
-    (r.chave_erro||'') === chave &&
-    String(r.veiculo) === veiculo
-  );
-  if(idx >= 0) Object.assign(DATA[idx], updates);
-});
+// Aplica os overrides carregados do localStorage (cache local) até o Firestore responder
+reaplicarOverrides();
 
 // ── Registros da planilha excluídos pelo usuário (persistente) ──
 const DELETED_KEYS_KEY = 'pcm_deleted_keys_v1';
