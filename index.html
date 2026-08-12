@@ -1024,7 +1024,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v4.9</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v5.0</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1064,9 +1064,11 @@
 
   <section class="charts">
     <div class="card">
-      <h3>Ordens por mês — corretiva vs. preventiva</h3>
+      <h3 class="card-h-row">Ordens por mês — corretiva vs. preventiva
+        <select id="months-month" class="card-h-select"><option value="">Todos os meses</option></select>
+      </h3>
       <div class="months" id="months"></div>
-      <div class="legend">
+      <div class="legend" id="months-legend">
         <span><i class="dot" style="background:var(--orange)"></i>Corretiva</span>
         <span><i class="dot" style="background:var(--green)"></i>Preventiva</span>
       </div>
@@ -2325,6 +2327,7 @@ let sortKey = 'data', sortDir = -1;
 function renderAll(){
   renderKpis();
   renderPeriodo();
+  populateMonthsMonths();
   renderMonths();
   populateCatbarsMonths();
   renderCatBars();
@@ -2361,7 +2364,20 @@ function renderPeriodo(){
   document.getElementById('periodo').textContent = `${fmtDate(dates[0])} a ${fmtDate(dates[dates.length-1])}`;
 }
 
+// Popula o seletor de mês do card "Ordens por mês" preservando seleção atual.
+function populateMonthsMonths(){
+  const sel = document.getElementById('months-month');
+  const prev = sel.value;
+  const months = [...new Set(allRows().map(r => r.data.slice(0,7)))].sort();
+  sel.innerHTML = '<option value="">Todos os meses</option>' + months.map(m => {
+    const label = `${MESES[parseInt(m.slice(5,7),10)-1]}/${m.slice(0,4)}`;
+    return `<option value="${m}">${label}</option>`;
+  }).join('');
+  if(months.includes(prev)) sel.value = prev;
+}
+
 function renderMonths(){
+  const monthFilter = document.getElementById('months-month').value;
   const rows = allRows();
   const monthMap = {};
   rows.forEach(r=>{
@@ -2369,8 +2385,39 @@ function renderMonths(){
     if(!monthMap[key]) monthMap[key] = {c:0,p:0};
     if(r.tipo==='Corretiva') monthMap[key].c++; else if(r.tipo==='Preventiva') monthMap[key].p++;
   });
+
+  const legend = document.getElementById('months-legend');
+
+  // ── Mês específico selecionado → barras horizontais ──
+  if(monthFilter){
+    const d = monthMap[monthFilter] || {c:0,p:0};
+    const total = d.c + d.p;
+    const maxVal = Math.max(d.c, d.p, 1);
+    const items = [
+      {label:'Corretiva', n:d.c, color:'var(--orange)'},
+      {label:'Preventiva', n:d.p, color:'var(--green)'},
+    ];
+    document.getElementById('months').className = '';
+    document.getElementById('months').style.cssText = 'padding-top:8px;';
+    legend.style.display = 'none';
+    document.getElementById('months').innerHTML = items.map(({label,n,color})=>`
+      <div class="bar-row" style="margin-bottom:12px;">
+        <div class="bar-label" style="width:90px;flex:none;color:var(--chalk);font-size:13px;">${label}</div>
+        <div class="bar-track" style="flex:1;height:20px;background:var(--panel-2);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${(n/maxVal*100).toFixed(0)}%;background:${color};border-radius:3px;transition:width .3s;"></div>
+        </div>
+        <div class="bar-val" style="width:38px;flex:none;text-align:right;font-family:var(--font-mono);font-size:13px;color:var(--chalk);font-weight:600;">${n}</div>
+      </div>`).join('') +
+      `<div style="font-size:11.5px;color:var(--dim);margin-top:4px;">Total: <b style="color:var(--chalk);">${total}</b> ordens</div>`;
+    return;
+  }
+
+  // ── Todos os meses → barras verticais (comportamento original) ──
+  document.getElementById('months').className = 'months';
+  document.getElementById('months').style.cssText = '';
+  legend.style.display = '';
   const monthKeys = Object.keys(monthMap).sort();
-  const maxMonth = Math.max(...monthKeys.map(k=>monthMap[k].c+monthMap[k].p));
+  const maxMonth = Math.max(...monthKeys.map(k=>monthMap[k].c+monthMap[k].p), 1);
   document.getElementById('months').innerHTML = monthKeys.map(k=>{
     const {c,p} = monthMap[k];
     const label = MESES[parseInt(k.slice(5,7),10)-1];
@@ -2418,6 +2465,7 @@ function renderCatBars(){
     </div>`).join('');
 }
 document.getElementById('catbars-month').addEventListener('change', renderCatBars);
+document.getElementById('months-month').addEventListener('change', renderMonths);
 
 // ---- Filters ----
 function uniqueSorted(field){
@@ -3759,7 +3807,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v4.9 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v5.0 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // GNS — Garantia de Nível de Serviço
