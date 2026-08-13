@@ -107,7 +107,7 @@
   /* Charts row */
   .charts{
     display:grid;
-    grid-template-columns:1.3fr 1fr;
+    grid-template-columns:1fr 1fr 1fr;
     gap:14px;
     margin-bottom:26px;
   }
@@ -206,6 +206,75 @@
     font-size:12px;padding:8px 12px;border-radius:3px;cursor:pointer;font-family:var(--font-body);
   }
   .clear-btn:hover{border-color:var(--orange);color:var(--orange);}
+
+  /* Solicitações de Reparo — vínculo no cadastro de OS */
+  .sol-link-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    max-height:220px;
+    overflow-y:auto;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--panel-2);
+    padding:6px;
+  }
+  .sol-link-empty{
+    color:var(--dim);
+    font-size:11.5px;
+    padding:10px 6px;
+    text-align:center;
+  }
+  .sol-link-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:7px 8px;
+  }
+  .sol-link-item-info{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .sol-link-item-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    color:var(--dim);
+  }
+  .sol-link-item-num{ color:var(--amber); font-weight:600; }
+  .sol-link-item-desc{
+    font-size:12.5px;
+    color:var(--chalk);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+  }
+  .sol-link-add-btn{
+    flex:none;
+    width:26px; height:26px;
+    border-radius:3px;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--green);
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .sol-link-add-btn:hover{ border-color:var(--green); background:rgba(79,180,119,.12); }
+  .sol-link-add-btn.added{ color:var(--dim); border-color:var(--line); cursor:default; }
 
   /* Table */
   .table-wrap{
@@ -928,6 +997,10 @@
     .hodo-right{position:static;}
   }
 
+  @media(max-width:1200px){
+    .charts{grid-template-columns:1fr 1fr;}
+  }
+
   @media(max-width:900px){
     .kpis{grid-template-columns:repeat(2,1fr);}
     .charts{grid-template-columns:1fr;}
@@ -986,6 +1059,53 @@
     .gns-list-card thead th,.gns-list-card tbody td{padding:8px 9px;}
     tbody td.desc{min-width:160px;}
 
+    /* Ordens de Serviço: tabela vira lista de cards (sem scroll horizontal) */
+    #tab-ordens .table-wrap{border:none;background:transparent;overflow:visible;-webkit-overflow-scrolling:auto;}
+    #tab-ordens table{display:block;width:100%;border-collapse:separate;font-size:12.5px;}
+    #tab-ordens thead{display:none;}
+    #tab-ordens tbody{display:block;}
+    #tab-ordens tbody tr{
+      display:block;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:6px;
+      padding:2px 14px;
+      margin-bottom:10px;
+    }
+    #tab-ordens tbody tr:hover{background:var(--panel);}
+    #tab-ordens tbody td{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      padding:9px 0;
+      border-bottom:1px dashed var(--line);
+      white-space:normal;
+      text-align:right;
+    }
+    #tab-ordens tbody td:last-child{border-bottom:none;}
+    #tab-ordens tbody td::before{
+      content:attr(data-label);
+      flex:none;
+      max-width:40%;
+      font-family:var(--font-mono);
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      color:var(--dim);
+      text-align:left;
+      padding-top:1px;
+    }
+    #tab-ordens tbody td.desc{flex-direction:column;align-items:flex-start;gap:5px;text-align:left;}
+    #tab-ordens tbody td.desc::before{padding-top:0;}
+    #tab-ordens tbody td[data-label="Ações"]{justify-content:flex-end;padding-top:11px;}
+    #tab-ordens tbody td[data-label="Ações"]::before{display:none;}
+    #tab-ordens tbody td[data-label="Ações"] .edit-btn,
+    #tab-ordens tbody td[data-label="Ações"] .del-btn{
+      min-width:42px;min-height:38px;font-size:15px;
+    }
+    #tab-ordens .count{width:100%;order:98;}
+
     /* Toolbars diversas */
     .frota-toolbar,.gns-toolbar{flex-direction:column;align-items:stretch;}
     .frota-toolbar input,.gns-toolbar input,.gns-toolbar select{width:100%;font-size:16px;}
@@ -1024,7 +1144,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v4.8</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v5.9</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1079,6 +1199,12 @@
         <select id="catbars-month" class="card-h-select"><option value="">Todos os meses</option></select>
       </h3>
       <div id="catbars"></div>
+    </div>
+    <div class="card">
+      <h3 class="card-h-row">Top veículos com mais intervenções
+        <select id="vehbars-month" class="card-h-select"><option value="">Todos os meses</option></select>
+      </h3>
+      <div id="vehbars"></div>
     </div>
   </section>
 
@@ -1797,6 +1923,13 @@
       <textarea id="in-obs" placeholder="opcional"></textarea>
     </div>
 
+    <div class="field">
+      <label>Solicitações de Reparo <span style="color:var(--dim);font-size:10px;margin-left:4px;">deste veículo</span></label>
+      <div class="sol-link-list" id="sol-link-list">
+        <div class="sol-link-empty">Informe o veículo para ver solicitações de reparo relacionadas.</div>
+      </div>
+    </div>
+
     <div class="reinc-block" id="reinc-preview" style="display:none;">
       <div style="color:var(--red);font-family:var(--font-mono);font-size:12px;font-weight:600;">⚠️ REINCIDÊNCIA DETECTADA</div>
       <div id="reinc-preview-text" style="color:var(--dim);font-size:12px;margin-top:4px;"></div>
@@ -2296,6 +2429,7 @@ async function initFirestore(){
         solRecords = snap.data().records;
         solNextId  = solRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
         try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
+        if(typeof renderSolLinkList === 'function' && drawer && drawer.classList.contains('open')) renderSolLinkList();
       }
       pcmRecebeuSol = true;
       if(!pcmPrimeiraCarga) renderAll();
@@ -2388,6 +2522,8 @@ function renderAll(){
   renderMonths();
   populateCatbarsMonths();
   renderCatBars();
+  populateVehbarsMonths();
+  renderVehBars();
   refreshSelectsPreservingValue();
   refreshDatalists();
   applyFilters();
@@ -2524,6 +2660,53 @@ function renderCatBars(){
 document.getElementById('catbars-month').addEventListener('change', renderCatBars);
 document.getElementById('months-month').addEventListener('change', renderMonths);
 
+// Popula o seletor de mês do card "Top veículos com mais intervenções" com os
+// meses presentes na base, preservando a seleção atual quando possível.
+function populateVehbarsMonths(){
+  const sel = document.getElementById('vehbars-month');
+  const prev = sel.value;
+  const months = [...new Set(allRows().map(r => r.data.slice(0,7)))].sort();
+  sel.innerHTML = '<option value="">Todos os meses</option>' + months.map(m => {
+    const label = `${MESES[parseInt(m.slice(5,7),10)-1]}/${m.slice(0,4)}`;
+    return `<option value="${m}">${label}</option>`;
+  }).join('');
+  if(months.includes(prev)) sel.value = prev;
+}
+
+// "Intervenções" = número de ordens de serviço distintas (OS) por veículo —
+// evita contar múltiplas vezes uma OS que tenha vários pares setor/categoria.
+function renderVehBars(){
+  const monthFilter = document.getElementById('vehbars-month').value;
+  const rows = allRows().filter(r => !monthFilter || r.data.slice(0,7) === monthFilter);
+  const vehOs = {};
+  rows.forEach(r=>{
+    if(!r.veiculo) return;
+    const key = String(r.veiculo);
+    if(!vehOs[key]) vehOs[key] = new Set();
+    vehOs[key].add(String(r.os));
+  });
+  const topVeh = Object.entries(vehOs)
+    .map(([veiculo, osSet]) => [veiculo, osSet.size])
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,8);
+  if(topVeh.length===0){
+    document.getElementById('vehbars').innerHTML = '<div style="color:var(--dim);font-size:12.5px;">Nenhuma ordem neste período.</div>';
+    return;
+  }
+  const maxVeh = topVeh[0][1];
+  document.getElementById('vehbars').innerHTML = topVeh.map(([veiculo,n])=>{
+    const op = getOperacao(veiculo);
+    const label = op ? `${veiculo} · ${op}` : veiculo;
+    return `
+    <div class="bar-row">
+      <div class="bar-label">${label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(n/maxVeh*100).toFixed(0)}%"></div></div>
+      <div class="bar-val">${n}</div>
+    </div>`;
+  }).join('');
+}
+document.getElementById('vehbars-month').addEventListener('change', renderVehBars);
+
 // ---- Filters ----
 function uniqueSorted(field){
   const s = new Set();
@@ -2612,17 +2795,17 @@ function updateSortIndicators(){
 function renderTable(rows){
   document.getElementById('tbody').innerHTML = rows.map(r=>`
     <tr>
-      <td>${fmtDate(r.data)}</td>
-      <td>${r.veiculo}</td>
-      <td class="os-code">${r.os}</td>
-      <td>${r.operacao ? `<span class="${opClass(r.operacao)}">${r.operacao}</span>` : ''}</td>
-      <td><span class="pill ${r.tipo}">${r.tipo}</span></td>
-      <td>${r.pares ? [...new Set(r.pares.map(p=>p.setor))].join(', ') : (r.setor||'')}</td>
-      <td>${r.pares ? r.pares.map(p=>p.categoria||'—').join(', ') : (r.categoria||'')}</td>
-      <td class="desc">${r.descricao||''}${r.origin==='manual' ? '<span class="origin-manual">M</span>' : ''}</td>
-      <td>${r.responsavel||'—'}</td>
-      <td>${r.reincidente_bool ? `<span class="flag-reinc">${r.reincidente}</span>` : `<span class="flag-ok">Não</span>`}</td>
-      <td style="display:flex;gap:4px;align-items:center;">
+      <td data-label="Data">${fmtDate(r.data)}</td>
+      <td data-label="Veículo">${r.veiculo}</td>
+      <td class="os-code" data-label="OS">${r.os}</td>
+      <td data-label="Operação">${r.operacao ? `<span class="${opClass(r.operacao)}">${r.operacao}</span>` : ''}</td>
+      <td data-label="Tipo"><span class="pill ${r.tipo}">${r.tipo}</span></td>
+      <td data-label="Setor">${r.pares ? [...new Set(r.pares.map(p=>p.setor))].join(', ') : (r.setor||'')}</td>
+      <td data-label="Categoria">${r.pares ? r.pares.map(p=>p.categoria||'—').join(', ') : (r.categoria||'')}</td>
+      <td class="desc" data-label="Descrição">${r.descricao||''}${r.origin==='manual' ? '<span class="origin-manual">M</span>' : ''}</td>
+      <td data-label="Responsável">${r.responsavel||'—'}</td>
+      <td data-label="Reincidência">${r.reincidente_bool ? `<span class="flag-reinc">${r.reincidente}</span>` : `<span class="flag-ok">Não</span>`}</td>
+      <td data-label="Ações" style="display:flex;gap:4px;align-items:center;">
         <button class="edit-btn" data-id="${r.origin==='manual' ? r._id : r._edit_id}" data-origin="${r.origin}" title="Editar">✏️</button>
         <button class="del-btn" data-id="${r.origin==='manual' ? r._id : r._edit_id}" data-origin="${r.origin}" title="Remover">✕</button>
       </td>
@@ -2695,6 +2878,7 @@ function openDrawer(){
   const today = new Date().toISOString().slice(0,10);
   document.getElementById('in-data').value = today;
   updateHodoPreview();
+  if(typeof renderSolLinkList === 'function') renderSolLinkList();
   overlay.classList.add('open');
   drawer.classList.add('open');
 }
@@ -2722,6 +2906,7 @@ function clearForm(){
   // Reset pairs
   osPairs = [];
   renderPairs();
+  if(typeof renderSolLinkList === 'function') renderSolLinkList();
 }
 
 document.getElementById('drawer-submit').addEventListener('click', ()=>{
@@ -3766,7 +3951,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v4.8 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v5.9 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -3800,6 +3985,67 @@ function saveSol(){
 }
 
 loadSol();
+
+// ── Vínculo: Solicitações de Reparo dentro do cadastro de OS ──
+function esc(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderSolLinkList(){
+  const listEl = document.getElementById('sol-link-list');
+  if(!listEl) return;
+  const veiculoEl = document.getElementById('in-veiculo');
+  const veiculo = veiculoEl ? veiculoEl.value.trim() : '';
+
+  if(!veiculo){
+    listEl.innerHTML = '<div class="sol-link-empty">Informe o veículo para ver solicitações de reparo relacionadas.</div>';
+    return;
+  }
+
+  const matches = solRecords
+    .filter(r => String(r.veiculo||'').trim() === veiculo)
+    .sort((a,b) => String(b.data||'').localeCompare(String(a.data||'')));
+
+  if(!matches.length){
+    listEl.innerHTML = '<div class="sol-link-empty">Nenhuma solicitação de reparo cadastrada para este veículo.</div>';
+    return;
+  }
+
+  listEl.innerHTML = matches.map(r => `
+    <div class="sol-link-item">
+      <div class="sol-link-item-info">
+        <div class="sol-link-item-top">
+          <span class="sol-link-item-num">${esc(r.num||'—')}</span>
+          <span>${fmtDateBR(r.data)}</span>
+        </div>
+        <div class="sol-link-item-desc">${esc(r.descricao || '—')}</div>
+      </div>
+      <button type="button" class="sol-link-add-btn" title="Adicionar à descrição da OS" onclick="solLinkAddToDescricao(${r.id}, this)">+</button>
+    </div>
+  `).join('');
+}
+
+// Adiciona a descrição da solicitação de reparo como uma nova linha abaixo da descrição da OS
+function solLinkAddToDescricao(id, btnEl){
+  const r = solRecords.find(x => x.id === id);
+  if(!r) return;
+  const linha = (r.descricao||'').trim();
+  if(!linha) return;
+
+  const descEl = document.getElementById('in-descricao');
+  if(!descEl) return;
+
+  const atual = descEl.value.replace(/\s+$/,'');
+  descEl.value = atual ? `${atual}\n${linha}` : linha;
+
+  if(btnEl){
+    btnEl.textContent = '✓';
+    btnEl.classList.add('added');
+  }
+}
+
+document.getElementById('in-veiculo').addEventListener('input', renderSolLinkList);
+
 // Pre-populate the auto número field so it shows on first open
 setTimeout(() => {
   const numEl = document.getElementById('sol-num');
