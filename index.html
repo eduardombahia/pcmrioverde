@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCM Rio Verde — Controle 2026</title>
+<title>PCM - Rio Verde</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -72,6 +72,8 @@
     grid-template-columns:repeat(5,1fr);
     gap:14px;
     margin-bottom:26px;
+    width:100%;
+    box-sizing:border-box;
   }
   .kpi{
     background:var(--panel);
@@ -442,7 +444,7 @@
   .tab-btn:hover{color:var(--chalk);}
   .tab-btn.active{color:var(--amber); border-bottom-color:var(--amber);}
   .tab-panel{display:none;}
-  .tab-panel.active{display:block;}
+  .tab-panel.active{display:block; width:100%;}
 
   /* ── Sidebar (menu recolhível) ── */
   .app-shell{
@@ -885,7 +887,7 @@
   .gns-actions .btn-cancel{padding:9px 16px;}
 
   .gns-list-card{
-    background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:auto;
+    background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:auto;width:100%;box-sizing:border-box;
   }
   .gns-toolbar{
     display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;
@@ -999,10 +1001,12 @@
 
   @media(max-width:1200px){
     .charts{grid-template-columns:1fr 1fr;}
+    .charts .card:last-child{grid-column:1 / -1;}
   }
 
   @media(max-width:900px){
     .kpis{grid-template-columns:repeat(2,1fr);}
+    .kpis .kpi:last-child{grid-column:1 / -1;}
     .charts{grid-template-columns:1fr;}
     .field-row{grid-template-columns:1fr;}
   }
@@ -1025,6 +1029,7 @@
 
     /* KPIs em duas colunas, cartões menores */
     .kpis{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px;}
+    .kpis .kpi:last-child{grid-column:1 / -1;}
     .kpi{padding:12px 14px;}
     .kpi .n{font-size:24px;}
     .kpi .l{font-size:10px;letter-spacing:.05em;}
@@ -1131,9 +1136,69 @@
     }
   }
 
+
+  /* ── Slim toolbar (GNS / Solicitações) ── */
+  .slim-toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    margin-bottom:14px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:12px 16px;
+    width:100%;
+    box-sizing:border-box;
+  }
+  .slim-toolbar > input[type=text]{
+    flex:1;
+    min-width:160px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--chalk);
+    font-family:var(--font-body);
+    font-size:13px;
+    padding:8px 10px;
+    border-radius:3px;
+    outline:none;
+  }
+  .slim-toolbar > input[type=text]:focus{border-color:var(--amber);}
+  .slim-toolbar-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:nowrap;
+  }
+  .slim-toolbar-actions select{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--chalk);
+    font-family:var(--font-body);
+    font-size:13px;
+    padding:8px 10px;
+    border-radius:3px;
+    outline:none;
+  }
+  .slim-toolbar-actions select:focus{border-color:var(--amber);}
+  .slim-count{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--dim);
+    white-space:nowrap;
+  }
+  .slim-count b{color:var(--amber);}
+
+  @media(max-width:600px){
+    .slim-toolbar{flex-direction:column;align-items:stretch;gap:8px;}
+    .slim-toolbar > input[type=text]{font-size:16px;padding:10px;}
+    .slim-toolbar-actions{justify-content:space-between;}
+    .slim-toolbar-actions select{font-size:16px;flex:1;}
+    .slim-toolbar-actions .add-btn{flex:1;justify-content:center;}
+  }
+
   @media(max-width:380px){
     .kpis{grid-template-columns:1fr;}
-    .gns-kpi{min-width:100%;}
   }
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1144,7 +1209,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v5.9</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v5.3</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1251,85 +1316,90 @@
 
 <!-- ═══════════════ SOLICITAÇÕES DE REPARO TAB ═══════════════ -->
 <div id="tab-solicitacoes" class="tab-panel">
-  <div class="gns-kpis" id="sol-kpis"></div>
+  <div class="kpis" id="sol-kpis" style="margin-bottom:16px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));"></div>
 
-  <div class="gns-layout">
-    <!-- ── Formulário ── -->
-    <div class="gns-form-card" id="sol-form-card">
-      <h3 id="sol-form-title">➕ Nova Solicitação de Reparo</h3>
-
-      <div class="gns-field">
-        <label>Nº da Solicitação <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-        <input type="text" id="sol-num" readonly style="color:var(--amber);cursor:default;">
-      </div>
-
-      <div class="gns-field">
-        <label for="sol-data">Data</label>
-        <input type="date" id="sol-data">
-      </div>
-
-      <div class="gns-field">
-        <label for="sol-veiculo">Veículo *</label>
-        <input type="text" id="sol-veiculo" list="dl-veiculo" placeholder="ex: 222423" autocomplete="off">
-      </div>
-
-      <div class="gns-field">
-        <label for="sol-operacao">Operação <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-        <input type="text" id="sol-operacao" readonly style="color:var(--amber);cursor:default;" placeholder="—">
-      </div>
-
-      <div class="gns-field">
-        <label for="sol-descricao">Descrição</label>
-        <textarea id="sol-descricao" placeholder="Descreva o reparo solicitado…"></textarea>
-      </div>
-
-      <div class="gns-field">
-        <label for="sol-motorista">Motorista</label>
-        <input type="text" id="sol-motorista" placeholder="Nome do motorista">
-      </div>
-
-      <div class="gns-field">
-        <label for="sol-lider">Líder Requisitante</label>
-        <input type="text" id="sol-lider" placeholder="Nome do líder requisitante">
-      </div>
-
-      <div id="sol-form-error" style="color:var(--red);font-size:12px;margin-top:6px;display:none;"></div>
-
-      <div class="gns-actions">
-        <button class="btn-submit" id="sol-submit-btn">Salvar Solicitação</button>
-        <button class="btn-cancel" id="sol-cancel-btn" style="display:none;">Cancelar</button>
-      </div>
+  <!-- ── Listagem ── -->
+  <div class="slim-toolbar">
+    <input type="text" id="sol-search" placeholder="Buscar por nº, veículo, motorista, líder…">
+    <div class="slim-toolbar-actions">
+      <button class="clear-btn" id="sol-export-btn" title="Exportar como CSV">⬇ Exportar</button>
+      <span class="slim-count" id="sol-count"></span>
+      <button class="add-btn" id="sol-add-btn"><span class="plus">+</span> Nova Solicitação</button>
     </div>
+  </div>
 
-    <!-- ── Listagem ── -->
-    <div>
-      <div class="gns-toolbar">
-        <input type="text" id="sol-search" placeholder="Buscar por nº, veículo, motorista, líder…">
-        <button class="btn-secondary" id="sol-export-btn" title="Exportar como CSV">⬇ Exportar</button>
-        <span class="gns-count" id="sol-count"></span>
-      </div>
-
-      <div class="gns-list-card">
-        <table>
-          <thead>
-            <tr>
-              <th data-sort="num">Nº Solicitação</th>
-              <th data-sort="data">Data</th>
-              <th data-sort="veiculo">Veículo</th>
-              <th data-sort="operacao">Operação</th>
-              <th data-sort="descricao">Descrição</th>
-              <th data-sort="motorista">Motorista</th>
-              <th data-sort="lider">Líder Requisitante</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="sol-tbody"></tbody>
-        </table>
-      </div>
-    </div>
+  <div class="gns-list-card">
+    <table>
+      <thead>
+        <tr>
+          <th data-sort="num">Nº Solicitação</th>
+          <th data-sort="data">Data</th>
+          <th data-sort="veiculo">Veículo</th>
+          <th data-sort="operacao">Operação</th>
+          <th data-sort="descricao">Descrição</th>
+          <th data-sort="motorista">Motorista</th>
+          <th data-sort="lider">Líder Requisitante</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="sol-tbody"></tbody>
+    </table>
   </div>
 </div>
 <!-- /tab-solicitacoes -->
+
+<!-- ── Solicitação de Reparo: drawer (novo / editar) ── -->
+<div class="overlay" id="sol-overlay"></div>
+<aside class="drawer" id="sol-drawer">
+  <div class="drawer-head">
+    <div class="eyebrow">Solicitação de Reparo</div>
+    <h2 id="sol-form-title">Nova Solicitação</h2>
+    <button class="drawer-close" id="sol-drawer-close">&times;</button>
+  </div>
+  <div class="drawer-body">
+    <div class="gns-field">
+      <label>Nº da Solicitação <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
+      <input type="text" id="sol-num" readonly style="color:var(--amber);cursor:default;">
+    </div>
+
+    <div class="gns-field">
+      <label for="sol-data">Data</label>
+      <input type="date" id="sol-data">
+    </div>
+
+    <div class="gns-field">
+      <label for="sol-veiculo">Veículo *</label>
+      <input type="text" id="sol-veiculo" list="dl-veiculo" placeholder="ex: 222423" autocomplete="off">
+    </div>
+
+    <div class="gns-field">
+      <label for="sol-operacao">Operação <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
+      <input type="text" id="sol-operacao" readonly style="color:var(--amber);cursor:default;" placeholder="—">
+    </div>
+
+    <div class="gns-field">
+      <label for="sol-descricao">Descrição</label>
+      <textarea id="sol-descricao" placeholder="Descreva o reparo solicitado…"></textarea>
+    </div>
+
+    <div class="gns-field">
+      <label for="sol-motorista">Motorista</label>
+      <input type="text" id="sol-motorista" placeholder="Nome do motorista">
+    </div>
+
+    <div class="gns-field">
+      <label for="sol-lider">Líder Requisitante</label>
+      <input type="text" id="sol-lider" placeholder="Nome do líder requisitante">
+    </div>
+
+    <div id="sol-form-error" style="color:var(--red);font-size:12px;margin-top:6px;display:none;"></div>
+
+    <div class="gns-actions">
+      <button class="btn-submit" id="sol-submit-btn">Salvar Solicitação</button>
+      <button class="btn-cancel" id="sol-cancel-btn">Cancelar</button>
+    </div>
+  </div>
+</aside>
 
 <!-- ═══════════════ FROTA TAB ═══════════════ -->
 <div id="tab-frota" class="tab-panel">
@@ -1503,94 +1573,99 @@
 <!-- ═══════════════ GNS TAB ═══════════════ -->
 <div id="tab-gns" class="tab-panel">
   <!-- KPIs summary -->
-  <div class="gns-kpis" id="gns-kpis"></div>
+  <div class="kpis" id="gns-kpis" style="margin-bottom:16px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));"></div>
 
-  <div class="gns-layout">
-    <!-- ── Formulário ── -->
-    <div class="gns-form-card" id="gns-form-card">
-      <h3 id="gns-form-title">➕ Novo GNS</h3>
-
-      <div class="gns-field">
-        <label for="gns-os-input">Número da OS</label>
-        <input type="text" id="gns-os-input" placeholder="Ex: 1145231" autocomplete="off">
-        <div class="os-preview" id="gns-os-preview">Digite o nº da OS para buscar</div>
-      </div>
-
-      <div class="gns-field">
-        <label>Nº do GNS <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-        <input type="text" id="gns-num" readonly style="color:var(--amber);cursor:default;">
-      </div>
-
-      <div class="gns-field">
-        <label for="gns-veiculo-display">Veículo <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-        <input type="text" id="gns-veiculo-display" readonly style="color:var(--amber);cursor:default;" placeholder="—">
-      </div>
-
-      <div class="gns-field">
-        <label for="gns-data-entrada">Data de Entrada em GNS <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-        <input type="date" id="gns-data-entrada" readonly style="color:var(--amber);cursor:default;">
-      </div>
-
-      <div class="gns-field">
-        <label for="gns-data-lib">Data de Liberação Real</label>
-        <input type="date" id="gns-data-lib">
-        <div class="field-hint">Ao preencher, status muda para Liberado automaticamente</div>
-      </div>
-
-      <div class="gns-field">
-        <label for="gns-status">Status</label>
-        <select id="gns-status">
-          <option value="Em GNS">Em GNS</option>
-          <option value="Liberado">Liberado</option>
-        </select>
-      </div>
-
-      <div class="gns-field">
-        <label for="gns-obs">Observações</label>
-        <textarea id="gns-obs" placeholder="Motivo do GNS, peças aguardadas, etc."></textarea>
-      </div>
-
-      <div id="gns-form-error" style="color:var(--red);font-size:12px;margin-top:6px;display:none;"></div>
-
-      <div class="gns-actions">
-        <button class="btn-submit" id="gns-submit-btn">Salvar GNS</button>
-        <button class="btn-cancel" id="gns-cancel-btn" style="display:none;">Cancelar</button>
-      </div>
-    </div>
-
-    <!-- ── Listagem ── -->
-    <div>
-      <div class="gns-toolbar">
-        <input type="text" id="gns-search" placeholder="Buscar por GNS, OS, veículo…">
-        <select id="gns-filter-status">
-          <option value="">Todos os status</option>
-          <option value="Em GNS">Em GNS</option>
-          <option value="Liberado">Liberado</option>
-        </select>
-        <button class="btn-secondary" id="gns-export-btn" title="Exportar GNS como CSV">⬇ Exportar</button>
-        <span class="gns-count" id="gns-count"></span>
-      </div>
-
-      <div class="gns-list-card">
-        <table>
-          <thead>
-            <tr>
-              <th data-sort="num">Nº GNS</th>
-              <th data-sort="os">OS</th>
-              <th data-sort="veiculo">Veículo</th>
-              <th data-sort="dataEntrada">Entrada</th>
-              <th data-sort="dataLib">Liberação</th>
-              <th data-sort="dias">Dias</th>
-              <th data-sort="status">Status</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="gns-tbody"></tbody>
-        </table>
-      </div>
+  <!-- ── Listagem ── -->
+  <div class="slim-toolbar">
+    <input type="text" id="gns-search" placeholder="Buscar por GNS, OS, veículo…">
+    <div class="slim-toolbar-actions">
+      <select id="gns-filter-status">
+        <option value="">Status: todos</option>
+        <option value="Em GNS">Em GNS</option>
+        <option value="Liberado">Liberado</option>
+      </select>
+      <button class="clear-btn" id="gns-export-btn" title="Exportar GNS como CSV">⬇ Exportar</button>
+      <span class="slim-count" id="gns-count"></span>
+      <button class="add-btn" id="gns-add-btn"><span class="plus">+</span> Novo GNS</button>
     </div>
   </div>
+
+  <div class="gns-list-card">
+    <table>
+      <thead>
+        <tr>
+          <th data-sort="num">Nº GNS</th>
+          <th data-sort="os">OS</th>
+          <th data-sort="veiculo">Veículo</th>
+          <th data-sort="dataEntrada">Entrada</th>
+          <th data-sort="dataLib">Liberação</th>
+          <th data-sort="dias">Dias</th>
+          <th data-sort="status">Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="gns-tbody"></tbody>
+    </table>
+  </div>
 </div>
+
+<!-- ── GNS: drawer (novo / editar) ── -->
+<div class="overlay" id="gns-overlay"></div>
+<aside class="drawer" id="gns-drawer">
+  <div class="drawer-head">
+    <div class="eyebrow">GNS</div>
+    <h2 id="gns-form-title">Novo GNS</h2>
+    <button class="drawer-close" id="gns-drawer-close">&times;</button>
+  </div>
+  <div class="drawer-body">
+    <div class="gns-field">
+      <label for="gns-os-input">Número da OS</label>
+      <input type="text" id="gns-os-input" placeholder="Ex: 1145231" autocomplete="off">
+      <div class="os-preview" id="gns-os-preview">Digite o nº da OS para buscar</div>
+    </div>
+
+    <div class="gns-field">
+      <label>Nº do GNS <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
+      <input type="text" id="gns-num" readonly style="color:var(--amber);cursor:default;">
+    </div>
+
+    <div class="gns-field">
+      <label for="gns-veiculo-display">Veículo <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
+      <input type="text" id="gns-veiculo-display" readonly style="color:var(--amber);cursor:default;" placeholder="—">
+    </div>
+
+    <div class="gns-field">
+      <label for="gns-data-entrada">Data de Entrada em GNS <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
+      <input type="date" id="gns-data-entrada" readonly style="color:var(--amber);cursor:default;">
+    </div>
+
+    <div class="gns-field">
+      <label for="gns-data-lib">Data de Liberação Real</label>
+      <input type="date" id="gns-data-lib">
+      <div class="field-hint">Ao preencher, status muda para Liberado automaticamente</div>
+    </div>
+
+    <div class="gns-field">
+      <label for="gns-status">Status</label>
+      <select id="gns-status">
+        <option value="Em GNS">Em GNS</option>
+        <option value="Liberado">Liberado</option>
+      </select>
+    </div>
+
+    <div class="gns-field">
+      <label for="gns-obs">Observações</label>
+      <textarea id="gns-obs" placeholder="Motivo do GNS, peças aguardadas, etc."></textarea>
+    </div>
+
+    <div id="gns-form-error" style="color:var(--red);font-size:12px;margin-top:6px;display:none;"></div>
+
+    <div class="gns-actions">
+      <button class="btn-submit" id="gns-submit-btn">Salvar GNS</button>
+      <button class="btn-cancel" id="gns-cancel-btn">Cancelar</button>
+    </div>
+  </div>
+</aside>
 
 <!-- ═══════════════ HODÔMETRO TAB ═══════════════ -->
 <div id="tab-hodometro" class="tab-panel">
@@ -2792,6 +2867,27 @@ function updateSortIndicators(){
   });
 }
 
+// ── Formata coluna Categoria: até 3 itens, se mais → "A, B, C +"
+function fmtCategorias(r){
+  let cats;
+  if(r.pares && r.pares.length){
+    cats = r.pares.map(p => p.categoria||'—');
+  } else {
+    cats = r.categoria ? [r.categoria] : ['—'];
+  }
+  if(cats.length <= 3) return cats.join(', ');
+  return cats.slice(0,3).join(', ') + ' <span title="' + cats.join(', ') + '" style="cursor:default;color:var(--amber);font-family:var(--font-mono);font-size:11px;">+</span>';
+}
+
+// ── Formata coluna Reincidência: se >1 ocorrência separada por " • ", mostra a 1ª + "+"
+function fmtReincidencia(r){
+  if(!r.reincidente_bool) return '<span class="flag-ok">Não</span>';
+  const partes = r.reincidente.split(' • ');
+  if(partes.length <= 1) return `<span class="flag-reinc">${r.reincidente}</span>`;
+  const tooltip = r.reincidente.replace(/"/g, '&quot;');
+  return `<span class="flag-reinc">${partes[0]} <span title="${tooltip}" style="cursor:default;color:var(--amber);font-family:var(--font-mono);font-size:11px;">+</span></span>`;
+}
+
 function renderTable(rows){
   document.getElementById('tbody').innerHTML = rows.map(r=>`
     <tr>
@@ -2801,10 +2897,10 @@ function renderTable(rows){
       <td data-label="Operação">${r.operacao ? `<span class="${opClass(r.operacao)}">${r.operacao}</span>` : ''}</td>
       <td data-label="Tipo"><span class="pill ${r.tipo}">${r.tipo}</span></td>
       <td data-label="Setor">${r.pares ? [...new Set(r.pares.map(p=>p.setor))].join(', ') : (r.setor||'')}</td>
-      <td data-label="Categoria">${r.pares ? r.pares.map(p=>p.categoria||'—').join(', ') : (r.categoria||'')}</td>
+      <td data-label="Categoria">${fmtCategorias(r)}</td>
       <td class="desc" data-label="Descrição">${r.descricao||''}${r.origin==='manual' ? '<span class="origin-manual">M</span>' : ''}</td>
       <td data-label="Responsável">${r.responsavel||'—'}</td>
-      <td data-label="Reincidência">${r.reincidente_bool ? `<span class="flag-reinc">${r.reincidente}</span>` : `<span class="flag-ok">Não</span>`}</td>
+      <td data-label="Reincidência">${fmtReincidencia(r)}</td>
       <td data-label="Ações" style="display:flex;gap:4px;align-items:center;">
         <button class="edit-btn" data-id="${r.origin==='manual' ? r._id : r._edit_id}" data-origin="${r.origin}" title="Editar">✏️</button>
         <button class="del-btn" data-id="${r.origin==='manual' ? r._id : r._edit_id}" data-origin="${r.origin}" title="Remover">✕</button>
@@ -3951,7 +4047,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v5.9 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v5.3 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -4071,9 +4167,9 @@ function renderSolKpis(){
   const veiculosUnicos = new Set(solRecords.map(r => r.veiculo).filter(Boolean)).size;
 
   document.getElementById('sol-kpis').innerHTML = `
-    <div class="gns-kpi"><div class="gns-kpi-n">${total}</div><div class="gns-kpi-l">Total de Solicitações</div></div>
-    <div class="gns-kpi andamento"><div class="gns-kpi-n">${hojeN}</div><div class="gns-kpi-l">Hoje</div></div>
-    <div class="gns-kpi media"><div class="gns-kpi-n">${veiculosUnicos}</div><div class="gns-kpi-l">Veículos distintos</div></div>
+    <div class="kpi veic"><div class="n">${total}</div><div class="l">Total de Solicitações</div></div>
+    <div class="kpi" style="--accent:var(--amber)"><div class="n">${hojeN}</div><div class="l">Hoje</div></div>
+    <div class="kpi" style="--accent:var(--green)"><div class="n">${veiculosUnicos}</div><div class="l">Veículos distintos</div></div>
   `;
 }
 
@@ -4108,7 +4204,7 @@ function renderSolTab(){
     return 0;
   });
 
-  document.getElementById('sol-count').textContent = `${rows.length} registro${rows.length!==1?'s':''}`;
+  document.getElementById('sol-count').innerHTML = `<b>${rows.length}</b> reg.`;
 
   const tbody = document.getElementById('sol-tbody');
   if(!rows.length){
@@ -4149,12 +4245,24 @@ document.querySelectorAll('#tab-solicitacoes .gns-list-card thead th[data-sort]'
 // ── Filter/search live ────────────────────────────────────
 document.getElementById('sol-search').addEventListener('input', renderSolTab);
 
+// ── Drawer open/close ────────────────────────────────────
+function openSolDrawer(){
+  document.getElementById('sol-overlay').classList.add('open');
+  document.getElementById('sol-drawer').classList.add('open');
+}
+function closeSolDrawer(){
+  document.getElementById('sol-overlay').classList.remove('open');
+  document.getElementById('sol-drawer').classList.remove('open');
+}
+document.getElementById('sol-add-btn').addEventListener('click', () => { solResetForm(); openSolDrawer(); });
+document.getElementById('sol-drawer-close').addEventListener('click', closeSolDrawer);
+document.getElementById('sol-overlay').addEventListener('click', closeSolDrawer);
+
 // ── Form reset ────────────────────────────────────────────
 function solResetForm(){
   solEditId = null;
   document.getElementById('sol-form-title').textContent = '➕ Nova Solicitação de Reparo';
   document.getElementById('sol-submit-btn').textContent = 'Salvar Solicitação';
-  document.getElementById('sol-cancel-btn').style.display = 'none';
   document.getElementById('sol-num').value = solNextNum();   // auto next number
   document.getElementById('sol-data').value = new Date().toISOString().slice(0,10);
   document.getElementById('sol-veiculo').value = '';
@@ -4172,7 +4280,6 @@ function solEditOpen(id){
   solEditId = id;
   document.getElementById('sol-form-title').textContent = `✏️ Editar Solicitação ${r.num||'#'+id}`;
   document.getElementById('sol-submit-btn').textContent = 'Salvar alterações';
-  document.getElementById('sol-cancel-btn').style.display = '';
   document.getElementById('sol-num').value = r.num || '';
   document.getElementById('sol-data').value = r.data || '';
   document.getElementById('sol-veiculo').value = r.veiculo || '';
@@ -4181,7 +4288,7 @@ function solEditOpen(id){
   document.getElementById('sol-motorista').value = r.motorista || '';
   document.getElementById('sol-lider').value = r.lider || '';
   document.getElementById('sol-form-error').style.display = 'none';
-  document.getElementById('sol-form-card').scrollIntoView({behavior:'smooth'});
+  openSolDrawer();
 }
 
 // ── Delete ────────────────────────────────────────────────
@@ -4226,11 +4333,12 @@ document.getElementById('sol-submit-btn').addEventListener('click', () => {
 
   saveSol();
   solResetForm();
+  closeSolDrawer();
   renderSolTab();
 });
 
 // ── Cancel ────────────────────────────────────────────────
-document.getElementById('sol-cancel-btn').addEventListener('click', solResetForm);
+document.getElementById('sol-cancel-btn').addEventListener('click', () => { solResetForm(); closeSolDrawer(); });
 
 // ── Export CSV ────────────────────────────────────────────
 document.getElementById('sol-export-btn').addEventListener('click', () => {
@@ -4331,10 +4439,10 @@ function renderGnsKpis(){
   const media    = diasArr.length ? (diasArr.reduce((a,b)=>a+b,0)/diasArr.length).toFixed(1) : '—';
 
   document.getElementById('gns-kpis').innerHTML = `
-    <div class="gns-kpi"><div class="gns-kpi-n">${total}</div><div class="gns-kpi-l">Total GNS</div></div>
-    <div class="gns-kpi abertos"><div class="gns-kpi-n">${emGns}</div><div class="gns-kpi-l">Em GNS</div></div>
-    <div class="gns-kpi encerrados"><div class="gns-kpi-n">${liberados}</div><div class="gns-kpi-l">Liberados</div></div>
-    <div class="gns-kpi media"><div class="gns-kpi-n">${media}</div><div class="gns-kpi-l">Média de dias</div></div>
+    <div class="kpi veic"><div class="n">${total}</div><div class="l">Total GNS</div></div>
+    <div class="kpi" style="--accent:var(--yellow)"><div class="n">${emGns}</div><div class="l">Em GNS</div></div>
+    <div class="kpi" style="--accent:var(--green)"><div class="n">${liberados}</div><div class="l">Liberados</div></div>
+    <div class="kpi" style="--accent:var(--dim)"><div class="n">${media}</div><div class="l">Média de dias</div></div>
   `;
 }
 
@@ -4392,7 +4500,7 @@ function renderGnsTab(){
     return 0;
   });
 
-  document.getElementById('gns-count').textContent = `${rows.length} registro${rows.length!==1?'s':''}`;
+  document.getElementById('gns-count').innerHTML = `<b>${rows.length}</b> reg.`;
 
   const tbody = document.getElementById('gns-tbody');
   if(!rows.length){
@@ -4448,12 +4556,24 @@ document.getElementById('gns-os-input').addEventListener('input', e => {
   updateOsPreview(e.target.value.trim());
 });
 
+// ── Drawer open/close ────────────────────────────────────
+function openGnsDrawer(){
+  document.getElementById('gns-overlay').classList.add('open');
+  document.getElementById('gns-drawer').classList.add('open');
+}
+function closeGnsDrawer(){
+  document.getElementById('gns-overlay').classList.remove('open');
+  document.getElementById('gns-drawer').classList.remove('open');
+}
+document.getElementById('gns-add-btn').addEventListener('click', () => { gnsResetForm(); openGnsDrawer(); });
+document.getElementById('gns-drawer-close').addEventListener('click', closeGnsDrawer);
+document.getElementById('gns-overlay').addEventListener('click', closeGnsDrawer);
+
 // ── Form reset ────────────────────────────────────────────
 function gnsResetForm(){
   gnsEditId = null;
   document.getElementById('gns-form-title').textContent = '➕ Novo GNS';
   document.getElementById('gns-submit-btn').textContent = 'Salvar GNS';
-  document.getElementById('gns-cancel-btn').style.display = 'none';
   document.getElementById('gns-os-input').value = '';
   document.getElementById('gns-num').value = gnsNextNum();   // auto next number
   document.getElementById('gns-veiculo-display').value = '';
@@ -4473,7 +4593,6 @@ function gnsEditOpen(id){
   gnsEditId = id;
   document.getElementById('gns-form-title').textContent = `✏️ Editar GNS ${r.num||'#'+id}`;
   document.getElementById('gns-submit-btn').textContent = 'Salvar alterações';
-  document.getElementById('gns-cancel-btn').style.display = '';
   document.getElementById('gns-os-input').value = r.os || '';
   document.getElementById('gns-num').value = r.num || '';
   document.getElementById('gns-veiculo-display').value = r.veiculo || '';
@@ -4483,7 +4602,7 @@ function gnsEditOpen(id){
   document.getElementById('gns-obs').value = r.obs || '';
   document.getElementById('gns-form-error').style.display = 'none';
   updateOsPreview(r.os);
-  document.getElementById('gns-form-card').scrollIntoView({behavior:'smooth'});
+  openGnsDrawer();
 }
 
 // ── Delete ────────────────────────────────────────────────
@@ -4557,11 +4676,12 @@ document.getElementById('gns-submit-btn').addEventListener('click', () => {
 
   saveGns();
   gnsResetForm();
+  closeGnsDrawer();
   renderGnsTab();
 });
 
 // ── Cancel ────────────────────────────────────────────────
-document.getElementById('gns-cancel-btn').addEventListener('click', gnsResetForm);
+document.getElementById('gns-cancel-btn').addEventListener('click', () => { gnsResetForm(); closeGnsDrawer(); });
 
 // ── Export CSV ────────────────────────────────────────────
 document.getElementById('gns-export-btn').addEventListener('click', () => {
