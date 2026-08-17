@@ -1216,7 +1216,7 @@
 <div class="backup-bar">
   <span class="backup-label">💾 Dados</span>
   <span class="last-backup" id="last-backup-label">Último backup: <span>—</span></span>
-  <button class="btn-backup" id="btn-recalcular" title="Reprocessa reincidências (todas as chaves, corretiva + preventiva) e atualiza o hodômetro dos registros com os dados mais recentes">🔄 Recalcular base</button>
+  <button class="btn-backup" id="btn-recalcular" title="Identifica Setor/Categoria de registros não classificados com base em descrições semelhantes já classificadas, reprocessa reincidências (todas as chaves, corretiva + preventiva) e atualiza o hodômetro dos registros com os dados mais recentes">🔄 Recalcular base</button>
   <button class="btn-backup" id="btn-export">⬇ Exportar backup</button>
   <button class="btn-backup import" id="btn-import">⬆ Importar backup</button>
   <button class="btn-backup danger" id="btn-reset-data">🗑 Limpar dados</button>
@@ -4840,6 +4840,149 @@ function detectReincidencia(veiculo, pares, dataStr, osAtual){
 }
 
 // ════════════════════════════════════════════════════════
+// AUTO-CLASSIFICAÇÃO DE SETOR/CATEGORIA — aprende com os registros já
+// classificados (setor ≠ "Não classificado") e aplica o padrão aos
+// registros pendentes (ex.: importados do relatório de OS), com base
+// na semelhança da descrição.
+// ════════════════════════════════════════════════════════
+
+// Remove acentos, pontuação e palavras pouco informativas de uma descrição,
+// devolvendo os tokens usados na comparação por similaridade.
+const STOPWORDS_CLASS = new Set(['de','da','do','das','dos','e','o','a','os','as','no','na','em','com','para','um','uma','não','nao','ao','à']);
+// Stemming ingênuo: reduz palavras longas ao prefixo, para aproximar
+// plural/singular e variações de gênero comuns em português
+// (ex.: "farol"/"faróis", "porta"/"portas") sem precisar de um dicionário.
+function stemWord(w){ return w.length >= 5 ? w.slice(0, 4) : w; }
+function tokenizeDescricao(s){
+  return normalize(s)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 1 && !STOPWORDS_CLASS.has(w))
+    .map(stemWord);
+}
+
+// Similaridade de Jaccard entre dois conjuntos de tokens (0 a 1).
+function jaccardSim(aTokens, bTokens){
+  const a = new Set(aTokens), b = new Set(bTokens);
+  if(!a.size || !b.size) return 0;
+  let inter = 0;
+  a.forEach(t => { if(b.has(t)) inter++; });
+  return inter / (a.size + b.size - inter);
+}
+
+function isClassificado(setor, categoria){
+  return !!setor && setor !== 'Não classificado' && !!categoria;
+}
+
+// Constrói o índice de aprendizado a partir de todos os registros já
+// classificados (planilha + manuais): um índice de match exato por
+// "tipo|descrição normalizada" e uma lista de amostras para fuzzy match.
+function buildClassificacaoIndex(){
+  const exato = {};    // `${tipo}|${descNorm}` -> { 'setor|||categoria': count }
+  const amostras = []; // [{ tipo, tokens, setor, categoria }]
+
+  allRows().forEach(r => {
+    if(!isClassificado(r.setor, r.categoria)) return;
+    const tipo = r.tipo || '';
+    const descNorm = normalize(r.descricao);
+    if(!descNorm) return;
+
+    const key = `${tipo}|${descNorm}`;
+    const pairKey = `${r.setor}|||${r.categoria}`;
+    if(!exato[key]) exato[key] = {};
+    exato[key][pairKey] = (exato[key][pairKey] || 0) + 1;
+
+    amostras.push({ tipo, tokens: tokenizeDescricao(r.descricao), setor: r.setor, categoria: r.categoria });
+  });
+
+  return { exato, amostras };
+}
+
+// Tenta classificar uma descrição (dado o tipo Corretiva/Preventiva) usando
+// o índice aprendido. Retorna { setor, categoria, score } ou null.
+const CLASS_FUZZY_THRESHOLD = 0.5;
+function classificarDescricao(descricao, tipo, index){
+  const descNorm = normalize(descricao);
+  const key = `${tipo}|${descNorm}`;
+
+  // 1) Match exato — mesma descrição (mesmo tipo) já classificada antes.
+  if(index.exato[key]){
+    let best = null, bestCount = 0;
+    Object.entries(index.exato[key]).forEach(([pairKey, count]) => {
+      if(count > bestCount){ bestCount = count; best = pairKey; }
+    });
+    if(best){
+      const [setor, categoria] = best.split('|||');
+      return { setor, categoria, score: 1 };
+    }
+  }
+
+  // 2) Fuzzy — semelhança de palavras com amostras do mesmo tipo.
+  const tokens = tokenizeDescricao(descricao);
+  if(!tokens.length) return null;
+
+  const candidatos = {}; // 'setor|||categoria' -> { score, count }
+  index.amostras.forEach(a => {
+    if(a.tipo !== tipo) return;
+    const score = jaccardSim(tokens, a.tokens);
+    if(score < CLASS_FUZZY_THRESHOLD) return;
+    const pairKey = `${a.setor}|||${a.categoria}`;
+    const cur = candidatos[pairKey];
+    candidatos[pairKey] = { score: cur ? Math.max(cur.score, score) : score, count: (cur?.count || 0) + 1 };
+  });
+
+  let bestPair = null, bestScore = -1, bestCount = -1;
+  Object.entries(candidatos).forEach(([pairKey, v]) => {
+    if(v.score > bestScore || (v.score === bestScore && v.count > bestCount)){
+      bestScore = v.score; bestCount = v.count; bestPair = pairKey;
+    }
+  });
+  if(!bestPair) return null;
+  const [setor, categoria] = bestPair.split('|||');
+  return { setor, categoria, score: bestScore };
+}
+
+// Aplica a classificação automática a todo registro com setor "Não
+// classificado" (ou setor/categoria ausente). Atualiza DATA + overrides
+// (registros de planilha) e manualRecords diretamente. Retorna
+// { classificados, naoEncontrados }.
+function autoClassificarSetores(){
+  const index = buildClassificacaoIndex();
+  let classificados = 0, naoEncontrados = 0;
+
+  DATA.forEach((r, idx) => {
+    if(deletedKeys[keyForRecord(r)]) return;
+    const key = keyForRecord(r);
+    const current = overrides[key] ? {...r, ...overrides[key]} : r;
+    if(isClassificado(current.setor, current.categoria)) return;
+
+    const match = classificarDescricao(current.descricao, current.tipo, index);
+    if(!match){ naoEncontrados++; return; }
+
+    const chave = CHAVE_MAP[`${current.tipo}|${match.setor}|${match.categoria}`] || current.chave_erro || null;
+    const updates = { setor: match.setor, categoria: match.categoria, chave_erro: chave };
+    overrides[key] = { ...(overrides[key] || {}), ...updates };
+    Object.assign(DATA[idx], updates);
+    classificados++;
+  });
+
+  manualRecords.forEach(r => {
+    if(isClassificado(r.setor, r.categoria)) return;
+    const match = classificarDescricao(r.descricao, r.tipo, index);
+    if(!match){ naoEncontrados++; return; }
+
+    r.setor = match.setor;
+    r.categoria = match.categoria;
+    r.chave_erro = CHAVE_MAP[`${r.tipo}|${match.setor}|${match.categoria}`] || r.chave_erro || null;
+    classificados++;
+  });
+
+  if(classificados) saveOverrides();
+  return { classificados, naoEncontrados };
+}
+
+// ════════════════════════════════════════════════════════
 // RECÁLCULO EM MASSA — reprocessa reincidência (todas as chaves,
 // Corretiva + Preventiva) e atualiza hodômetro/km em todos os registros.
 // ════════════════════════════════════════════════════════
@@ -4944,14 +5087,15 @@ function recalcularHodometros(){
 }
 
 document.getElementById('btn-recalcular').addEventListener('click', () => {
-  if(!confirm('Reprocessar reincidências (todas as chaves, corretiva + preventiva) e atualizar o hodômetro de todos os registros?')) return;
+  if(!confirm('Identificar/atualizar Setor e Categoria de registros não classificados, reprocessar reincidências (todas as chaves, corretiva + preventiva) e atualizar o hodômetro de todos os registros?')) return;
+  const { classificados, naoEncontrados } = autoClassificarSetores();
   const reincChanged = recalcularReincidencias();
   const hodoChanged  = recalcularHodometros();
   saveManualRecords(manualRecords);
   addLog('recalculo', 'Recálculo de base executado',
-    `${reincChanged} reincidência(s) atualizada(s) · ${hodoChanged} hodômetro(s) atualizado(s)`);
+    `${classificados} setor/categoria classificado(s) automaticamente${naoEncontrados ? ` · ${naoEncontrados} sem correspondência` : ''} · ${reincChanged} reincidência(s) atualizada(s) · ${hodoChanged} hodômetro(s) atualizado(s)`);
   renderAll();
-  alert(`✅ Recálculo concluído.\n${reincChanged} reincidência(s) atualizada(s).\n${hodoChanged} hodômetro(s) atualizado(s).`);
+  alert(`✅ Recálculo concluído.\n${classificados} setor/categoria classificado(s) automaticamente.${naoEncontrados ? `\n${naoEncontrados} registro(s) sem correspondência confiável (revise manualmente).` : ''}\n${reincChanged} reincidência(s) atualizada(s).\n${hodoChanged} hodômetro(s) atualizado(s).`);
 });
 
 // ---- Preview de reincidência no formulário ----
