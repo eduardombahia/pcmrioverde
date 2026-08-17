@@ -824,6 +824,7 @@
   .pairs-builder .pair-row select option{
     background:#1e1f22;color:#e8e6e3;
   }
+  .pairs-builder .pair-row select.pair-tipo-select{flex:none;min-width:118px;}
   .pairs-builder .pair-add-btn{
     background:var(--orange);border:none;color:#1a1207;
     font-family:var(--font-display);font-weight:700;font-size:16px;
@@ -837,15 +838,87 @@
     padding:6px 10px;font-size:12px;
   }
   .pair-tag .pair-info{flex:1;font-family:var(--font-mono);}
+  .pair-tag .pair-tipo-badge{
+    font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.04em;padding:2px 6px;border-radius:2px;margin-right:8px;
+  }
+  .pair-tag .pair-tipo-badge.Corretiva{background:rgba(255,106,43,.15);color:var(--orange);}
+  .pair-tag .pair-tipo-badge.Preventiva{background:rgba(79,180,119,.15);color:var(--green);}
   .pair-tag .pair-setor{color:var(--chalk);}
   .pair-tag .pair-cat{color:var(--dim);}
-  .pair-tag .pair-chave{color:var(--amber);margin-left:6px;}
+  .pair-tag .pair-chave{color:var(--amber);margin-left:6px;font-weight:600;}
   .pair-tag .pair-remove{
     background:none;border:none;color:var(--dim);cursor:pointer;
     font-size:14px;line-height:1;padding:0 2px;
   }
   .pair-tag .pair-remove:hover{color:var(--red);}
   .pairs-empty{color:var(--dim);font-size:12px;font-style:italic;padding:4px 0;}
+
+
+  /* ── Setores/Categorias tab ── */
+  .cat-manager{display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start;}
+  @media(max-width:900px){.cat-manager{grid-template-columns:1fr;}}
+  .cat-setores-list{display:flex;flex-direction:column;gap:12px;}
+  .cat-setor-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:16px 18px;
+  }
+  .cat-setor-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .cat-setor-nome{
+    font-family:var(--font-display);font-size:15px;letter-spacing:.03em;
+    color:var(--amber);flex:1;
+  }
+  .cat-setor-nome input{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
+    font-family:var(--font-display);font-size:14px;padding:5px 8px;border-radius:3px;
+    outline:none;width:100%;
+  }
+  .cat-setor-nome input:focus{border-color:var(--amber);}
+  .cat-setor-count{font-family:var(--font-mono);font-size:10.5px;color:var(--dim);white-space:nowrap;}
+  .cat-icon-btn{
+    background:none;border:1px solid var(--line);color:var(--dim);cursor:pointer;
+    font-size:12px;line-height:1;padding:5px 7px;border-radius:3px;
+  }
+  .cat-icon-btn:hover{color:var(--amber);border-color:var(--amber);}
+  .cat-icon-btn.danger:hover{color:var(--red);border-color:var(--red);}
+  .cat-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .cat-chip{
+    display:flex;align-items:center;gap:6px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:3px;
+    padding:5px 6px 5px 10px;font-size:12px;font-family:var(--font-mono);
+  }
+  .cat-chip input{
+    background:transparent;border:none;color:var(--chalk);font-family:var(--font-mono);
+    font-size:12px;outline:none;width:auto;min-width:40px;
+  }
+  .cat-chip .cat-chip-remove{
+    background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;
+    line-height:1;padding:0 2px;
+  }
+  .cat-chip .cat-chip-remove:hover{color:var(--red);}
+  .cat-chips-empty{color:var(--dim);font-size:12px;font-style:italic;}
+  .cat-add-row{display:flex;gap:8px;}
+  .cat-add-row input{
+    flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
+    font-family:var(--font-body);font-size:13px;padding:7px 9px;border-radius:3px;outline:none;
+  }
+  .cat-add-row input:focus{border-color:var(--amber);}
+  .cat-add-row button{
+    background:var(--orange);border:none;color:#1a1207;font-family:var(--font-display);
+    font-weight:700;font-size:13px;padding:6px 14px;border-radius:3px;cursor:pointer;
+  }
+  .cat-add-row button:hover{background:var(--amber);}
+
+  /* Tipo (Corretiva/Preventiva) selectors */
+  .cat-tipo-select{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
+    font-family:var(--font-body);font-size:11px;padding:4px 6px;border-radius:3px;
+    outline:none;flex:none;cursor:pointer;
+  }
+  .cat-tipo-select:focus{border-color:var(--amber);}
+  .cat-tipo-select[data-tipo="Corretiva"]{color:var(--orange);border-color:var(--orange);}
+  .cat-tipo-select[data-tipo="Preventiva"]{color:var(--green);border-color:var(--green);}
+  .cat-setor-head .cat-tipo-select{font-size:11.5px;padding:5px 7px;}
+  .cat-chip .cat-tipo-select{font-size:10.5px;padding:3px 4px;margin-left:2px;}
 
 
   /* ── GNS tab ── */
@@ -1209,7 +1282,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v6.5</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.0</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1239,6 +1312,7 @@
     <button class="tab-btn" data-tab="hodometro"><span class="tab-icon">🛣️</span><span class="tab-label">Hodômetro</span></button>
     <button class="tab-btn" data-tab="frota"><span class="tab-icon">🚌</span><span class="tab-label">Frota</span></button>
     <button class="tab-btn" data-tab="importar"><span class="tab-icon">📥</span><span class="tab-label">Importar OS</span></button>
+    <button class="tab-btn" data-tab="categorias"><span class="tab-icon">🏷️</span><span class="tab-label">Setores/Categorias</span></button>
     <button class="tab-btn" data-tab="log"><span class="tab-icon">📋</span><span class="tab-label">Log</span></button>
   </nav>
 </aside>
@@ -1278,6 +1352,7 @@
 
 <!-- ═══════════════ ORDENS DE SERVIÇO TAB ═══════════════ -->
 <div id="tab-ordens" class="tab-panel">
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Consulte, filtre e gerencie todas as ordens de serviço lançadas. Clique em <b>Novo registro</b> para cadastrar uma OS manualmente, use os filtros para localizar rapidamente por operação, tipo, setor, responsável ou reincidência, e clique em uma linha para editar ou excluir.</p>
 
   <section class="filters">
     <select id="f-operacao"><option value="">Operação: todas</option></select>
@@ -1316,6 +1391,7 @@
 
 <!-- ═══════════════ SOLICITAÇÕES DE REPARO TAB ═══════════════ -->
 <div id="tab-solicitacoes" class="tab-panel">
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Registre e acompanhe as solicitações de reparo abertas pelos motoristas e líderes antes de virarem uma OS. Cadastre uma nova solicitação, vincule-a ao cadastro de OS quando o reparo for executado, e use a busca para localizar por número, veículo, motorista ou líder.</p>
   <div class="kpis" id="sol-kpis" style="margin-bottom:16px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));"></div>
 
   <!-- ── Listagem ── -->
@@ -1403,6 +1479,7 @@
 
 <!-- ═══════════════ FROTA TAB ═══════════════ -->
 <div id="tab-frota" class="tab-panel">
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Cadastre e gerencie os veículos da frota, com placa e operação vinculada. Esta lista alimenta os campos de veículo em todos os outros formulários do sistema (OS, hodômetro, GNS e solicitações).</p>
   <div class="frota-toolbar">
     <input type="text" id="frota-search" placeholder="Filtrar por veículo, placa ou operação…">
     <button class="btn-primary" id="frota-add-btn">+ Adicionar veículo</button>
@@ -1424,6 +1501,7 @@
 
 <!-- ═══════════════ IMPORTAR OS TAB ═══════════════ -->
 <div id="tab-importar" class="tab-panel">
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Importe ordens de serviço em lote a partir de um arquivo CSV/XLSX exportado do sistema, ou de um CSV genérico. As linhas passam por uma fila de revisão antes de serem gravadas, permitindo classificar setor/categoria e corrigir dados antes de confirmar a importação.</p>
   <div class="import-area">
     <h3>Importar ordens de serviço — CSV ou entrada manual</h3>
 
@@ -1535,8 +1613,27 @@
 
 </div><!-- /tab-importar -->
 
+<!-- ═══════════════ SETORES/CATEGORIAS TAB ═══════════════ -->
+<div id="tab-categorias" class="tab-panel">
+  <p class="sub" style="margin-top:0;">Gerencie os setores e categorias usados para classificar as ordens de serviço. Use o seletor de Tipo ao lado de cada setor/categoria para marcar se é Corretiva, Preventiva ou Ambos. Alterações aqui refletem em todos os formulários (novo registro, edição e importação) e são sincronizadas para todos os usuários.</p>
+
+  <div class="cat-manager">
+    <div class="cat-add-setor gns-form-card" style="position:static;">
+      <h3>Novo setor</h3>
+      <div class="gns-field">
+        <label for="new-setor-nome">Nome do setor</label>
+        <input type="text" id="new-setor-nome" placeholder="ex: Pintura">
+      </div>
+      <button class="add-btn" id="new-setor-btn" style="width:100%;justify-content:center;"><span class="plus">+</span> Criar setor</button>
+    </div>
+
+    <div id="cat-setores-list" class="cat-setores-list"></div>
+  </div>
+</div><!-- /tab-categorias -->
+
 <!-- ═══════════════ LOG TAB ═══════════════ -->
 <div id="tab-log" class="tab-panel">
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Histórico de todas as ações realizadas no sistema — novas OS, edições, exclusões, importações, alterações de frota, hodômetro e configurações. Use a busca e o filtro por categoria para investigar uma alteração específica, ou exporte o log completo em CSV.</p>
   <div class="log-toolbar">
     <input type="text" id="log-search" placeholder="Buscar no log…">
     <select id="log-filter-cat">
@@ -1572,6 +1669,7 @@
 
 <!-- ═══════════════ GNS TAB ═══════════════ -->
 <div id="tab-gns" class="tab-panel">
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Controle os veículos que estão em GNS (Guarda para Não Sair / aguardando peça ou reparo). Vincule o GNS a uma OS existente, acompanhe os dias parados e registre a liberação para atualizar o status automaticamente.</p>
   <!-- KPIs summary -->
   <div class="kpis" id="gns-kpis" style="margin-bottom:16px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));"></div>
 
@@ -1669,6 +1767,7 @@
 
 <!-- ═══════════════ HODÔMETRO TAB ═══════════════ -->
 <div id="tab-hodometro" class="tab-panel">
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Acompanhe o hodômetro atual e o consumo (Km/L) de cada veículo da frota. Atualize as leituras manualmente ou por importação, e use o histórico para calcular quilometragem rodada entre abastecimentos.</p>
   <div class="hodo-layout">
 
     <!-- ── ESQUERDA: Cadastro de veículos ── -->
@@ -1908,7 +2007,7 @@
     <button class="drawer-close" id="drawer-close">&times;</button>
   </div>
   <div class="drawer-body">
-    <p class="form-error" id="form-error">Preencha data, veículo, OS, operação, descrição, tipo e setor.</p>
+    <p class="form-error" id="form-error">Preencha data, veículo, OS, operação, descrição e ao menos um setor/categoria/tipo.</p>
 
     <div class="field-row">
       <div class="field">
@@ -1940,16 +2039,7 @@
     </div>
 
     <div class="field">
-      <label for="in-tipo">Tipo *</label>
-      <select id="in-tipo">
-        <option value="">Selecione</option>
-        <option value="Corretiva">Corretiva</option>
-        <option value="Preventiva">Preventiva</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Setor + Categoria * <span style="color:var(--dim);font-size:10px;margin-left:4px;">adicione um ou mais</span></label>
+      <label>Setor + Categoria + Tipo * <span style="color:var(--dim);font-size:10px;margin-left:4px;">adicione um ou mais — pode misturar corretiva e preventiva</span></label>
       <div class="pairs-builder">
         <div class="pair-row">
           <select id="in-setor">
@@ -1964,6 +2054,11 @@
           </select>
           <select id="in-categoria">
             <option value="">— selecione o setor —</option>
+          </select>
+          <select id="in-pair-tipo" class="pair-tipo-select">
+            <option value="">Tipo</option>
+            <option value="Corretiva">Corretiva</option>
+            <option value="Preventiva">Preventiva</option>
           </select>
           <button type="button" class="pair-add-btn" id="pair-add-btn" title="Adicionar par">+</button>
         </div>
@@ -2241,7 +2336,7 @@ document.getElementById('btn-reset-data').addEventListener('click', resetAllData
 updateBackupLabel();
 
 // ---- Mapeamentos automáticos ----
-const SETOR_CATEGORIAS = {
+const SETOR_CATEGORIAS_BASE = {
   'Avaria':      ['Carroceria'],
   'Climatização':['Cano avariado','Correia','Refrigeração','Vedação','Ventiladores'],
   'Elétrica':    ['Acessibilidade','Arla','Bateria','Bilhetagem','Carroceria','Comutador','Correia','Desempenho','Elevador','Geral','Iluminação','Inspeção de Correias','Painel','Portas','Refrigeração','Sistema de Partida','Telemetria'],
@@ -2252,7 +2347,13 @@ const SETOR_CATEGORIAS = {
   'Não classificado': [],
 };
 
-const CHAVE_MAP = {
+// Códigos de 1 letra usados para gerar chaves de erro (ex: Mecânica → M → CM001)
+const SETOR_CODES_BASE = {
+  'Avaria':'A','Climatização':'C','Elétrica':'E','Funilaria':'F',
+  'Mecânica':'M','Socorro':'S','Terceiro':'T',
+};
+
+const CHAVE_MAP_BASE = {
   'Corretiva|Avaria|Carroceria':'CA001',
   'Corretiva|Climatização|Cano avariado':'CC001',
   'Corretiva|Climatização|Correia':'CC002',
@@ -2307,6 +2408,94 @@ const CHAVE_MAP = {
   'Preventiva|Mecânica|Óleo Motor e Filtros':'PM006',
 };
 
+// Tipo padrão (Corretiva/Preventiva/Ambos) de cada setor e de cada categoria.
+// Chave da categoria: "Setor|Categoria". Ausência de entrada = "Ambos".
+const SETOR_TIPOS_BASE     = {};
+const CATEGORIA_TIPOS_BASE = {};
+const TIPOS_VALIDOS = ['Ambos','Corretiva','Preventiva'];
+
+// ── Estado ativo (base + personalizações do usuário) ──
+// Estes objetos começam como cópia da base e podem ser sobrescritos pelo
+// documento Firestore `pcm/categorias` e editados pela aba "Setores/Categorias".
+let SETOR_CATEGORIAS = JSON.parse(JSON.stringify(SETOR_CATEGORIAS_BASE));
+let CHAVE_MAP        = JSON.parse(JSON.stringify(CHAVE_MAP_BASE));
+let SETOR_CODES      = JSON.parse(JSON.stringify(SETOR_CODES_BASE));
+let SETOR_TIPOS      = JSON.parse(JSON.stringify(SETOR_TIPOS_BASE));
+let CATEGORIA_TIPOS  = JSON.parse(JSON.stringify(CATEGORIA_TIPOS_BASE));
+
+// Lê/normaliza o Tipo configurado para um setor ou categoria ("Ambos" por padrão)
+function getSetorTipo(setor){
+  return SETOR_TIPOS[setor] || 'Ambos';
+}
+function getCategoriaTipo(setor, categoria){
+  return CATEGORIA_TIPOS[`${setor}|${categoria}`] || 'Ambos';
+}
+
+// Gera (ou reaproveita) um código de 1-2 letras para identificar o setor nas chaves de erro
+function slugifySetorCode(setor){
+  if(SETOR_CODES[setor]) return SETOR_CODES[setor];
+  const used = new Set(Object.values(SETOR_CODES));
+  const clean = (setor||'X').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z]/g,'') || 'X';
+  let code = clean[0] || 'X';
+  let i = 1;
+  while(used.has(code) && i < clean.length){ code = clean[i]; i++; }
+  let n = 2;
+  while(used.has(code)){ code = (clean[0]||'X') + n; n++; }
+  SETOR_CODES[setor] = code;
+  return code;
+}
+// Gera (ou reaproveita) uma chave de erro para a combinação tipo+setor+categoria
+function generateChaveCode(tipo, setor, categoria){
+  const key = `${tipo}|${setor}|${categoria}`;
+  if(CHAVE_MAP[key]) return CHAVE_MAP[key];
+  if(!tipo || !setor || !categoria) return '';
+  const prefix = (tipo === 'Preventiva' ? 'P' : 'C') + slugifySetorCode(setor);
+  let max = 0;
+  Object.values(CHAVE_MAP).forEach(code=>{
+    if(code && code.startsWith(prefix)){
+      const n = parseInt(code.slice(prefix.length), 10);
+      if(!isNaN(n) && n > max) max = n;
+    }
+  });
+  const code = prefix + String(max + 1).padStart(3,'0');
+  CHAVE_MAP[key] = code;
+  return code;
+}
+// Retorna a chave existente para tipo+setor+categoria, ou gera uma nova e persiste
+function ensureChave(tipo, setor, categoria){
+  const key = `${tipo}|${setor}|${categoria}`;
+  if(CHAVE_MAP[key]) return CHAVE_MAP[key];
+  const code = generateChaveCode(tipo, setor, categoria);
+  if(code) saveCategorias();
+  return code;
+}
+// Persiste setores/categorias/códigos personalizados no Firestore
+function saveCategorias(){
+  if(!window._db) return;
+  window._db.collection('pcm').doc('categorias')
+    .set({
+      setores: SETOR_CATEGORIAS,
+      chaveMap: CHAVE_MAP,
+      setorCodes: SETOR_CODES,
+      setorTipos: SETOR_TIPOS,
+      categoriaTipos: CATEGORIA_TIPOS,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    })
+    .catch(err => console.warn('Firestore categorias:', err));
+}
+// Atualiza as <option> de Setor nos 3 formulários que ainda usam lista fixa em HTML
+function refreshSetorSelectOptions(){
+  const setores = Object.keys(SETOR_CATEGORIAS);
+  ['in-setor','ed-setor','imp-setor'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    const current = el.value;
+    const firstOptHtml = el.options.length ? el.options[0].outerHTML : '<option value="">Selecione</option>';
+    el.innerHTML = firstOptHtml + setores.map(s=>`<option value="${s}">${s}</option>`).join('');
+    if(setores.includes(current)) el.value = current;
+  });
+}
+
 const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 const STORAGE_KEY = 'pcm_controle_manual_records_v1'; // kept for migration only
 
@@ -2339,13 +2528,13 @@ function hideOverlay(){
 // Flags de "primeiro carregamento" — precisam vir true nos 8 documentos antes de pintar a tela pela primeira vez
 let pcmRecebeuMR = false, pcmRecebeuFrota = false, pcmRecebeuOv = false, pcmRecebeuMeta = false,
     pcmRecebeuHodo = false, pcmRecebeuLog = false, pcmRecebeuDel = false, pcmRecebeuGns = false,
-    pcmRecebeuSol = false;
+    pcmRecebeuSol = false, pcmRecebeuCat = false;
 let pcmPrimeiraCarga = true;
 let pcmLastBackup = null;
 
 function pcmTentaRenderInicial(timeoutId){
   if(pcmPrimeiraCarga && pcmRecebeuMR && pcmRecebeuFrota && pcmRecebeuOv && pcmRecebeuMeta &&
-     pcmRecebeuHodo && pcmRecebeuLog && pcmRecebeuDel && pcmRecebeuGns && pcmRecebeuSol){
+     pcmRecebeuHodo && pcmRecebeuLog && pcmRecebeuDel && pcmRecebeuGns && pcmRecebeuSol && pcmRecebeuCat){
     pcmPrimeiraCarga = false;
     purgeManualDuplicates();
     showSyncStatus('✅ Sincronizado com a nuvem', 'var(--green)');
@@ -2520,6 +2709,22 @@ async function initFirestore(){
       pcmTentaRenderInicial(timeoutId);
     }, err => { console.warn('Firestore meta:', err); pcmRecebeuMeta = true; pcmTentaRenderInicial(timeoutId); });
 
+    // ── categorias (setores/categorias/chaves personalizados) — tempo real ──
+    db.collection('pcm').doc('categorias').onSnapshot(snap => {
+      if(snap.exists){
+        const d = snap.data() || {};
+        if(d.setores)        SETOR_CATEGORIAS = d.setores;
+        if(d.chaveMap)       CHAVE_MAP = d.chaveMap;
+        if(d.setorCodes)     SETOR_CODES = d.setorCodes;
+        if(d.setorTipos)     SETOR_TIPOS = d.setorTipos;
+        if(d.categoriaTipos) CATEGORIA_TIPOS = d.categoriaTipos;
+      }
+      pcmRecebeuCat = true;
+      refreshSetorSelectOptions();
+      if(!pcmPrimeiraCarga){ renderAll(); if(typeof renderCategoriasTab==='function') renderCategoriasTab(); }
+      pcmTentaRenderInicial(timeoutId);
+    }, err => { console.warn('Firestore categorias:', err); pcmRecebeuCat = true; pcmTentaRenderInicial(timeoutId); });
+
   } catch(err){
     console.warn('PCM: Firestore indisponível, usando cache local.', err);
     showSyncStatus('⚠️ Offline — usando dados locais', 'var(--yellow)');
@@ -2602,6 +2807,7 @@ function renderAll(){
   refreshSelectsPreservingValue();
   refreshDatalists();
   applyFilters();
+  renderCategoriasTab();
 }
 
 function renderKpis(){
@@ -2993,9 +3199,9 @@ function clearForm(){
   ['in-data','in-veiculo','in-os','in-operacao','in-descricao','in-responsavel','in-chave','in-obs'].forEach(id=>{
     const el = document.getElementById(id); if(el) el.value = '';
   });
-  document.getElementById('in-tipo').value = '';
   document.getElementById('in-setor').value = '';
   document.getElementById('in-categoria').innerHTML = '<option value="">— selecione o setor —</option>';
+  document.getElementById('in-pair-tipo').value = '';
   document.getElementById('reinc-preview').style.display = 'none';
   document.getElementById('in-hodometro').value = '';
   document.getElementById('in-kml').value = '';
@@ -3011,16 +3217,16 @@ document.getElementById('drawer-submit').addEventListener('click', ()=>{
   const os = document.getElementById('in-os').value.trim();
   const operacao = document.getElementById('in-operacao').value.trim();
   const descricao = document.getElementById('in-descricao').value.trim();
-  const tipo = document.getElementById('in-tipo').value;
   const responsavel = document.getElementById('in-responsavel').value.trim();
   const chave = (osPairs[0]?.chave) || '';
   const obs = document.getElementById('in-obs').value.trim();
-  // Use first pair for backward-compat fields
+  // Use first pair for backward-compat fields (tipo/setor/categoria/chave)
+  const tipo     = osPairs[0]?.tipo     || '';
   const setor    = osPairs[0]?.setor    || '';
   const categoria= osPairs[0]?.categoria|| '';
 
   const errEl = document.getElementById('form-error');
-  if(!data || !veiculo || !os || !operacao || !descricao || !tipo || !osPairs.length){
+  if(!data || !veiculo || !os || !operacao || !descricao || !osPairs.length){
     errEl.classList.add('show');
     return;
   }
@@ -3044,7 +3250,7 @@ document.getElementById('drawer-submit').addEventListener('click', ()=>{
     setor:     osPairs[0]?.setor     || null,
     categoria: osPairs[0]?.categoria || null,
     chave_erro:osPairs[0]?.chave     || null,
-    // All pairs
+    // All pairs (each carrega seu próprio tipo — permite misturar Corretiva e Preventiva na mesma OS)
     pares: osPairs.length > 1 ? JSON.parse(JSON.stringify(osPairs)) : null,
     responsavel: responsavel || null,
     observacoes: obs || null,
@@ -3057,7 +3263,7 @@ document.getElementById('drawer-submit').addEventListener('click', ()=>{
 
   manualRecords.push(record);
   saveManualRecords(manualRecords);
-  const paresStr = osPairs.map(p => `${p.setor}${p.categoria?' › '+p.categoria:''}${p.chave?' ['+p.chave+']':''}`).join(' | ');
+  const paresStr = osPairs.map(p => `${p.tipo?p.tipo+' ':''}${p.setor}${p.categoria?' › '+p.categoria:''}${p.chave?' ['+p.chave+']':''}`).join(' | ');
   addLog('os-nova', `Nova OS: ${os} — Veículo ${veiculo}`,
     `${tipo} · ${paresStr} · ${reincidenteStr}`);
   clearForm();
@@ -3475,7 +3681,7 @@ function edAddPair(){
   if(edPares.find(p => p.setor === setor && p.categoria === cat)){
     alert('Este par já foi adicionado.'); return;
   }
-  const chave = CHAVE_MAP[`${tipo}|${setor}|${cat}`] || '';
+  const chave = ensureChave(tipo, setor, cat);
   edPares.push({ setor, categoria: cat, chave });
   edRenderPairs();
   // Reset selectors
@@ -4047,7 +4253,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v6.5 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v7.0 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -4698,9 +4904,10 @@ document.getElementById('gns-export-btn').addEventListener('click', () => {
 });
 
 // ════════════════════════════════════════════════════════
-// PAIRS BUILDER — multiple setor+categoria per OS
+// PAIRS BUILDER — multiple setor+categoria+tipo per OS
+// (permite misturar Corretiva e Preventiva na mesma OS)
 // ════════════════════════════════════════════════════════
-let osPairs = []; // [{ setor, categoria, chave }]
+let osPairs = []; // [{ tipo, setor, categoria, chave }]
 
 function updateCategorias(){
   const setor = document.getElementById('in-setor').value;
@@ -4731,6 +4938,7 @@ function renderPairs(){
     tag.className = 'pair-tag';
     tag.innerHTML = `
       <span class="pair-info">
+        ${p.tipo ? `<span class="pair-tipo-badge ${p.tipo}">${p.tipo}</span>` : ''}
         <span class="pair-setor">${p.setor}</span>
         ${p.categoria ? `<span class="pair-cat"> › ${p.categoria}</span>` : ''}
         ${p.chave ? `<span class="pair-chave">${p.chave}</span>` : ''}
@@ -4749,38 +4957,48 @@ function renderPairs(){
 }
 
 function addPair(){
-  const tipo   = document.getElementById('in-tipo').value;
-  const setor  = document.getElementById('in-setor').value;
-  const cat    = document.getElementById('in-categoria').value;
+  const tipo  = document.getElementById('in-pair-tipo').value;
+  const setor = document.getElementById('in-setor').value;
+  const cat   = document.getElementById('in-categoria').value;
   if(!setor){ alert('Selecione um setor.'); return; }
-  // Avoid duplicate pair
-  if(osPairs.find(p => p.setor === setor && p.categoria === cat)){
-    alert('Este par já foi adicionado.'); return;
+  if(!cat){ alert('Selecione uma categoria.'); return; }
+  if(!tipo){ alert('Selecione o Tipo (Corretiva ou Preventiva) deste par.'); return; }
+  // Avoid duplicate pair (mesmo setor+categoria+tipo)
+  if(osPairs.find(p => p.setor === setor && p.categoria === cat && p.tipo === tipo)){
+    alert('Este par (Tipo + Setor + Categoria) já foi adicionado.'); return;
   }
-  const chave = CHAVE_MAP[`${tipo}|${setor}|${cat}`] || '';
-  osPairs.push({ setor, categoria: cat, chave });
+  const chave = ensureChave(tipo, setor, cat);
+  osPairs.push({ tipo, setor, categoria: cat, chave });
   renderPairs();
-  // Reset selectors
+  // Reset selectors para o próximo par
   document.getElementById('in-setor').value = '';
   document.getElementById('in-categoria').innerHTML = '<option value="">— selecione o setor —</option>';
+  document.getElementById('in-pair-tipo').value = '';
+}
+
+// Adiciona automaticamente o par assim que Setor + Categoria + Tipo estiverem preenchidos
+function maybeAutoAddPair(){
+  const setor = document.getElementById('in-setor').value;
+  const cat   = document.getElementById('in-categoria').value;
+  const tipo  = document.getElementById('in-pair-tipo').value;
+  if(setor && cat && tipo) addPair();
 }
 
 document.getElementById('pair-add-btn').addEventListener('click', addPair);
 document.getElementById('in-setor').addEventListener('change', updateCategorias);
-// Also allow adding by pressing Enter on categoria
 document.getElementById('in-categoria').addEventListener('change', () => {
-  if(document.getElementById('in-categoria').value) addPair();
+  // Se a categoria tem um Tipo específico configurado e o campo Tipo ainda
+  // está vazio, preenche automaticamente (o usuário pode alterar depois).
+  const setorSel = document.getElementById('in-setor').value;
+  const catSel    = document.getElementById('in-categoria').value;
+  const tipoEl    = document.getElementById('in-pair-tipo');
+  if(catSel && !tipoEl.value){
+    const tipoSugerido = getCategoriaTipo(setorSel, catSel);
+    if(tipoSugerido !== 'Ambos') tipoEl.value = tipoSugerido;
+  }
+  maybeAutoAddPair();
 });
-document.getElementById('in-tipo').addEventListener('change', () => {
-  // Recalculate chaves for existing pairs when tipo changes
-  const tipo = document.getElementById('in-tipo').value;
-  osPairs = osPairs.map(p => ({
-    ...p,
-    chave: CHAVE_MAP[`${tipo}|${p.setor}|${p.categoria}`] || ''
-  }));
-  renderPairs();
-  checkReincPreview();
-});
+document.getElementById('in-pair-tipo').addEventListener('change', maybeAutoAddPair);
 
 // ---- Detecção de reincidência ----
 // Considera TODAS as chaves de erro da OS (todos os pares Setor/Categoria),
@@ -5156,7 +5374,7 @@ function clearImpForm(){
 
 function buildQueueRecord(fields){
   const { data, veiculo, os, tipo, setor, categoria, responsavel, descricao, obs } = fields;
-  const chave = CHAVE_MAP[`${tipo}|${setor}|${categoria}`] || '';
+  const chave = ensureChave(tipo, setor, categoria);
   const operacao = getOperacao(veiculo) || '';
   const { isReinc, reincidenteStr } = detectReincidencia(veiculo, [{ chave }], data, os);
   return {
@@ -5523,7 +5741,7 @@ function parseCSVFile(file){
 }
 
 document.getElementById('in-setor').addEventListener('change', updateCategorias);
-document.getElementById('in-tipo').addEventListener('change', ()=>{ updateCategorias(); checkReincPreview(); });
+document.getElementById('in-pair-tipo').addEventListener('change', checkReincPreview);
 document.getElementById('in-veiculo').addEventListener('input', checkReincPreview);
 document.getElementById('in-data').addEventListener('change', checkReincPreview);
 
@@ -5549,6 +5767,228 @@ function purgeManualDuplicates(){
     console.info(`PCM: removidos ${before - manualRecords.length} reg(s) duplicados.`);
   }
 }
+
+// ════════════════════════════════════════════════════════
+// SETORES/CATEGORIAS — aba de gerenciamento
+// ════════════════════════════════════════════════════════
+
+// Conta quantas OS (base + manuais) usam um determinado setor/categoria
+function countUsoSetor(setor){
+  return allRows().filter(r => (r.pares ? r.pares.some(p=>p.setor===setor) : r.setor===setor)).length;
+}
+function countUsoCategoria(setor, categoria){
+  return allRows().filter(r => (r.pares
+    ? r.pares.some(p=>p.setor===setor && p.categoria===categoria)
+    : (r.setor===setor && r.categoria===categoria))).length;
+}
+
+// Monta as <option> do seletor de Tipo, marcando a opção atual como selecionada
+function tipoOptionsHtml(tipoAtual){
+  return TIPOS_VALIDOS.map(t=>`<option value="${t}"${t===tipoAtual?' selected':''}>${t}</option>`).join('');
+}
+
+function renderCategoriasTab(){
+  const wrap = document.getElementById('cat-setores-list');
+  if(!wrap) return;
+  const setores = Object.keys(SETOR_CATEGORIAS).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+
+  wrap.innerHTML = setores.map(setor=>{
+    const cats = SETOR_CATEGORIAS[setor] || [];
+    const usoSetor = countUsoSetor(setor);
+    const tipoSetor = getSetorTipo(setor);
+    const chipsHtml = cats.length
+      ? cats.map(cat=>{
+          const usoCat = countUsoCategoria(setor, cat);
+          const tipoCat = getCategoriaTipo(setor, cat);
+          return `<span class="cat-chip" data-setor="${escAttr(setor)}" data-cat="${escAttr(cat)}">
+            <input type="text" class="cat-cat-input" value="${escAttr(cat)}" title="${usoCat} OS usam esta categoria">
+            <select class="cat-tipo-select cat-cat-tipo-select" data-tipo="${tipoCat}" title="Tipo desta categoria">${tipoOptionsHtml(tipoCat)}</select>
+            <button type="button" class="cat-chip-remove" title="Excluir categoria">✕</button>
+          </span>`;
+        }).join('')
+      : '<span class="cat-chips-empty">Nenhuma categoria neste setor ainda.</span>';
+
+    return `<div class="cat-setor-card" data-setor="${escAttr(setor)}">
+      <div class="cat-setor-head">
+        <div class="cat-setor-nome"><input type="text" class="cat-setor-input" value="${escAttr(setor)}" title="${usoSetor} OS usam este setor"></div>
+        <select class="cat-tipo-select cat-setor-tipo-select" data-tipo="${tipoSetor}" title="Tipo padrão deste setor">${tipoOptionsHtml(tipoSetor)}</select>
+        <span class="cat-setor-count">${cats.length} categoria(s) · ${usoSetor} OS</span>
+        <button type="button" class="cat-icon-btn danger cat-setor-remove" title="Excluir setor">🗑</button>
+      </div>
+      <div class="cat-chips">${chipsHtml}</div>
+      <div class="cat-add-row">
+        <input type="text" class="cat-new-cat-input" placeholder="Nova categoria neste setor…">
+        <button type="button" class="cat-new-cat-btn">+ Adicionar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function escAttr(s){
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+// Cria um novo setor
+document.getElementById('new-setor-btn').addEventListener('click', ()=>{
+  const input = document.getElementById('new-setor-nome');
+  const nome = input.value.trim();
+  if(!nome){ alert('Digite o nome do setor.'); return; }
+  if(SETOR_CATEGORIAS[nome]){ alert('Já existe um setor com esse nome.'); return; }
+  SETOR_CATEGORIAS[nome] = [];
+  slugifySetorCode(nome);
+  saveCategorias();
+  refreshSetorSelectOptions();
+  renderCategoriasTab();
+  input.value = '';
+  addLog('sistema', `Setor "${nome}" criado`, 'Criado na aba Setores/Categorias');
+});
+document.getElementById('new-setor-nome').addEventListener('keydown', e=>{
+  if(e.key==='Enter') document.getElementById('new-setor-btn').click();
+});
+
+// Delegação de eventos para os cards de setor (renomear, excluir, add/rename/excluir categoria)
+document.getElementById('cat-setores-list').addEventListener('click', e=>{
+  const card = e.target.closest('.cat-setor-card');
+  if(!card) return;
+  const setorAtual = card.dataset.setor;
+
+  // Excluir setor
+  if(e.target.closest('.cat-setor-remove')){
+    const uso = countUsoSetor(setorAtual);
+    const catCount = (SETOR_CATEGORIAS[setorAtual]||[]).length;
+    const aviso = uso > 0
+      ? `O setor "${setorAtual}" tem ${catCount} categoria(s) e é usado em ${uso} OS existente(s). As OS já lançadas NÃO serão alteradas, mas o setor deixará de aparecer nos formulários. Excluir mesmo assim?`
+      : `Excluir o setor "${setorAtual}" (${catCount} categoria(s))?`;
+    if(!confirm(aviso)) return;
+    delete SETOR_CATEGORIAS[setorAtual];
+    delete SETOR_TIPOS[setorAtual];
+    Object.keys(CATEGORIA_TIPOS).forEach(k=>{ if(k.startsWith(setorAtual+'|')) delete CATEGORIA_TIPOS[k]; });
+    saveCategorias();
+    refreshSetorSelectOptions();
+    renderCategoriasTab();
+    addLog('sistema', `Setor "${setorAtual}" excluído`, 'Excluído na aba Setores/Categorias');
+    return;
+  }
+
+  // Adicionar categoria
+  if(e.target.closest('.cat-new-cat-btn')){
+    const input = card.querySelector('.cat-new-cat-input');
+    const nome = input.value.trim();
+    if(!nome) return;
+    const lista = SETOR_CATEGORIAS[setorAtual] || (SETOR_CATEGORIAS[setorAtual]=[]);
+    if(lista.includes(nome)){ alert('Esta categoria já existe neste setor.'); return; }
+    lista.push(nome);
+    saveCategorias();
+    renderCategoriasTab();
+    addLog('sistema', `Categoria "${nome}" criada em "${setorAtual}"`, 'Criada na aba Setores/Categorias');
+    return;
+  }
+
+  // Excluir categoria
+  const removeBtn = e.target.closest('.cat-chip-remove');
+  if(removeBtn){
+    const chip = removeBtn.closest('.cat-chip');
+    const cat = chip.dataset.cat;
+    const uso = countUsoCategoria(setorAtual, cat);
+    const aviso = uso > 0
+      ? `A categoria "${cat}" é usada em ${uso} OS existente(s). As OS já lançadas NÃO serão alteradas, mas a categoria deixará de aparecer nos formulários. Excluir mesmo assim?`
+      : `Excluir a categoria "${cat}"?`;
+    if(!confirm(aviso)) return;
+    SETOR_CATEGORIAS[setorAtual] = (SETOR_CATEGORIAS[setorAtual]||[]).filter(c=>c!==cat);
+    delete CATEGORIA_TIPOS[`${setorAtual}|${cat}`];
+    saveCategorias();
+    renderCategoriasTab();
+    addLog('sistema', `Categoria "${cat}" excluída de "${setorAtual}"`, 'Excluída na aba Setores/Categorias');
+    return;
+  }
+});
+
+// Enter para adicionar categoria
+document.getElementById('cat-setores-list').addEventListener('keydown', e=>{
+  if(e.key==='Enter' && e.target.classList.contains('cat-new-cat-input')){
+    e.target.closest('.cat-setor-card').querySelector('.cat-new-cat-btn').click();
+  }
+});
+
+// Renomear setor / categoria / alterar Tipo (ao sair do campo ou trocar o select)
+document.getElementById('cat-setores-list').addEventListener('change', e=>{
+  const card = e.target.closest('.cat-setor-card');
+  if(!card) return;
+  const setorAtual = card.dataset.setor;
+
+  // Alterar Tipo do setor
+  if(e.target.classList.contains('cat-setor-tipo-select')){
+    const novoTipo = e.target.value;
+    if(novoTipo === 'Ambos') delete SETOR_TIPOS[setorAtual];
+    else SETOR_TIPOS[setorAtual] = novoTipo;
+    e.target.dataset.tipo = novoTipo;
+    saveCategorias();
+    addLog('sistema', `Tipo do setor "${setorAtual}" alterado para "${novoTipo}"`, 'Alterado na aba Setores/Categorias');
+    return;
+  }
+
+  // Alterar Tipo da categoria
+  if(e.target.classList.contains('cat-cat-tipo-select')){
+    const chip = e.target.closest('.cat-chip');
+    const cat  = chip.dataset.cat;
+    const key  = `${setorAtual}|${cat}`;
+    const novoTipo = e.target.value;
+    if(novoTipo === 'Ambos') delete CATEGORIA_TIPOS[key];
+    else CATEGORIA_TIPOS[key] = novoTipo;
+    e.target.dataset.tipo = novoTipo;
+    saveCategorias();
+    addLog('sistema', `Tipo da categoria "${cat}" (${setorAtual}) alterado para "${novoTipo}"`, 'Alterado na aba Setores/Categorias');
+    return;
+  }
+
+  // Renomear setor
+  if(e.target.classList.contains('cat-setor-input')){
+    const novoNome = e.target.value.trim();
+    if(!novoNome || novoNome === setorAtual){ e.target.value = setorAtual; return; }
+    if(SETOR_CATEGORIAS[novoNome]){ alert('Já existe um setor com esse nome.'); e.target.value = setorAtual; return; }
+    SETOR_CATEGORIAS[novoNome] = SETOR_CATEGORIAS[setorAtual];
+    delete SETOR_CATEGORIAS[setorAtual];
+    if(SETOR_CODES[setorAtual] && !SETOR_CODES[novoNome]){
+      SETOR_CODES[novoNome] = SETOR_CODES[setorAtual];
+    }
+    if(SETOR_TIPOS[setorAtual] && !SETOR_TIPOS[novoNome]){
+      SETOR_TIPOS[novoNome] = SETOR_TIPOS[setorAtual];
+    }
+    delete SETOR_TIPOS[setorAtual];
+    Object.keys(CATEGORIA_TIPOS).forEach(k=>{
+      if(k.startsWith(setorAtual+'|')){
+        const novaChave = novoNome + k.slice(setorAtual.length);
+        CATEGORIA_TIPOS[novaChave] = CATEGORIA_TIPOS[k];
+        delete CATEGORIA_TIPOS[k];
+      }
+    });
+    saveCategorias();
+    refreshSetorSelectOptions();
+    renderCategoriasTab();
+    addLog('sistema', `Setor "${setorAtual}" renomeado para "${novoNome}"`, 'As OS já lançadas mantêm o nome antigo do setor.');
+    return;
+  }
+
+  // Renomear categoria
+  if(e.target.classList.contains('cat-cat-input')){
+    const chip = e.target.closest('.cat-chip');
+    const catAtual = chip.dataset.cat;
+    const novoNome = e.target.value.trim();
+    if(!novoNome || novoNome === catAtual){ e.target.value = catAtual; return; }
+    const lista = SETOR_CATEGORIAS[setorAtual] || [];
+    if(lista.includes(novoNome)){ alert('Esta categoria já existe neste setor.'); e.target.value = catAtual; return; }
+    const idx = lista.indexOf(catAtual);
+    if(idx > -1) lista[idx] = novoNome;
+    const chaveAntiga = `${setorAtual}|${catAtual}`;
+    if(CATEGORIA_TIPOS[chaveAntiga]){
+      CATEGORIA_TIPOS[`${setorAtual}|${novoNome}`] = CATEGORIA_TIPOS[chaveAntiga];
+      delete CATEGORIA_TIPOS[chaveAntiga];
+    }
+    saveCategorias();
+    renderCategoriasTab();
+    addLog('sistema', `Categoria "${catAtual}" renomeada para "${novoNome}" em "${setorAtual}"`, 'As OS já lançadas mantêm o nome antigo da categoria.');
+    return;
+  }
+});
 
 // Firestore loads data and calls renderAll() after sync
 initFirestore();
