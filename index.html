@@ -855,7 +855,7 @@
   .pairs-empty{color:var(--dim);font-size:12px;font-style:italic;padding:4px 0;}
 
 
-  /* ── Setores/Categorias tab ── */
+  /* ── Chaves de Erro tab ── */
   .cat-manager{display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start;}
   @media(max-width:900px){.cat-manager{grid-template-columns:1fr;}}
   .cat-setores-list{display:flex;flex-direction:column;gap:12px;}
@@ -1282,14 +1282,14 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.0</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.3</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
 <div class="backup-bar">
   <span class="backup-label">💾 Dados</span>
   <span class="last-backup" id="last-backup-label">Último backup: <span>—</span></span>
-  <button class="btn-backup" id="btn-recalcular" title="Identifica Setor/Categoria de registros não classificados com base em descrições semelhantes já classificadas, reprocessa reincidências (todas as chaves, corretiva + preventiva) e atualiza o hodômetro dos registros com os dados mais recentes">🔄 Recalcular base</button>
+  <button class="btn-backup" id="btn-recalcular" title="Identifica chaves de erro de registros não classificados com base em descrições semelhantes já classificadas, reprocessa reincidências (todas as chaves, corretiva + preventiva) e atualiza o hodômetro dos registros com os dados mais recentes">🔄 Recalcular base</button>
   <button class="btn-backup" id="btn-export">⬇ Exportar backup</button>
   <button class="btn-backup import" id="btn-import">⬆ Importar backup</button>
   <button class="btn-backup danger" id="btn-reset-data">🗑 Limpar dados</button>
@@ -1312,7 +1312,7 @@
     <button class="tab-btn" data-tab="hodometro"><span class="tab-icon">🛣️</span><span class="tab-label">Hodômetro</span></button>
     <button class="tab-btn" data-tab="frota"><span class="tab-icon">🚌</span><span class="tab-label">Frota</span></button>
     <button class="tab-btn" data-tab="importar"><span class="tab-icon">📥</span><span class="tab-label">Importar OS</span></button>
-    <button class="tab-btn" data-tab="categorias"><span class="tab-icon">🏷️</span><span class="tab-label">Setores/Categorias</span></button>
+    <button class="tab-btn" data-tab="categorias"><span class="tab-icon">🏷️</span><span class="tab-label">Chaves de Erro</span></button>
     <button class="tab-btn" data-tab="log"><span class="tab-icon">📋</span><span class="tab-label">Log</span></button>
   </nav>
 </aside>
@@ -1501,7 +1501,7 @@
 
 <!-- ═══════════════ IMPORTAR OS TAB ═══════════════ -->
 <div id="tab-importar" class="tab-panel">
-  <p class="sub" style="margin-top:0;margin-bottom:16px;">Importe ordens de serviço em lote a partir de um arquivo CSV/XLSX exportado do sistema, ou de um CSV genérico. As linhas passam por uma fila de revisão antes de serem gravadas, permitindo classificar setor/categoria e corrigir dados antes de confirmar a importação.</p>
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Importe ordens de serviço em lote a partir de um arquivo CSV/XLSX exportado do sistema, ou de um CSV genérico. As linhas passam por uma fila de revisão antes de serem gravadas, permitindo classificar chave de erro e corrigir dados antes de confirmar a importação.</p>
   <div class="import-area">
     <h3>Importar ordens de serviço — CSV ou entrada manual</h3>
 
@@ -1613,9 +1613,9 @@
 
 </div><!-- /tab-importar -->
 
-<!-- ═══════════════ SETORES/CATEGORIAS TAB ═══════════════ -->
+<!-- ═══════════════ CHAVES DE ERRO TAB ═══════════════ -->
 <div id="tab-categorias" class="tab-panel">
-  <p class="sub" style="margin-top:0;">Gerencie os setores e categorias usados para classificar as ordens de serviço. Use o seletor de Tipo ao lado de cada setor/categoria para marcar se é Corretiva, Preventiva ou Ambos. Alterações aqui refletem em todos os formulários (novo registro, edição e importação) e são sincronizadas para todos os usuários.</p>
+  <p class="sub" style="margin-top:0;">Gerencie as chaves de erro usadas para classificar as ordens de serviço. Use o seletor de Tipo ao lado de cada chave para marcar se é Corretiva, Preventiva ou Ambos. Alterações aqui refletem em todos os formulários (novo registro, edição e importação) e são sincronizadas para todos os usuários.</p>
 
   <div class="cat-manager">
     <div class="cat-add-setor gns-form-card" style="position:static;">
@@ -1966,7 +1966,7 @@
           <button type="button" class="pair-add-btn" id="ed-pair-add-btn" title="Adicionar par">+</button>
         </div>
         <div class="pairs-list" id="ed-pairs-list">
-          <div class="pairs-empty" id="ed-pairs-empty">Nenhum setor/categoria adicionado ainda.</div>
+          <div class="pairs-empty" id="ed-pairs-empty">Nenhuma chave de erro adicionado ainda.</div>
         </div>
       </div>
     </div>
@@ -1974,7 +1974,7 @@
     <div class="field">
       <label for="ed-chave">Chave de erro <span class="edit-chave-auto">AUTO</span></label>
       <input type="text" id="ed-chave" readonly style="color:var(--amber);cursor:default;">
-      <div class="field-hint">Recalculada a partir de Tipo + primeiro par Setor/Categoria</div>
+      <div class="field-hint">Recalculada a partir da chave de erro</div>
     </div>
 
     <div class="field">
@@ -2063,7 +2063,7 @@
           <button type="button" class="pair-add-btn" id="pair-add-btn" title="Adicionar par">+</button>
         </div>
         <div class="pairs-list" id="pairs-list">
-          <div class="pairs-empty" id="pairs-empty">Nenhum setor/categoria adicionado ainda.</div>
+          <div class="pairs-empty" id="pairs-empty">Nenhuma chave de erro adicionada ainda.</div>
         </div>
       </div>
     </div>
@@ -2411,12 +2411,18 @@ const CHAVE_MAP_BASE = {
 // Tipo padrão (Corretiva/Preventiva/Ambos) de cada setor e de cada categoria.
 // Chave da categoria: "Setor|Categoria". Ausência de entrada = "Ambos".
 const SETOR_TIPOS_BASE     = {};
-const CATEGORIA_TIPOS_BASE = {};
+const CATEGORIA_TIPOS_BASE = {
+  // "Desempenho" (Elétrica e Mecânica) só tinha chave de erro Corretiva
+  // cadastrada (CE008/CM005) — travado como Corretiva para não permitir
+  // classificação como Preventiva.
+  'Elétrica|Desempenho': 'Corretiva',
+  'Mecânica|Desempenho': 'Corretiva',
+};
 const TIPOS_VALIDOS = ['Ambos','Corretiva','Preventiva'];
 
 // ── Estado ativo (base + personalizações do usuário) ──
 // Estes objetos começam como cópia da base e podem ser sobrescritos pelo
-// documento Firestore `pcm/categorias` e editados pela aba "Setores/Categorias".
+// documento Firestore `pcm/categorias` e editados pela aba "Chaves de Erro".
 let SETOR_CATEGORIAS = JSON.parse(JSON.stringify(SETOR_CATEGORIAS_BASE));
 let CHAVE_MAP        = JSON.parse(JSON.stringify(CHAVE_MAP_BASE));
 let SETOR_CODES      = JSON.parse(JSON.stringify(SETOR_CODES_BASE));
@@ -2955,7 +2961,7 @@ function populateVehbarsMonths(){
 }
 
 // "Intervenções" = número de ordens de serviço distintas (OS) por veículo —
-// evita contar múltiplas vezes uma OS que tenha vários pares setor/categoria.
+// evita contar múltiplas vezes uma OS que tenha várias chaves de erro.
 function renderVehBars(){
   const monthFilter = document.getElementById('vehbars-month').value;
   const rows = allRows().filter(r => !monthFilter || r.data.slice(0,7) === monthFilter);
@@ -3599,9 +3605,9 @@ function openEditDrawer(id, origin){
 
   // Load existing pares into the editable list
   if(record.pares && record.pares.length){
-    edPares = JSON.parse(JSON.stringify(record.pares));
+    edPares = JSON.parse(JSON.stringify(record.pares)).map(p => ({ ...p, tipo: p.tipo || record.tipo || '' }));
   } else if(record.setor){
-    edPares = [{ setor: record.setor, categoria: record.categoria || '', chave: record.chave_erro || '' }];
+    edPares = [{ tipo: record.tipo || '', setor: record.setor, categoria: record.categoria || '', chave: record.chave_erro || '' }];
   } else {
     edPares = [];
   }
@@ -3657,6 +3663,7 @@ function edRenderPairs(){
     tag.className = 'pair-tag';
     tag.innerHTML = `
       <span class="pair-info">
+        ${p.tipo ? `<span class="pair-tipo-badge ${p.tipo}">${p.tipo}</span>` : ''}
         <span class="pair-setor">${p.setor}</span>
         ${p.categoria ? `<span class="pair-cat"> › ${p.categoria}</span>` : ''}
         ${p.chave ? `<span class="pair-chave">${p.chave}</span>` : ''}
@@ -3678,11 +3685,12 @@ function edAddPair(){
   const setor = document.getElementById('ed-setor').value;
   const cat   = document.getElementById('ed-categoria').value;
   if(!setor){ alert('Selecione um setor.'); return; }
-  if(edPares.find(p => p.setor === setor && p.categoria === cat)){
+  if(!tipo){ alert('Selecione o Tipo (Corretiva ou Preventiva) antes de adicionar o par.'); return; }
+  if(edPares.find(p => p.setor === setor && p.categoria === cat && p.tipo === tipo)){
     alert('Este par já foi adicionado.'); return;
   }
   const chave = ensureChave(tipo, setor, cat);
-  edPares.push({ setor, categoria: cat, chave });
+  edPares.push({ tipo, setor, categoria: cat, chave });
   edRenderPairs();
   // Reset selectors
   document.getElementById('ed-setor').value = '';
@@ -3711,15 +3719,9 @@ document.getElementById('ed-categoria').addEventListener('change', ()=>{
   if(document.getElementById('ed-categoria').value) edAddPair();
 });
 document.getElementById('ed-pair-add-btn').addEventListener('click', edAddPair);
-document.getElementById('ed-tipo').addEventListener('change', ()=>{
-  // Recalculate chaves for existing pairs when tipo changes
-  const tipo = document.getElementById('ed-tipo').value;
-  edPares = edPares.map(p => ({
-    ...p,
-    chave: CHAVE_MAP[`${tipo}|${p.setor}|${p.categoria}`] || ''
-  }));
-  edRenderPairs();
-});
+// Mudar o Tipo NÃO altera os pares já adicionados — cada par mantém o tipo/chave
+// com que foi criado. O valor deste campo só é usado para o PRÓXIMO par a ser
+// adicionado (via edAddPair) e como tipo geral padrão do registro.
 document.getElementById('ed-data').addEventListener('change', edUpdateReincPreview);
 document.getElementById('ed-veiculo').addEventListener('input', ()=>{
   const v = document.getElementById('ed-veiculo').value.trim();
@@ -3737,7 +3739,7 @@ document.getElementById('edit-drawer-submit').addEventListener('click', ()=>{
   const veiculo = document.getElementById('ed-veiculo').value.trim();
   const os = document.getElementById('ed-os').value.trim();
   const descricao = document.getElementById('ed-descricao').value.trim();
-  const tipo = document.getElementById('ed-tipo').value;
+  const tipo = (edPares[0] && edPares[0].tipo) || document.getElementById('ed-tipo').value;
   const errEl = document.getElementById('ed-error');
 
   if(!data || !veiculo || !os || !descricao || !tipo || !edPares.length){
@@ -4253,7 +4255,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v7.0 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v7.3 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -5001,7 +5003,7 @@ document.getElementById('in-categoria').addEventListener('change', () => {
 document.getElementById('in-pair-tipo').addEventListener('change', maybeAutoAddPair);
 
 // ---- Detecção de reincidência ----
-// Considera TODAS as chaves de erro da OS (todos os pares Setor/Categoria),
+// Considera TODAS as chaves de erro da OS,
 // e ambos os tipos (Corretiva e Preventiva) — não apenas o primeiro par nem
 // apenas OS Corretivas.
 // `pares` deve ser um array de objetos com propriedade `chave` (ex: osPairs/edPares),
@@ -5058,8 +5060,8 @@ function detectReincidencia(veiculo, pares, dataStr, osAtual){
 }
 
 // ════════════════════════════════════════════════════════
-// AUTO-CLASSIFICAÇÃO DE SETOR/CATEGORIA — aprende com os registros já
-// classificados (setor ≠ "Não classificado") e aplica o padrão aos
+// AUTO-CLASSIFICAÇÃO DE CHAVES DE ERRO — aprende com os registros já
+// classificados (chave ≠ "Não classificada") e aplica o padrão aos
 // registros pendentes (ex.: importados do relatório de OS), com base
 // na semelhança da descrição.
 // ════════════════════════════════════════════════════════
@@ -5162,7 +5164,7 @@ function classificarDescricao(descricao, tipo, index){
 }
 
 // Aplica a classificação automática a todo registro com setor "Não
-// classificado" (ou setor/categoria ausente). Atualiza DATA + overrides
+// classificado" (ou chave de erro ausente). Atualiza DATA + overrides
 // (registros de planilha) e manualRecords diretamente. Retorna
 // { classificados, naoEncontrados }.
 function autoClassificarSetores(){
@@ -5311,9 +5313,9 @@ document.getElementById('btn-recalcular').addEventListener('click', () => {
   const hodoChanged  = recalcularHodometros();
   saveManualRecords(manualRecords);
   addLog('recalculo', 'Recálculo de base executado',
-    `${classificados} setor/categoria classificado(s) automaticamente${naoEncontrados ? ` · ${naoEncontrados} sem correspondência` : ''} · ${reincChanged} reincidência(s) atualizada(s) · ${hodoChanged} hodômetro(s) atualizado(s)`);
+    `${classificados} chave(s) de erro classificada(s) automaticamente${naoEncontrados ? ` · ${naoEncontrados} sem correspondência` : ''} · ${reincChanged} reincidência(s) atualizada(s) · ${hodoChanged} hodômetro(s) atualizado(s)`);
   renderAll();
-  alert(`✅ Recálculo concluído.\n${classificados} setor/categoria classificado(s) automaticamente.${naoEncontrados ? `\n${naoEncontrados} registro(s) sem correspondência confiável (revise manualmente).` : ''}\n${reincChanged} reincidência(s) atualizada(s).\n${hodoChanged} hodômetro(s) atualizado(s).`);
+  alert(`✅ Recálculo concluído.\n${classificados} chave(s) de erro classificada(s) automaticamente.${naoEncontrados ? `\n${naoEncontrados} registro(s) sem correspondência confiável (revise manualmente).` : ''}\n${reincChanged} reincidência(s) atualizada(s).\n${hodoChanged} hodômetro(s) atualizado(s).`);
 });
 
 // ---- Preview de reincidência no formulário ----
@@ -5769,10 +5771,10 @@ function purgeManualDuplicates(){
 }
 
 // ════════════════════════════════════════════════════════
-// SETORES/CATEGORIAS — aba de gerenciamento
+// Chaves de Erro — aba de gerenciamento
 // ════════════════════════════════════════════════════════
 
-// Conta quantas OS (base + manuais) usam um determinado setor/categoria
+// Conta quantas OS (base + manuais) usam determinada chave de erro
 function countUsoSetor(setor){
   return allRows().filter(r => (r.pares ? r.pares.some(p=>p.setor===setor) : r.setor===setor)).length;
 }
@@ -5839,7 +5841,7 @@ document.getElementById('new-setor-btn').addEventListener('click', ()=>{
   refreshSetorSelectOptions();
   renderCategoriasTab();
   input.value = '';
-  addLog('sistema', `Setor "${nome}" criado`, 'Criado na aba Setores/Categorias');
+  addLog('sistema', `Setor "${nome}" criado`, 'Criado na aba Chaves de Erro');
 });
 document.getElementById('new-setor-nome').addEventListener('keydown', e=>{
   if(e.key==='Enter') document.getElementById('new-setor-btn').click();
@@ -5865,7 +5867,7 @@ document.getElementById('cat-setores-list').addEventListener('click', e=>{
     saveCategorias();
     refreshSetorSelectOptions();
     renderCategoriasTab();
-    addLog('sistema', `Setor "${setorAtual}" excluído`, 'Excluído na aba Setores/Categorias');
+    addLog('sistema', `Setor "${setorAtual}" excluído`, 'Excluído na aba Chaves de Erro');
     return;
   }
 
@@ -5879,7 +5881,7 @@ document.getElementById('cat-setores-list').addEventListener('click', e=>{
     lista.push(nome);
     saveCategorias();
     renderCategoriasTab();
-    addLog('sistema', `Categoria "${nome}" criada em "${setorAtual}"`, 'Criada na aba Setores/Categorias');
+    addLog('sistema', `Categoria "${nome}" criada em "${setorAtual}"`, 'Criada na aba Chaves de Erro');
     return;
   }
 
@@ -5897,7 +5899,7 @@ document.getElementById('cat-setores-list').addEventListener('click', e=>{
     delete CATEGORIA_TIPOS[`${setorAtual}|${cat}`];
     saveCategorias();
     renderCategoriasTab();
-    addLog('sistema', `Categoria "${cat}" excluída de "${setorAtual}"`, 'Excluída na aba Setores/Categorias');
+    addLog('sistema', `Categoria "${cat}" excluída de "${setorAtual}"`, 'Excluída na aba Chaves de Erro');
     return;
   }
 });
@@ -5922,7 +5924,7 @@ document.getElementById('cat-setores-list').addEventListener('change', e=>{
     else SETOR_TIPOS[setorAtual] = novoTipo;
     e.target.dataset.tipo = novoTipo;
     saveCategorias();
-    addLog('sistema', `Tipo do setor "${setorAtual}" alterado para "${novoTipo}"`, 'Alterado na aba Setores/Categorias');
+    addLog('sistema', `Tipo do setor "${setorAtual}" alterado para "${novoTipo}"`, 'Alterado na aba Chaves de Erro');
     return;
   }
 
@@ -5936,7 +5938,7 @@ document.getElementById('cat-setores-list').addEventListener('change', e=>{
     else CATEGORIA_TIPOS[key] = novoTipo;
     e.target.dataset.tipo = novoTipo;
     saveCategorias();
-    addLog('sistema', `Tipo da categoria "${cat}" (${setorAtual}) alterado para "${novoTipo}"`, 'Alterado na aba Setores/Categorias');
+    addLog('sistema', `Tipo da categoria "${cat}" (${setorAtual}) alterado para "${novoTipo}"`, 'Alterado na aba Chaves de Erro');
     return;
   }
 
