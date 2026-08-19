@@ -177,7 +177,7 @@
     gap:10px;
     align-items:center;
   }
-  .filters select, .filters input[type=text]{
+  .filters select, .filters input[type=text], .filters input[type=date]{
     background:var(--panel-2);
     border:1px solid var(--line);
     color:var(--chalk);
@@ -186,6 +186,14 @@
     padding:8px 10px;
     border-radius:3px;
     outline:none;
+  }
+  .filters .date-range{
+    display:flex; align-items:center; gap:6px;
+    background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:0 4px 0 10px;
+  }
+  .filters .date-range span{color:var(--dim); font-size:12px;}
+  .filters .date-range input[type=date]{
+    background:none; border:none; padding:8px 4px; font-size:13px; color:var(--chalk);
   }
   .filters select:focus, .filters input:focus{border-color:var(--amber);}
   .filters input[type=text]{flex:1;min-width:180px;}
@@ -660,6 +668,17 @@
   }
   .modal .field input:focus,.modal .field select:focus{border-color:var(--amber);}
   .modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
+  .modal.modal-lg{width:min(720px,94vw);}
+  .hodo-veiculo-link{
+    cursor:pointer;text-decoration:underline;text-decoration-color:transparent;
+    transition:color .15s, text-decoration-color .15s;
+  }
+  .hodo-veiculo-link:hover{color:var(--amber);text-decoration-color:var(--amber);}
+  .hodo-hist-del{
+    background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:2px 6px;
+  }
+  .hodo-hist-del:hover{color:var(--red);}
+  .hodo-hist-empty{color:var(--dim);font-size:13px;text-align:center;padding:20px 0;}
 
 
   /* ── Edit drawer ── */
@@ -1167,6 +1186,8 @@
     /* Filtros empilhados, sem apertar */
     .filters{flex-direction:column;align-items:stretch;padding:12px 14px;gap:8px;}
     .filters select,.filters input[type=text]{width:100%;font-size:16px;padding:10px;}
+    .filters .date-range{width:100%;justify-content:space-between;}
+    .filters .date-range input[type=date]{font-size:16px;flex:1;min-width:0;}
     .filters .count{margin-left:0;text-align:center;order:99;}
     .toggle{justify-content:center;padding:10px;}
     .clear-btn{width:100%;padding:10px;}
@@ -1324,7 +1345,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.5</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.6</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1401,7 +1422,13 @@
     <select id="f-operacao"><option value="">Operação: todas</option></select>
     <select id="f-tipo"><option value="">Tipo: todos</option></select>
     <select id="f-setor"><option value="">Setor: todos</option></select>
+    <select id="f-categoria"><option value="">Categoria: todas</option></select>
     <select id="f-resp"><option value="">Responsável: todos</option></select>
+    <span class="date-range">
+      <input type="date" id="f-data-de" title="Data inicial">
+      <span>a</span>
+      <input type="date" id="f-data-ate" title="Data final">
+    </span>
     <input type="text" id="f-search" placeholder="Buscar veículo, OS, descrição, chave...">
     <label class="toggle"><input type="checkbox" id="f-reinc"> Só reincidentes</label>
     <button class="clear-btn" id="f-clear">Limpar filtros</button>
@@ -1941,6 +1968,33 @@
     <div class="modal-foot">
       <button class="btn-secondary" id="frota-modal-cancel">Cancelar</button>
       <button class="btn-primary" id="frota-modal-save">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Histórico de abastecimento / hodômetro do veículo -->
+<div class="modal-overlay" id="hodo-hist-modal-overlay">
+  <div class="modal modal-lg">
+    <button class="modal-close" id="hodo-hist-modal-close">&times;</button>
+    <h2>Histórico de abastecimento — Veículo <span id="hodo-hist-veiculo"></span></h2>
+    <div id="hodo-hist-meta" style="color:var(--dim);font-size:12.5px;margin:-10px 0 16px;"></div>
+    <div class="table-wrap" style="max-height:60vh;overflow-y:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Hodômetro</th>
+            <th>Km/L</th>
+            <th>Km rodado</th>
+            <th>Litros</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="hodo-hist-tbody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" id="hodo-hist-modal-cancel">Fechar</button>
     </div>
   </div>
 </div>
@@ -3201,6 +3255,9 @@ function uniqueSorted(field){
   allRows().forEach(r=>{
     if(field==='responsavel' && r.responsavel){
       r.responsavel.split(',').forEach(x=>s.add(x.trim()));
+    } else if(field==='categoria'){
+      if(r.pares && r.pares.length) r.pares.forEach(p=>{ if(p.categoria) s.add(p.categoria); });
+      else if(r.categoria) s.add(r.categoria);
     } else if(r[field]) s.add(r[field]);
   });
   return [...s].sort();
@@ -3220,6 +3277,7 @@ function refreshSelectsPreservingValue(){
   fillSelect('f-operacao','operacao');
   fillSelect('f-tipo','tipo');
   fillSelect('f-setor','setor');
+  fillSelect('f-categoria','categoria');
   fillSelect('f-resp','responsavel');
 }
 function refreshDatalists(){
@@ -3238,7 +3296,10 @@ function applyFilters(){
   const op = document.getElementById('f-operacao').value;
   const tp = document.getElementById('f-tipo').value;
   const st = document.getElementById('f-setor').value;
+  const ct = document.getElementById('f-categoria').value;
   const rp = document.getElementById('f-resp').value;
+  const dataDe = document.getElementById('f-data-de').value;   // 'YYYY-MM-DD' ou ''
+  const dataAte = document.getElementById('f-data-ate').value; // 'YYYY-MM-DD' ou ''
   const q = document.getElementById('f-search').value.trim().toLowerCase();
   const onlyReinc = document.getElementById('f-reinc').checked;
 
@@ -3246,7 +3307,13 @@ function applyFilters(){
     if(op && r.operacao!==op) return false;
     if(tp && r.tipo!==tp) return false;
     if(st && r.setor!==st) return false;
+    if(ct){
+      const cats = r.pares && r.pares.length ? r.pares.map(p=>p.categoria) : [r.categoria];
+      if(!cats.includes(ct)) return false;
+    }
     if(rp && !(r.responsavel && r.responsavel.split(',').map(x=>x.trim()).includes(rp))) return false;
+    if(dataDe && r.data < dataDe) return false;
+    if(dataAte && r.data > dataAte) return false;
     if(onlyReinc && !r.reincidente_bool) return false;
     if(q){
       const hay = `${r.veiculo} ${r.os} ${r.descricao||''} ${r.chave_erro||''} ${r.categoria||''}`.toLowerCase();
@@ -3361,7 +3428,7 @@ function deleteOSRecordConfirm(id, origin){
   renderAll();
 }
 
-['f-operacao','f-tipo','f-setor','f-resp','f-reinc'].forEach(id=>{
+['f-operacao','f-tipo','f-setor','f-categoria','f-resp','f-reinc','f-data-de','f-data-ate'].forEach(id=>{
   document.getElementById(id).addEventListener('change', applyFilters);
 });
 document.getElementById('f-search').addEventListener('input', applyFilters);
@@ -3369,7 +3436,10 @@ document.getElementById('f-clear').addEventListener('click', ()=>{
   document.getElementById('f-operacao').value='';
   document.getElementById('f-tipo').value='';
   document.getElementById('f-setor').value='';
+  document.getElementById('f-categoria').value='';
   document.getElementById('f-resp').value='';
+  document.getElementById('f-data-de').value='';
+  document.getElementById('f-data-ate').value='';
   document.getElementById('f-search').value='';
   document.getElementById('f-reinc').checked=false;
   applyFilters();
@@ -4153,7 +4223,7 @@ function renderHodoTab(){
   document.getElementById('hodo-tbody').innerHTML = rows.map(r => {
     const hasData = !!(hodoData[r.veiculo] && hodoData[r.veiculo].length);
     return `<tr style="${!hasData ? 'opacity:.45' : ''}">
-      <td class="hodo-val">${r.veiculo}</td>
+      <td class="hodo-val hodo-veiculo-link" data-veiculo="${r.veiculo}" title="Ver histórico de abastecimento">${r.veiculo}</td>
       <td>${r.operacao ? `<span class="${opClass(r.operacao)}">${r.operacao}</span>` : '<span style="color:var(--dim)">—</span>'}</td>
       <td class="hodo-val">${hasData ? Number(r.hodometro).toLocaleString('pt-BR') + ' km' : '<span style="color:var(--dim)">—</span>'}</td>
       <td style="font-family:var(--font-mono);font-weight:600;">${hasData && r.kml ? `<span class="${kmlClass(r.kml)}">${Number(r.kml).toFixed(2)}</span>` : '<span style="color:var(--dim)">—</span>'}</td>
@@ -4163,6 +4233,10 @@ function renderHodoTab(){
     </tr>`;
   }).join('');
 
+  document.querySelectorAll('.hodo-veiculo-link').forEach(el=>{
+    el.addEventListener('click', ()=> openHodoHistModal(el.dataset.veiculo));
+  });
+
   // Meta
   const withData = Object.keys(hodoData).filter(v => hodoData[v] && hodoData[v].length);
   const kmls = withData.map(v => pickClosestHodoEntry(hodoData[v], null)?.kml).filter(Boolean);
@@ -4170,6 +4244,69 @@ function renderHodoTab(){
   document.getElementById('hodo-count').textContent = `${withData.length} / ${Object.keys(frota).length}`;
   document.getElementById('hodo-avg-kml').textContent = avgKml ? avgKml.toFixed(2) + ' km/L' : '—';
 }
+
+// ── Modal de histórico de abastecimento por veículo ──
+let hodoHistVeiculo = null;
+
+function openHodoHistModal(veiculo){
+  hodoHistVeiculo = String(veiculo);
+  document.getElementById('hodo-hist-veiculo').textContent = veiculo;
+  renderHodoHistModal();
+  document.getElementById('hodo-hist-modal-overlay').classList.add('open');
+}
+
+function closeHodoHistModal(){
+  document.getElementById('hodo-hist-modal-overlay').classList.remove('open');
+  hodoHistVeiculo = null;
+}
+
+function renderHodoHistModal(){
+  if(!hodoHistVeiculo) return;
+  const entries = (hodoData[hodoHistVeiculo] || []).slice()
+    .sort((a,b) => (b.ts||0) - (a.ts||0)); // mais recente primeiro
+
+  const metaEl = document.getElementById('hodo-hist-meta');
+  metaEl.textContent = entries.length
+    ? `${entries.length} registro(s) de abastecimento neste veículo.`
+    : 'Nenhum abastecimento registrado para este veículo ainda.';
+
+  const tbody = document.getElementById('hodo-hist-tbody');
+  if(!entries.length){
+    tbody.innerHTML = `<tr><td colspan="6" class="hodo-hist-empty">Nenhum registro encontrado.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = entries.map((e, i) => `
+    <tr>
+      <td style="font-family:var(--font-mono);font-size:12px;">${e.dataHora||'—'}</td>
+      <td class="hodo-val">${e.hodometro ? Number(e.hodometro).toLocaleString('pt-BR') + ' km' : '—'}</td>
+      <td style="font-family:var(--font-mono);font-weight:600;">${e.kml ? `<span class="${kmlClass(e.kml)}">${Number(e.kml).toFixed(2)}</span>` : '—'}</td>
+      <td style="font-family:var(--font-mono);color:var(--dim);">${e.kmRodado ? Number(e.kmRodado).toLocaleString('pt-BR') + ' km' : '—'}</td>
+      <td style="font-family:var(--font-mono);color:var(--dim);">${e.litros ? Number(e.litros).toLocaleString('pt-BR', {minimumFractionDigits:2}) + ' L' : '—'}</td>
+      <td><button class="hodo-hist-del" data-idx="${i}" title="Excluir este registro">✕</button></td>
+    </tr>`).join('');
+
+  tbody.querySelectorAll('.hodo-hist-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = Number(btn.dataset.idx);
+      const entry = entries[idx];
+      if(!confirm('Excluir este registro de abastecimento? Essa ação não pode ser desfeita.')) return;
+      // Remove do array original comparando por referência (evita depender de índice pós-ordenação)
+      hodoData[hodoHistVeiculo] = (hodoData[hodoHistVeiculo] || []).filter(e2 => e2 !== entry);
+      saveHodoData();
+      addLog('hodo', `Registro de abastecimento excluído: ${hodoHistVeiculo}`,
+        `${entry.dataHora||''} · ${entry.hodometro ? entry.hodometro.toLocaleString('pt-BR')+' km' : ''}`);
+      renderHodoHistModal();
+      renderHodoTab();
+    });
+  });
+}
+
+document.getElementById('hodo-hist-modal-close').addEventListener('click', closeHodoHistModal);
+document.getElementById('hodo-hist-modal-cancel').addEventListener('click', closeHodoHistModal);
+document.getElementById('hodo-hist-modal-overlay').addEventListener('click', e => {
+  if(e.target === document.getElementById('hodo-hist-modal-overlay')) closeHodoHistModal();
+});
 
 function processHodoRows(rawRows){
   const parsed = [];
@@ -4462,7 +4599,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v7.5 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v7.6 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
