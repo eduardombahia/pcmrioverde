@@ -432,6 +432,48 @@
   }
   .del-btn:hover{color:var(--red);}
 
+  /* ── Duplicadas tab ── */
+  .dup-group{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:14px 16px; margin-bottom:14px;
+  }
+  .dup-group-head{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;
+    padding-bottom:10px; border-bottom:1px solid var(--line);
+  }
+  .dup-group-head .dup-os{font-family:var(--font-mono); color:var(--amber); font-weight:700; font-size:14px;}
+  .dup-group-head .dup-meta{color:var(--dim); font-size:12.5px;}
+  .dup-group-head .dup-count{
+    margin-left:auto; font-size:11px; font-family:var(--font-mono); color:var(--red);
+    border:1px solid rgba(233,69,96,.4); padding:2px 7px; border-radius:10px;
+  }
+  .dup-row{
+    display:flex; align-items:center; gap:12px; padding:8px 0;
+    border-bottom:1px dashed var(--line); flex-wrap:wrap;
+  }
+  .dup-row:last-child{border-bottom:none;}
+  .dup-row .dup-check{width:15px;height:15px;accent-color:var(--red);cursor:pointer;flex:none;}
+  .dup-row .dup-field{font-size:12.5px; color:var(--chalk);}
+  .dup-row .dup-field b{color:var(--dim); font-weight:500; margin-right:3px;}
+  .dup-row .dup-desc{flex:1 1 220px; color:var(--dim); font-size:12px; min-width:0;}
+  .dup-row .dup-actions{margin-left:auto; display:flex; gap:6px; align-items:center;}
+  .dup-empty{color:var(--dim); font-size:13px; padding:24px 0; text-align:center;}
+  .dup-toolbar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;
+  }
+  .dup-toolbar .dup-select-all{
+    background:none; border:1px solid var(--line); color:var(--dim); border-radius:6px;
+    padding:6px 12px; font-size:12.5px; cursor:pointer;
+  }
+  .dup-toolbar .dup-select-all:hover{color:var(--chalk); border-color:var(--dim);}
+  .dup-toolbar .dup-bulk-del{
+    background:var(--red); border:none; color:#fff; border-radius:6px;
+    padding:6px 14px; font-size:12.5px; font-weight:600; cursor:pointer;
+    opacity:.45; pointer-events:none; transition:opacity .15s;
+  }
+  .dup-toolbar .dup-bulk-del.active{opacity:1; pointer-events:auto;}
+  .dup-toolbar .dup-bulk-del:hover.active{background:#c73652;}
+
 
   /* ── Tab navigation ── */
   .tab-btn{
@@ -1282,7 +1324,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.3</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.5</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1307,6 +1349,7 @@
   <nav class="tab-nav-vertical">
     <button class="tab-btn active" data-tab="painel"><span class="tab-icon">📊</span><span class="tab-label">Painel</span></button>
     <button class="tab-btn" data-tab="ordens"><span class="tab-icon">🗂️</span><span class="tab-label">Ordens de Serviço</span></button>
+    <button class="tab-btn" data-tab="duplicadas"><span class="tab-icon">🧬</span><span class="tab-label">Duplicadas</span></button>
     <button class="tab-btn" data-tab="solicitacoes"><span class="tab-icon">🛠️</span><span class="tab-label">Solicitações de Reparo</span></button>
     <button class="tab-btn" data-tab="gns"><span class="tab-icon">🚧</span><span class="tab-label">GNS</span></button>
     <button class="tab-btn" data-tab="hodometro"><span class="tab-icon">🛣️</span><span class="tab-label">Hodômetro</span></button>
@@ -1388,6 +1431,19 @@
   </div>
 
 </div><!-- /tab-ordens -->
+
+<!-- ═══════════════ DUPLICADAS TAB ═══════════════ -->
+<div id="tab-duplicadas" class="tab-panel">
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Ordens de serviço "clones" — mesmo <b>veículo + número de OS + setor + categoria</b> lançados mais de uma vez. Marque as caixas de seleção das cópias indevidas e exclua em lote, mantendo apenas o registro correto de cada grupo.</p>
+
+  <div id="dup-summary" style="margin-bottom:12px;color:var(--dim);font-size:13px;"></div>
+  <div class="dup-toolbar" id="dup-toolbar" style="display:none;">
+    <button type="button" class="dup-select-all" id="dup-select-all-btn">Selecionar todas exceto a 1ª de cada grupo</button>
+    <button type="button" class="dup-select-all" id="dup-clear-sel-btn">Limpar seleção</button>
+    <button type="button" class="dup-bulk-del" id="dup-bulk-del-btn">Excluir selecionadas (<span id="dup-sel-count">0</span>)</button>
+  </div>
+  <div id="dup-groups"></div>
+</div><!-- /tab-duplicadas -->
 
 <!-- ═══════════════ SOLICITAÇÕES DE REPARO TAB ═══════════════ -->
 <div id="tab-solicitacoes" class="tab-panel">
@@ -2814,15 +2870,160 @@ function renderAll(){
   refreshDatalists();
   applyFilters();
   renderCategoriasTab();
+  renderDuplicatas();
 }
 
-function renderKpis(){
+// ════════════════════════════════════════════════════════
+// DUPLICADAS — agrupa OS "clones": mesmo veículo + OS + setor + categoria
+// (mesma chave usada em isDuplicate) e permite excluir as cópias extras.
+// ════════════════════════════════════════════════════════
+function dupGroupKey(r){
+  return `${normalize(r.veiculo)}__${normalize(r.os)}__${normalize(r.setor)}__${normalize(r.categoria)}`;
+}
+
+function renderDuplicatas(){
+  const wrapGroups = document.getElementById('dup-groups');
+  const wrapSummary = document.getElementById('dup-summary');
+  const toolbar = document.getElementById('dup-toolbar');
+  if(!wrapGroups || !wrapSummary) return;
+
   const rows = allRows();
+  const groupsMap = {};
+  rows.forEach(r=>{
+    if(!r.veiculo || !r.os) return; // sem chave mínima, não dá pra agrupar
+    const key = dupGroupKey(r);
+    if(!groupsMap[key]) groupsMap[key] = [];
+    groupsMap[key].push(r);
+  });
+
+  const dupGroups = Object.values(groupsMap)
+    .filter(g => g.length > 1)
+    .sort((a,b) => b.length - a.length || String(a[0].os).localeCompare(String(b[0].os)));
+
+  if(dupGroups.length === 0){
+    wrapSummary.innerHTML = '<span style="color:var(--green);">✓ Nenhuma OS duplicada encontrada.</span>';
+    wrapGroups.innerHTML = '';
+    toolbar.style.display = 'none';
+    return;
+  }
+
+  toolbar.style.display = '';
+  const totalExtras = dupGroups.reduce((s,g)=>s+(g.length-1),0);
+  wrapSummary.innerHTML = `<b style="color:var(--red);">${dupGroups.length}</b> grupo(s) de OS duplicada — <b style="color:var(--red);">${totalExtras}</b> registro(s) a mais que poderiam ser removidos.`;
+
+  wrapGroups.innerHTML = dupGroups.map(group=>{
+    const first = group[0];
+    const sorted = group.slice().sort((a,b)=>String(a.data).localeCompare(String(b.data)));
+    const rowsHtml = sorted.map(r=>{
+      const id = r.origin==='manual' ? r._id : r._edit_id;
+      return `<div class="dup-row" data-id="${id}" data-origin="${r.origin}">
+        <input type="checkbox" class="dup-check" data-id="${id}" data-origin="${r.origin}">
+        <span class="dup-field"><b>Data</b>${fmtDate(r.data)}</span>
+        <span class="dup-field"><b>Tipo</b><span class="pill ${r.tipo}">${r.tipo}</span></span>
+        <span class="dup-field"><b>Chave</b>${r.chave_erro||'—'}</span>
+        <span class="dup-field"><b>Responsável</b>${r.responsavel||'—'}</span>
+        <span class="dup-desc">${(r.descricao||'').slice(0,90)}${r.origin==='manual' ? '<span class="origin-manual">M</span>' : ''}</span>
+        <span class="dup-actions">
+          <button class="edit-btn" data-id="${id}" data-origin="${r.origin}" title="Editar">✏️</button>
+          <button class="del-btn" data-id="${id}" data-origin="${r.origin}" title="Excluir esta cópia">✕</button>
+        </span>
+      </div>`;
+    }).join('');
+
+    return `<div class="dup-group">
+      <div class="dup-group-head">
+        <span class="dup-os">OS ${first.os}</span>
+        <span class="dup-meta">Veículo ${first.veiculo} · ${first.setor||'—'}${first.categoria ? ' › '+first.categoria : ''}</span>
+        <span class="dup-count">${group.length} cópias</span>
+      </div>
+      ${rowsHtml}
+    </div>`;
+  }).join('');
+
+  wrapGroups.querySelectorAll('.del-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      deleteOSRecordConfirm(btn.dataset.id, btn.dataset.origin);
+    });
+  });
+  wrapGroups.querySelectorAll('.edit-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      openEditDrawer(btn.dataset.id, btn.dataset.origin);
+    });
+  });
+  wrapGroups.querySelectorAll('.dup-check').forEach(chk=>{
+    chk.addEventListener('change', updateDupSelectionCount);
+  });
+  updateDupSelectionCount();
+}
+
+// Atualiza o contador/estado do botão de exclusão em lote conforme as caixas marcadas
+function updateDupSelectionCount(){
+  const checked = document.querySelectorAll('#dup-groups .dup-check:checked');
+  const countEl = document.getElementById('dup-sel-count');
+  const btn = document.getElementById('dup-bulk-del-btn');
+  if(!countEl || !btn) return;
+  countEl.textContent = checked.length;
+  btn.classList.toggle('active', checked.length > 0);
+}
+
+// Marca automaticamente todas as cópias de cada grupo, exceto a primeira
+// (a mais antiga por data), deixando pré-selecionado o que normalmente
+// seria descartado.
+document.getElementById('dup-select-all-btn')?.addEventListener('click', ()=>{
+  document.querySelectorAll('#dup-groups .dup-group').forEach(groupEl=>{
+    const checks = groupEl.querySelectorAll('.dup-check');
+    checks.forEach((chk, i)=>{ chk.checked = i > 0; });
+  });
+  updateDupSelectionCount();
+});
+
+document.getElementById('dup-clear-sel-btn')?.addEventListener('click', ()=>{
+  document.querySelectorAll('#dup-groups .dup-check:checked').forEach(chk=>{ chk.checked = false; });
+  updateDupSelectionCount();
+});
+
+document.getElementById('dup-bulk-del-btn')?.addEventListener('click', ()=>{
+  const checked = [...document.querySelectorAll('#dup-groups .dup-check:checked')];
+  if(checked.length === 0) return;
+  if(!confirm(`Tem certeza que deseja excluir ${checked.length} OS selecionada(s)? Essa ação não pode ser desfeita.`)) return;
+
+  checked.forEach(chk=>{
+    const id = chk.dataset.id;
+    const origin = chk.dataset.origin;
+    if(origin === 'manual'){
+      const numId = Number(id);
+      const rec = manualRecords.find(r=>r._id === numId);
+      manualRecords = manualRecords.filter(r=>r._id !== numId);
+      if(rec) addLog('os-delete', `OS excluída: ${rec.os} — Veículo ${rec.veiculo}`,
+        `${rec.tipo} · ${rec.setor||''} · ${rec.descricao||''}`);
+    } else {
+      const rec = DATA.find(r => String(r._edit_id) === String(id));
+      if(rec){
+        const key = keyForRecord(rec);
+        deletedKeys[key] = true;
+        addLog('os-delete', `OS excluída: ${rec.os} — Veículo ${rec.veiculo}`,
+          `${rec.tipo} · ${rec.setor||''} · ${rec.descricao||''}`);
+      }
+    }
+  });
+  saveManualRecords(manualRecords);
+  saveDeletedKeys();
+  renderAll();
+});
+
+function renderKpis(){
+  const monthSel = document.getElementById('months-month');
+  const monthFilter = monthSel ? monthSel.value : '';
+  const rows = allRows().filter(r => !monthFilter || r.data.slice(0,7) === monthFilter);
   const total = rows.length;
   const corr = rows.filter(r=>r.tipo==='Corretiva').length;
   const prev = rows.filter(r=>r.tipo==='Preventiva').length;
   const reinc = rows.filter(r=>r.reincidente_bool).length;
-  const veiculos = Object.keys(frota).length;
+  // Sem mês selecionado: total de veículos da frota. Com mês selecionado:
+  // apenas os veículos que tiveram OS naquele mês.
+  const veiculos = monthFilter
+    ? new Set(rows.map(r=>r.veiculo).filter(Boolean)).size
+    : Object.keys(frota).length;
 
   const kpis = [
     {n: total, l:'Ordens de serviço', cls:''},
@@ -2945,7 +3146,7 @@ function renderCatBars(){
     </div>`).join('');
 }
 document.getElementById('catbars-month').addEventListener('change', renderCatBars);
-document.getElementById('months-month').addEventListener('change', renderMonths);
+document.getElementById('months-month').addEventListener('change', ()=>{ renderMonths(); renderKpis(); });
 
 // Popula o seletor de mês do card "Top veículos com mais intervenções" com os
 // meses presentes na base, preservando a seleção atual quando possível.
@@ -3121,28 +3322,7 @@ function renderTable(rows){
 
   document.querySelectorAll('.del-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
-      const id = btn.dataset.id;
-      const origin = btn.dataset.origin;
-      if(!confirm('Tem certeza que deseja excluir esta OS? Essa ação não pode ser desfeita.')) return;
-
-      if(origin === 'manual'){
-        const numId = Number(id);
-        const rec = manualRecords.find(r=>r._id === numId);
-        manualRecords = manualRecords.filter(r=>r._id !== numId);
-        saveManualRecords(manualRecords);
-        if(rec) addLog('os-delete', `OS excluída: ${rec.os} — Veículo ${rec.veiculo}`,
-          `${rec.tipo} · ${rec.setor||''} · ${rec.descricao||''}`);
-      } else {
-        const rec = DATA.find(r => String(r._edit_id) === String(id));
-        if(rec){
-          const key = keyForRecord(rec);
-          deletedKeys[key] = true;
-          saveDeletedKeys();
-          addLog('os-delete', `OS excluída: ${rec.os} — Veículo ${rec.veiculo}`,
-            `${rec.tipo} · ${rec.setor||''} · ${rec.descricao||''}`);
-        }
-      }
-      renderAll();
+      deleteOSRecordConfirm(btn.dataset.id, btn.dataset.origin);
     });
   });
 
@@ -3153,6 +3333,32 @@ function renderTable(rows){
       openEditDrawer(id, origin);
     });
   });
+}
+
+// Exclui um registro de OS (planilha ou manual) por id+origin — usado pela
+// tabela principal e pela aba de Duplicadas. Pede confirmação, registra no
+// Log e re-renderiza a tela.
+function deleteOSRecordConfirm(id, origin){
+  if(!confirm('Tem certeza que deseja excluir esta OS? Essa ação não pode ser desfeita.')) return;
+
+  if(origin === 'manual'){
+    const numId = Number(id);
+    const rec = manualRecords.find(r=>r._id === numId);
+    manualRecords = manualRecords.filter(r=>r._id !== numId);
+    saveManualRecords(manualRecords);
+    if(rec) addLog('os-delete', `OS excluída: ${rec.os} — Veículo ${rec.veiculo}`,
+      `${rec.tipo} · ${rec.setor||''} · ${rec.descricao||''}`);
+  } else {
+    const rec = DATA.find(r => String(r._edit_id) === String(id));
+    if(rec){
+      const key = keyForRecord(rec);
+      deletedKeys[key] = true;
+      saveDeletedKeys();
+      addLog('os-delete', `OS excluída: ${rec.os} — Veículo ${rec.veiculo}`,
+        `${rec.tipo} · ${rec.setor||''} · ${rec.descricao||''}`);
+    }
+  }
+  renderAll();
 }
 
 ['f-operacao','f-tipo','f-setor','f-resp','f-reinc'].forEach(id=>{
@@ -3367,6 +3573,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if(tab === 'hodometro') renderHodoTab();
     if(tab === 'gns') renderGnsTab();
     if(tab === 'log') renderLogTab();
+    if(tab === 'duplicadas') renderDuplicatas();
     document.getElementById('sidebar').classList.remove('mobile-open');
   });
 });
@@ -4255,7 +4462,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v7.3 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v7.5 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
