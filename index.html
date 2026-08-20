@@ -1345,7 +1345,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.6</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.8</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1889,7 +1889,10 @@
       <div class="hodo-drop" id="hodo-drop">
         <div style="font-size:22px;margin-bottom:6px;">📊</div>
         <div>Arraste o arquivo aqui ou <strong>clique para selecionar</strong></div>
-        <div style="font-size:11px;margin-top:6px;color:var(--dim);">Colunas: Frota · Hodômetro · Litros · Km/L · Km Rodado · Data e Hora</div>
+        <div style="font-size:11px;margin-top:10px;color:var(--dim);">
+          Aceita o relatório de abastecimento exportado do sistema (blocos por veículo, colunas Data/Hod. Atual/Comb./Km-Lt/Vl. Ab.) — linhas com Valor zerado (só aditivo/óleo) são ignoradas automaticamente.<br>
+          Também aceita CSV/XLSX genérico com colunas: <code style="color:var(--chalk);">Frota&nbsp;&nbsp;Hodômetro&nbsp;&nbsp;Litros&nbsp;&nbsp;Km/L&nbsp;&nbsp;Km Rodado&nbsp;&nbsp;Data e Hora</code>
+        </div>
         <input type="file" id="hodo-input" accept=".xlsx,.xls,.csv">
       </div>
       <div style="font-size:12px;color:var(--dim);margin:10px 0 4px;">
@@ -2146,6 +2149,10 @@
     <div class="field">
       <label for="in-descricao">Descrição *</label>
       <textarea id="in-descricao" placeholder="ex: Troca de óleo motor e filtros"></textarea>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
+        <button type="button" class="btn-secondary" id="ia-classificar-btn" style="font-size:12px;padding:5px 10px;">🤖 Sugerir Setor/Categoria com IA</button>
+        <span id="ia-classificar-status" style="font-size:11px;color:var(--dim);"></span>
+      </div>
     </div>
 
     <div class="field">
@@ -2529,6 +2536,12 @@ const CATEGORIA_TIPOS_BASE = {
   'Mecânica|Desempenho': 'Corretiva',
 };
 const TIPOS_VALIDOS = ['Ambos','Corretiva','Preventiva'];
+
+// ── Configuração da IA de classificação (Setor/Categoria) ──
+// Depois de publicar o proxy (Cloudflare Worker — ver instruções à parte),
+// cole aqui a URL do endpoint. Deixe '' para manter o botão "Sugerir com IA"
+// desativado (nada quebra sem essa configuração).
+const IA_PROXY_URL = ''; // ex: 'https://pcm-ia-proxy.SEU-USUARIO.workers.dev'
 
 // ── Estado ativo (base + personalizações do usuário) ──
 // Estes objetos começam como cópia da base e podem ser sobrescritos pelo
@@ -4356,6 +4369,14 @@ function processHodoRows(rawRows){
   });
 
   if(!parsed.length){ alert('Nenhum dado válido encontrado. Verifique as colunas.'); return; }
+  mergeHodoEntries(parsed, `${parsed.length} veículo(s) atualizados.`);
+}
+
+// ── Merge de entradas já normalizadas (uma linha = um abastecimento) em hodoData ──
+// Reaproveitado tanto pelo parser genérico (processHodoRows) quanto pelo parser
+// dedicado do relatório de abastecimento (parseRelatorioAbastecimento).
+function mergeHodoEntries(parsed, successMsg){
+  if(!parsed.length){ alert('Nenhum dado válido encontrado. Verifique as colunas do arquivo.'); return; }
 
   // Merge into hodoData history (append per veículo; skip exact duplicate readings)
   parsed.forEach(r => {
@@ -4368,9 +4389,90 @@ function processHodoRows(rawRows){
   document.getElementById('hodo-date').textContent = now;
   const kmls = parsed.map(r=>r.kml).filter(Boolean);
   const avgKml = kmls.length ? (kmls.reduce((s,k)=>s+k,0)/kmls.length).toFixed(2) : '—';
-  addLog('hodo', `Hodômetro importado: ${parsed.length} veículo(s)`, `Km/L médio: ${avgKml}`);
+  const veiculos = new Set(parsed.map(r=>r.veiculo)).size;
+  addLog('hodo', `Hodômetro importado: ${parsed.length} registro(s) · ${veiculos} veículo(s)`, `Km/L médio: ${avgKml}`);
   renderHodoTab();
-  alert(`✅ ${parsed.length} veículo(s) atualizados.`);
+  alert(`✅ ${successMsg || parsed.length + ' registro(s) de abastecimento importado(s).'}`);
+}
+
+// ── Parser dedicado ao relatório de abastecimento (blocos "Veículo : OPP/FROTA", delimitador ";") ──
+// Coluna A = Data (às vezes em branco — herda a última data vista no bloco);
+// Coluna C = Hodômetro atual; Coluna E = Combustível (litros); Coluna F = Km/L;
+// última coluna (Vl. Ab.) = valor do abastecimento — linhas com Valor 0 (lançamentos
+// de aditivo/óleo sem abastecimento de fato) são ignoradas.
+function parseNumeroBR(raw){
+  if(raw===undefined || raw===null) return 0;
+  const s = String(raw).trim();
+  if(!s) return 0;
+  const norm = s.replace(/\./g,'').replace(',', '.');
+  const n = Number(norm);
+  return isNaN(n) ? 0 : n;
+}
+
+function parseDataBR2Digit(str){
+  const m = String(str||'').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
+  if(!m) return null;
+  const dd = m[1].padStart(2,'0'), mm = m[2].padStart(2,'0');
+  const yyyy = 2000 + Number(m[3]);
+  const d = new Date(yyyy, Number(mm)-1, Number(dd));
+  if(isNaN(d)) return null;
+  return { label: `${dd}/${mm}/${yyyy}`, ts: d.getTime() };
+}
+
+function parseRelatorioAbastecimento(text){
+  const table = parseDelimitedText(text, ';');
+  const rows = [];
+  let veiculoAtual = null;
+  let dataAtualLabel = null, dataAtualTs = null;
+  let skipNext = false; // pula a linha de valores agregados que segue um rótulo "Total..."
+
+  for(const r of table){
+    const col0 = (r[0]||'').trim();
+
+    if(skipNext){ skipNext = false; continue; }
+
+    // Cabeçalho de bloco: "Veículo : 080/142464   Tipo de Chassi: ..." — a frota é a
+    // segunda parte de "OPERACAO/FROTA" (identifica e usa só a frota, ignora o resto).
+    const mVeic = col0.match(/^Ve.culo\s*:\s*(\d+)\s*\/\s*(\d+)/i);
+    if(mVeic){
+      veiculoAtual = mVeic[2];
+      dataAtualLabel = null; dataAtualTs = null; // nova "última data" a cada veículo
+      continue;
+    }
+
+    // Linha de rótulo de total ("Total Veículo: ..." ou "Total:") — a linha seguinte
+    // traz os valores agregados do bloco, não um abastecimento individual.
+    if(/^Total/i.test(col0)){ skipNext = true; continue; }
+
+    // Cabeçalho de colunas repetido a cada bloco ("Data;Hod. Ant.;...")
+    if(/^Data$/i.test(col0)) continue;
+
+    if(!veiculoAtual || r.length < 17) continue;
+
+    // Atualiza a data corrente do bloco sempre que a linha trouxer uma data própria;
+    // linhas com data em branco herdam a última data vista (mesmo lançamento/dia).
+    const parsedDate = parseDataBR2Digit(col0);
+    if(parsedDate){ dataAtualLabel = parsedDate.label; dataAtualTs = parsedDate.ts; }
+    if(!dataAtualLabel) continue;
+
+    const valor = parseNumeroBR(r[16]); // coluna Q = Vl. Ab.
+    if(!valor) continue; // Valor 0 → ignora
+
+    const hodometro = Math.round(parseNumeroBR(r[2])); // coluna C = Hod. Atual
+    if(!hodometro) continue;
+
+    const litros    = parseNumeroBR(r[4]); // coluna E = Comb.
+    const kml       = parseNumeroBR(r[5]); // coluna F = Km/Lt
+    const kmRodado  = Math.round(parseNumeroBR(r[3])); // coluna D = Km Rod.
+    const operacao  = getOperacao(veiculoAtual);
+
+    rows.push({
+      veiculo: veiculoAtual, frotaOriginal: veiculoAtual, operacao,
+      hodometro, litros, kml, kmRodado, valor,
+      dataHora: dataAtualLabel, ts: dataAtualTs
+    });
+  }
+  return rows;
 }
 
 function handleHodoFile(file){
@@ -4384,10 +4486,25 @@ function handleHodoFile(file){
       processHodoRows(rows);
     };
     reader.readAsArrayBuffer(file);
-  } else {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const lines   = e.target.result.split(/\r?\n/).filter(l=>l.trim());
+    return;
+  }
+
+  // Tenta primeiro o formato do relatório de abastecimento exportado do sistema
+  // (blocos por veículo, delimitador ";"). Esse relatório costuma vir em ISO-8859-1
+  // (Latin-1), não UTF-8 — lendo como UTF-8 os acentos ficariam corrompidos.
+  const readerLatin = new FileReader();
+  readerLatin.onload = e => {
+    const abastRows = parseRelatorioAbastecimento(e.target.result);
+    if(abastRows.length){
+      mergeHodoEntries(abastRows, `${abastRows.length} abastecimento(s) importado(s) (linhas com Valor zerado foram ignoradas).`);
+      return;
+    }
+
+    // Fallback: CSV/XLSX genérico com cabeçalho simples (Frota, Hodômetro, Litros, Km/L, Km Rodado, Data e Hora)
+    const readerUtf = new FileReader();
+    readerUtf.onload = e2 => {
+      const lines = e2.target.result.split(/\r?\n/).filter(l=>l.trim());
+      if(!lines.length){ alert('Arquivo sem dados.'); return; }
       const headers = lines[0].split(/[;,]/).map(h=>h.trim());
       const rows    = [];
       for(let i=1;i<lines.length;i++){
@@ -4398,8 +4515,9 @@ function handleHodoFile(file){
       }
       processHodoRows(rows);
     };
-    reader.readAsText(file, 'UTF-8');
-  }
+    readerUtf.readAsText(file, 'UTF-8');
+  };
+  readerLatin.readAsText(file, 'ISO-8859-1');
 }
 
 // Wire drop zone
@@ -4599,7 +4717,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v7.6 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v7.8 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -5332,6 +5450,65 @@ function maybeAutoAddPair(){
 
 document.getElementById('pair-add-btn').addEventListener('click', addPair);
 document.getElementById('in-setor').addEventListener('change', updateCategorias);
+
+// ── Classificação de Setor/Categoria via IA (proxy externo — ver deploy do Worker) ──
+async function classificarDescricaoComIA(){
+  const btn        = document.getElementById('ia-classificar-btn');
+  const status      = document.getElementById('ia-classificar-status');
+  const descricao   = document.getElementById('in-descricao').value.trim();
+
+  if(!IA_PROXY_URL){
+    alert('IA ainda não configurada: defina a constante IA_PROXY_URL no início do script, com a URL do seu proxy (veja as instruções de deploy).');
+    return;
+  }
+  if(!descricao){
+    alert('Escreva a Descrição da OS antes de pedir a sugestão da IA.');
+    return;
+  }
+
+  // Manda apenas os setores "reais" (exclui "Não classificado") como opções válidas
+  const setoresValidos = { ...SETOR_CATEGORIAS };
+  delete setoresValidos['Não classificado'];
+
+  btn.disabled = true;
+  const textoOriginal = btn.textContent;
+  btn.textContent = '🤖 Classificando...';
+  status.textContent = '';
+
+  try{
+    const resp = await fetch(IA_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ descricao, setores: setoresValidos }),
+    });
+    if(!resp.ok) throw new Error(`Proxy respondeu ${resp.status}`);
+    const data = await resp.json();
+    if(data.error) throw new Error(data.error);
+
+    const { setor, categoria } = data;
+    if(!setor || !SETOR_CATEGORIAS[setor]){
+      throw new Error('A IA sugeriu um setor fora da lista conhecida — confira manualmente.');
+    }
+
+    document.getElementById('in-setor').value = setor;
+    updateCategorias();
+    if(categoria && SETOR_CATEGORIAS[setor].includes(categoria)){
+      document.getElementById('in-categoria').value = categoria;
+    }
+    status.textContent = `✅ Sugestão: ${setor}${categoria ? ' › '+categoria : ''} — confira, escolha o Tipo e clique em "+".`;
+    status.style.color = 'var(--green)';
+  } catch(err){
+    status.textContent = `⚠️ ${err.message}`;
+    status.style.color = 'var(--red)';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
+  }
+}
+
+const iaClassificarBtn = document.getElementById('ia-classificar-btn');
+if(iaClassificarBtn) iaClassificarBtn.addEventListener('click', classificarDescricaoComIA);
+
 document.getElementById('in-categoria').addEventListener('change', () => {
   // Se a categoria tem um Tipo específico configurado e o campo Tipo ainda
   // está vazio, preenche automaticamente (o usuário pode alterar depois).
