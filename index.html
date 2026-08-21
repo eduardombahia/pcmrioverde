@@ -1345,7 +1345,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.8</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.9</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -2041,6 +2041,10 @@
     <div class="field">
       <label for="ed-descricao">Descrição *</label>
       <textarea id="ed-descricao"></textarea>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
+        <button type="button" class="btn-secondary" id="ed-ia-classificar-btn" style="font-size:12px;padding:5px 10px;">🤖 Sugerir Setor/Categoria com IA</button>
+        <span id="ed-ia-classificar-status" style="font-size:11px;color:var(--dim);"></span>
+      </div>
     </div>
 
     <div class="field-row">
@@ -2150,8 +2154,8 @@
       <label for="in-descricao">Descrição *</label>
       <textarea id="in-descricao" placeholder="ex: Troca de óleo motor e filtros"></textarea>
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
-        <button type="button" class="btn-secondary" id="ia-classificar-btn" style="font-size:12px;padding:5px 10px;">🤖 Sugerir Setor/Categoria com IA</button>
-        <span id="ia-classificar-status" style="font-size:11px;color:var(--dim);"></span>
+        <button type="button" class="btn-secondary" id="in-ia-classificar-btn" style="font-size:12px;padding:5px 10px;">🤖 Sugerir Setor/Categoria com IA</button>
+        <span id="in-ia-classificar-status" style="font-size:11px;color:var(--dim);"></span>
       </div>
     </div>
 
@@ -2541,7 +2545,7 @@ const TIPOS_VALIDOS = ['Ambos','Corretiva','Preventiva'];
 // Depois de publicar o proxy (Cloudflare Worker — ver instruções à parte),
 // cole aqui a URL do endpoint. Deixe '' para manter o botão "Sugerir com IA"
 // desativado (nada quebra sem essa configuração).
-const IA_PROXY_URL = 'https://pcm-ia-proxy.eduardombahia.workers.dev/'; // ex: 'https://pcm-ia-proxy.SEU-USUARIO.workers.dev'
+const IA_PROXY_URL = ''; // ex: 'https://pcm-ia-proxy.SEU-USUARIO.workers.dev'
 
 // ── Estado ativo (base + personalizações do usuário) ──
 // Estes objetos começam como cópia da base e podem ser sobrescritos pelo
@@ -4717,7 +4721,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v7.8 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v7.9 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -5451,11 +5455,88 @@ function maybeAutoAddPair(){
 document.getElementById('pair-add-btn').addEventListener('click', addPair);
 document.getElementById('in-setor').addEventListener('change', updateCategorias);
 
+// ── Base de exemplos reais já classificados (planilha + manuais), para dar
+// à IA exemplos concretos do padrão de classificação usado nesta frota ──
+const STOPWORDS_PT = new Set(['com','sem','para','nao','uma','um','de','da','do',
+  'das','dos','em','no','na','nos','nas','por','ao','aos','os','as','que','se',
+  'foi','ser','tem','tinha','the','and']);
+
+function tokenizarTexto(s){
+  return String(s||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !STOPWORDS_PT.has(w));
+}
+
+function buildExemplosBase(){
+  const registros = [...DATA, ...manualRecords];
+  const vistos = new Set();
+  const base = [];
+  registros.forEach(r => {
+    // uma OS pode ter mais de um par Setor+Categoria (campo "pares"); senão usa
+    // os campos de topo setor/categoria
+    const pares = (r.pares && r.pares.length) ? r.pares : [{ setor: r.setor, categoria: r.categoria }];
+    pares.forEach(p => {
+      if(!r.descricao || !p.setor || p.setor === 'Não classificado' || !p.categoria) return;
+      const chave = `${r.descricao.trim().toLowerCase()}|${p.setor}|${p.categoria}`;
+      if(vistos.has(chave)) return;
+      vistos.add(chave);
+      base.push({ descricao: r.descricao.trim(), setor: p.setor, categoria: p.categoria, tokens: tokenizarTexto(r.descricao) });
+    });
+  });
+  return base;
+}
+
+let _exemplosBaseCache = null;
+let _exemplosBaseTamanho = -1;
+function getExemplosBase(){
+  const tamanhoAtual = DATA.length + manualRecords.length;
+  if(!_exemplosBaseCache || _exemplosBaseTamanho !== tamanhoAtual){
+    _exemplosBaseCache = buildExemplosBase();
+    _exemplosBaseTamanho = tamanhoAtual;
+  }
+  return _exemplosBaseCache;
+}
+
+// Busca, no histórico já classificado, as descrições mais parecidas com a
+// descrição atual (por sobreposição de palavras) — usadas como exemplos
+// reais (few-shot) para a IA aprender o padrão de classificação da frota.
+function buscarExemplosSimilares(descricao, limite){
+  const tokensAlvo = new Set(tokenizarTexto(descricao));
+  if(!tokensAlvo.size) return [];
+  const base = getExemplosBase();
+  const pontuados = [];
+  base.forEach(ex => {
+    if(!ex.tokens.length) return;
+    let comuns = 0;
+    ex.tokens.forEach(t => { if(tokensAlvo.has(t)) comuns++; });
+    if(comuns === 0) return;
+    const score = comuns / Math.max(tokensAlvo.size, ex.tokens.length);
+    pontuados.push({ ex, score });
+  });
+  pontuados.sort((a,b) => b.score - a.score);
+
+  // Diversidade: no máx. 2 exemplos por par Setor+Categoria, pra não repetir sempre o mesmo
+  const porPar = {};
+  const escolhidos = [];
+  for(const { ex } of pontuados){
+    const chavePar = `${ex.setor}|${ex.categoria}`;
+    porPar[chavePar] = (porPar[chavePar] || 0) + 1;
+    if(porPar[chavePar] > 2) continue;
+    escolhidos.push({ descricao: ex.descricao, setor: ex.setor, categoria: ex.categoria });
+    if(escolhidos.length >= limite) break;
+  }
+  return escolhidos;
+}
+
 // ── Classificação de Setor/Categoria via IA (proxy externo — ver deploy do Worker) ──
-async function classificarDescricaoComIA(){
-  const btn        = document.getElementById('ia-classificar-btn');
-  const status      = document.getElementById('ia-classificar-status');
-  const descricao   = document.getElementById('in-descricao').value.trim();
+// prefixo: 'in' (Lançamento Manual) ou 'ed' (Editar registro já existente)
+async function sugerirClassificacaoIA(prefixo){
+  const btn        = document.getElementById(`${prefixo}-ia-classificar-btn`);
+  const status      = document.getElementById(`${prefixo}-ia-classificar-status`);
+  const descricao   = document.getElementById(`${prefixo}-descricao`).value.trim();
 
   if(!IA_PROXY_URL){
     alert('IA ainda não configurada: defina a constante IA_PROXY_URL no início do script, com a URL do seu proxy (veja as instruções de deploy).');
@@ -5470,6 +5551,9 @@ async function classificarDescricaoComIA(){
   const setoresValidos = { ...SETOR_CATEGORIAS };
   delete setoresValidos['Não classificado'];
 
+  // Exemplos reais do histórico (planilha + manuais) parecidos com esta descrição
+  const exemplos = buscarExemplosSimilares(descricao, 12);
+
   btn.disabled = true;
   const textoOriginal = btn.textContent;
   btn.textContent = '🤖 Classificando...';
@@ -5479,7 +5563,7 @@ async function classificarDescricaoComIA(){
     const resp = await fetch(IA_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ descricao, setores: setoresValidos }),
+      body: JSON.stringify({ descricao, setores: setoresValidos, exemplos }),
     });
     if(!resp.ok) throw new Error(`Proxy respondeu ${resp.status}`);
     const data = await resp.json();
@@ -5490,12 +5574,13 @@ async function classificarDescricaoComIA(){
       throw new Error('A IA sugeriu um setor fora da lista conhecida — confira manualmente.');
     }
 
-    document.getElementById('in-setor').value = setor;
-    updateCategorias();
+    document.getElementById(`${prefixo}-setor`).value = setor;
+    if(prefixo === 'ed'){ edUpdateCategorias(''); } else { updateCategorias(); }
     if(categoria && SETOR_CATEGORIAS[setor].includes(categoria)){
-      document.getElementById('in-categoria').value = categoria;
+      document.getElementById(`${prefixo}-categoria`).value = categoria;
     }
-    status.textContent = `✅ Sugestão: ${setor}${categoria ? ' › '+categoria : ''} — confira, escolha o Tipo e clique em "+".`;
+    const baseTxt = exemplos.length ? ` (baseado em ${exemplos.length} OS parecidas do seu histórico)` : '';
+    status.textContent = `✅ Sugestão: ${setor}${categoria ? ' › '+categoria : ''}${baseTxt} — confira, escolha o Tipo e clique em "+".`;
     status.style.color = 'var(--green)';
   } catch(err){
     status.textContent = `⚠️ ${err.message}`;
@@ -5506,8 +5591,10 @@ async function classificarDescricaoComIA(){
   }
 }
 
-const iaClassificarBtn = document.getElementById('ia-classificar-btn');
-if(iaClassificarBtn) iaClassificarBtn.addEventListener('click', classificarDescricaoComIA);
+['in','ed'].forEach(prefixo => {
+  const btn = document.getElementById(`${prefixo}-ia-classificar-btn`);
+  if(btn) btn.addEventListener('click', () => sugerirClassificacaoIA(prefixo));
+});
 
 document.getElementById('in-categoria').addEventListener('change', () => {
   // Se a categoria tem um Tipo específico configurado e o campo Tipo ainda
