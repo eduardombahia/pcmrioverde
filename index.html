@@ -455,6 +455,16 @@
     margin-left:auto; font-size:11px; font-family:var(--font-mono); color:var(--red);
     border:1px solid rgba(233,69,96,.4); padding:2px 7px; border-radius:10px;
   }
+  .dup-group-head .dup-merge-btn{
+    background:none; border:1px solid rgba(0,200,150,.4); color:var(--green);
+    border-radius:6px; padding:4px 10px; font-size:11.5px; cursor:pointer;
+  }
+  .dup-group-head .dup-merge-btn:hover{background:rgba(0,200,150,.12);}
+  .dup-group-head .dup-select-group-btn{
+    background:none; border:1px solid var(--line); color:var(--dim);
+    border-radius:6px; padding:4px 10px; font-size:11.5px; cursor:pointer;
+  }
+  .dup-group-head .dup-select-group-btn:hover{color:var(--chalk); border-color:var(--dim);}
   .dup-row{
     display:flex; align-items:center; gap:12px; padding:8px 0;
     border-bottom:1px dashed var(--line); flex-wrap:wrap;
@@ -1345,14 +1355,14 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v7.9</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v8.5</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
 <div class="backup-bar">
   <span class="backup-label">💾 Dados</span>
   <span class="last-backup" id="last-backup-label">Último backup: <span>—</span></span>
-  <button class="btn-backup" id="btn-recalcular" title="Identifica chaves de erro de registros não classificados com base em descrições semelhantes já classificadas, reprocessa reincidências (todas as chaves, corretiva + preventiva) e atualiza o hodômetro dos registros com os dados mais recentes">🔄 Recalcular base</button>
+  <button class="btn-backup" id="btn-recalcular" title="Identifica chaves de erro de registros não classificados com base em descrições semelhantes já classificadas, garante uma chave de erro obrigatória para toda linha classificada, reprocessa reincidências (todas as chaves, corretiva + preventiva) e atualiza o hodômetro dos registros com os dados mais recentes">🔄 Recalcular base</button>
   <button class="btn-backup" id="btn-export">⬇ Exportar backup</button>
   <button class="btn-backup import" id="btn-import">⬆ Importar backup</button>
   <button class="btn-backup danger" id="btn-reset-data">🗑 Limpar dados</button>
@@ -1461,7 +1471,7 @@
 
 <!-- ═══════════════ DUPLICADAS TAB ═══════════════ -->
 <div id="tab-duplicadas" class="tab-panel">
-  <p class="sub" style="margin-top:0;margin-bottom:16px;">Ordens de serviço "clones" — mesmo <b>veículo + número de OS + setor + categoria</b> lançados mais de uma vez. Marque as caixas de seleção das cópias indevidas e exclua em lote, mantendo apenas o registro correto de cada grupo.</p>
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Números de OS que aparecem <b>mais de 2 vezes</b> no histórico (3 ou mais lançamentos com o mesmo número). Marque as caixas de seleção das cópias indevidas e exclua em lote, ou marque 2 ou mais registros de um mesmo grupo e clique em <b>"Mesclar marcadas"</b> para juntá-los em um único registro.</p>
 
   <div id="dup-summary" style="margin-bottom:12px;color:var(--dim);font-size:13px;"></div>
   <div class="dup-toolbar" id="dup-toolbar" style="display:none;">
@@ -2545,7 +2555,7 @@ const TIPOS_VALIDOS = ['Ambos','Corretiva','Preventiva'];
 // Depois de publicar o proxy (Cloudflare Worker — ver instruções à parte),
 // cole aqui a URL do endpoint. Deixe '' para manter o botão "Sugerir com IA"
 // desativado (nada quebra sem essa configuração).
-const IA_PROXY_URL = 'https://pcm-ia-proxy.eduardombahia.workers.dev'; // ex: 'https://pcm-ia-proxy.eduardombahia.workers.dev'
+const IA_PROXY_URL = ''; // ex: 'https://pcm-ia-proxy.SEU-USUARIO.workers.dev'
 
 // ── Estado ativo (base + personalizações do usuário) ──
 // Estes objetos começam como cópia da base e podem ser sobrescritos pelo
@@ -2945,11 +2955,11 @@ function renderAll(){
 }
 
 // ════════════════════════════════════════════════════════
-// DUPLICADAS — agrupa OS "clones": mesmo veículo + OS + setor + categoria
-// (mesma chave usada em isDuplicate) e permite excluir as cópias extras.
+// DUPLICADAS — agrupa OS pelo número da OS; grupo é considerado
+// duplicidade quando tem MAIS DE 2 ocorrências (3 ou mais) do mesmo número.
 // ════════════════════════════════════════════════════════
 function dupGroupKey(r){
-  return `${normalize(r.veiculo)}__${normalize(r.os)}__${normalize(r.setor)}__${normalize(r.categoria)}`;
+  return normalize(r.os);
 }
 
 function renderDuplicatas(){
@@ -2968,7 +2978,7 @@ function renderDuplicatas(){
   });
 
   const dupGroups = Object.values(groupsMap)
-    .filter(g => g.length > 1)
+    .filter(g => g.length > 2)
     .sort((a,b) => b.length - a.length || String(a[0].os).localeCompare(String(b[0].os)));
 
   if(dupGroups.length === 0){
@@ -2980,18 +2990,20 @@ function renderDuplicatas(){
 
   toolbar.style.display = '';
   const totalExtras = dupGroups.reduce((s,g)=>s+(g.length-1),0);
-  wrapSummary.innerHTML = `<b style="color:var(--red);">${dupGroups.length}</b> grupo(s) de OS duplicada — <b style="color:var(--red);">${totalExtras}</b> registro(s) a mais que poderiam ser removidos.`;
+  wrapSummary.innerHTML = `<b style="color:var(--red);">${dupGroups.length}</b> número(s) de OS com mais de 2 lançamentos — <b style="color:var(--red);">${totalExtras}</b> registro(s) a mais que poderiam ser removidos.`;
 
   wrapGroups.innerHTML = dupGroups.map(group=>{
     const first = group[0];
     const sorted = group.slice().sort((a,b)=>String(a.data).localeCompare(String(b.data)));
+    const veiculosDistintos = [...new Set(group.map(r=>normalize(r.veiculo)))].length;
     const rowsHtml = sorted.map(r=>{
       const id = r.origin==='manual' ? r._id : r._edit_id;
       return `<div class="dup-row" data-id="${id}" data-origin="${r.origin}">
         <input type="checkbox" class="dup-check" data-id="${id}" data-origin="${r.origin}">
         <span class="dup-field"><b>Data</b>${fmtDate(r.data)}</span>
+        <span class="dup-field"><b>Veículo</b>${r.veiculo||'—'}</span>
         <span class="dup-field"><b>Tipo</b><span class="pill ${r.tipo}">${r.tipo}</span></span>
-        <span class="dup-field"><b>Chave</b>${r.chave_erro||'—'}</span>
+        <span class="dup-field"><b>Setor</b>${r.setor||'—'}${r.categoria ? ' › '+r.categoria : ''}</span>
         <span class="dup-field"><b>Responsável</b>${r.responsavel||'—'}</span>
         <span class="dup-desc">${(r.descricao||'').slice(0,90)}${r.origin==='manual' ? '<span class="origin-manual">M</span>' : ''}</span>
         <span class="dup-actions">
@@ -3004,12 +3016,29 @@ function renderDuplicatas(){
     return `<div class="dup-group">
       <div class="dup-group-head">
         <span class="dup-os">OS ${first.os}</span>
-        <span class="dup-meta">Veículo ${first.veiculo} · ${first.setor||'—'}${first.categoria ? ' › '+first.categoria : ''}</span>
-        <span class="dup-count">${group.length} cópias</span>
+        <span class="dup-meta">${veiculosDistintos > 1 ? veiculosDistintos+' veículos diferentes ⚠️' : 'Veículo '+first.veiculo}</span>
+        <button type="button" class="dup-merge-btn" title="Marque 2+ registros deste grupo (caixas à esquerda) e clique aqui para juntá-los em um só">🔗 Mesclar marcadas</button>
+        <button type="button" class="dup-select-group-btn" title="Marca ou desmarca todas as ${group.length} ocorrências deste grupo">☑️ Selecionar todas</button>
+        <span class="dup-count">${group.length} ocorrências</span>
       </div>
       ${rowsHtml}
     </div>`;
   }).join('');
+
+  wrapGroups.querySelectorAll('.dup-group').forEach((groupEl, idx) => {
+    const mergeBtn = groupEl.querySelector('.dup-merge-btn');
+    if(mergeBtn) mergeBtn.onclick = () => mesclarGrupoOS(dupGroups[idx], groupEl);
+
+    const selectBtn = groupEl.querySelector('.dup-select-group-btn');
+    if(selectBtn){
+      selectBtn.onclick = () => {
+        const checks = [...groupEl.querySelectorAll('.dup-check')];
+        const todasMarcadas = checks.length > 0 && checks.every(cb => cb.checked);
+        checks.forEach(cb => { cb.checked = !todasMarcadas; });
+        updateDupSelectionCount();
+      };
+    }
+  });
 
   wrapGroups.querySelectorAll('.del-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -4144,6 +4173,120 @@ function dupWarningMsg(existing){
     `  "${(existing.descricao||'').slice(0,80)}"`;
 }
 
+// ════════════════════════════════════════════════════════
+// MESCLAR DUPLICATAS — junta 2+ registros marcados de um mesmo grupo
+// (mesmo número de OS) em um único registro manual, combinando os pares
+// Setor/Categoria/Tipo (sem repetir) e concatenando Descrição/Observações
+// distintas. Os registros originais são excluídos.
+// ════════════════════════════════════════════════════════
+function mesclarGrupoOS(group, groupEl){
+  const marcados = [...groupEl.querySelectorAll('.dup-check:checked')]
+    .map(cb => ({ id: cb.dataset.id, origin: cb.dataset.origin }));
+
+  if(marcados.length < 2){
+    alert('Marque pelo menos 2 registros deste grupo (as caixas de seleção à esquerda) para mesclar em um só.');
+    return;
+  }
+
+  const selecionados = marcados
+    .map(({id, origin}) => group.find(r =>
+      r.origin === origin && String(origin === 'manual' ? r._id : r._edit_id) === String(id)
+    ))
+    .filter(Boolean);
+
+  if(selecionados.length < 2){ alert('Não foi possível localizar os registros selecionados.'); return; }
+
+  // Data mais antiga do grupo vira a data do registro mesclado
+  selecionados.sort((a,b) => String(a.data).localeCompare(String(b.data)));
+  const base = selecionados[0];
+  const veiculo = base.veiculo;
+  const veiculosDistintos = [...new Set(selecionados.map(r => normalize(r.veiculo)))];
+
+  // Une os pares Setor+Categoria+Tipo+Chave de todos os registros, sem repetir
+  const paresUnidos = [];
+  const vistoPar = new Set();
+  selecionados.forEach(r => {
+    const paresDoRegistro = (r.pares && r.pares.length)
+      ? r.pares
+      : [{ tipo: r.tipo, setor: r.setor, categoria: r.categoria, chave: r.chave_erro }];
+    paresDoRegistro.forEach(p => {
+      if(!p || !p.setor) return;
+      const chavePar = `${normalize(p.tipo)}|${normalize(p.setor)}|${normalize(p.categoria)}|${normalize(p.chave)}`;
+      if(vistoPar.has(chavePar)) return;
+      vistoPar.add(chavePar);
+      paresUnidos.push({ tipo: p.tipo || '', setor: p.setor, categoria: p.categoria || '', chave: p.chave || '' });
+    });
+  });
+  if(!paresUnidos.length){ alert('Nenhum dos registros selecionados tem Setor/Categoria válido — não é possível mesclar.'); return; }
+
+  // Descrição e Observações: concatena os textos distintos (não descarta informação)
+  function juntarTextosDistintos(campo){
+    const vistos = new Set();
+    const partes = [];
+    selecionados.forEach(r => {
+      const v = String(r[campo] || '').trim();
+      if(!v || vistos.has(v.toLowerCase())) return;
+      vistos.add(v.toLowerCase());
+      partes.push(v);
+    });
+    return partes.join(' | ') || null;
+  }
+
+  const descricao   = juntarTextosDistintos('descricao') || base.descricao || '';
+  const observacoes = juntarTextosDistintos('observacoes');
+  const responsavel = selecionados.map(r => String(r.responsavel||'').trim()).find(Boolean) || null;
+  const operacao    = selecionados.map(r => String(r.operacao||'').trim()).find(Boolean) || '';
+
+  const tiposDistintos = [...new Set(paresUnidos.map(p => p.tipo).filter(Boolean))];
+  const tipo = tiposDistintos.length > 1 ? 'Ambos' : (tiposDistintos[0] || '');
+
+  const resumo =
+    `Mesclar ${selecionados.length} registros da OS ${base.os} em um único registro?\n\n` +
+    `Veículo: ${veiculo}${veiculosDistintos.length > 1 ? ' (havia veículos diferentes — usado o do registro mais antigo)' : ''}\n` +
+    `Data: ${fmtDate(base.data)} (mais antiga do grupo)\n` +
+    `Setor/Categoria: ${paresUnidos.map(p => `${p.setor}${p.categoria ? ' › '+p.categoria : ''}`).join('; ')}\n` +
+    `Descrição: ${descricao.slice(0,150)}${descricao.length > 150 ? '…' : ''}\n\n` +
+    `Os ${selecionados.length} registros originais serão excluídos e substituídos por este 1 registro mesclado. Esta ação não pode ser desfeita.`;
+
+  if(!confirm(resumo)) return;
+
+  const { isReinc, reincidenteStr } = detectReincidencia(veiculo, paresUnidos, base.data, base.os);
+  const hodoEntry = getHodoForVeiculo(veiculo, base.data);
+
+  const registroMesclado = {
+    _id: nextManualId++,
+    data: base.data, veiculo, os: base.os, operacao, descricao, tipo,
+    setor: paresUnidos[0].setor,
+    categoria: paresUnidos[0].categoria || null,
+    chave_erro: paresUnidos[0].chave || null,
+    pares: paresUnidos.length > 1 ? paresUnidos : null,
+    responsavel, observacoes,
+    reincidente: reincidenteStr, reincidente_bool: isReinc,
+    hodometro: hodoEntry ? hodoEntry.hodometro : null,
+    kml: hodoEntry ? hodoEntry.kml : null,
+    origin: 'manual',
+  };
+
+  // Remove os registros originais (manuais direto do array; de planilha via deletedKeys)
+  selecionados.forEach(r => {
+    if(r.origin === 'manual'){
+      manualRecords = manualRecords.filter(m => m._id !== r._id);
+    } else {
+      deletedKeys[keyForRecord(r)] = true;
+    }
+  });
+  saveDeletedKeys();
+
+  manualRecords.push(registroMesclado);
+  saveManualRecords(manualRecords);
+
+  addLog('os-merge', `OS mescladas: ${selecionados.length} registros da OS ${base.os} viraram 1`,
+    `Veículo ${veiculo} · ${paresUnidos.map(p => p.setor).join(', ')}`);
+
+  renderAll();
+  alert(`✅ ${selecionados.length} registros mesclados em 1 (OS ${base.os}).`);
+}
+
 
 // ════════════════════════════════════════════════════════
 // HODÔMETRO — abastecimento por veículo
@@ -4721,7 +4864,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v7.9 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v8.5 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -5476,14 +5619,14 @@ function buildExemplosBase(){
   const base = [];
   registros.forEach(r => {
     // uma OS pode ter mais de um par Setor+Categoria (campo "pares"); senão usa
-    // os campos de topo setor/categoria
-    const pares = (r.pares && r.pares.length) ? r.pares : [{ setor: r.setor, categoria: r.categoria }];
+    // os campos de topo tipo/setor/categoria
+    const pares = (r.pares && r.pares.length) ? r.pares : [{ tipo: r.tipo, setor: r.setor, categoria: r.categoria }];
     pares.forEach(p => {
       if(!r.descricao || !p.setor || p.setor === 'Não classificado' || !p.categoria) return;
       const chave = `${r.descricao.trim().toLowerCase()}|${p.setor}|${p.categoria}`;
       if(vistos.has(chave)) return;
       vistos.add(chave);
-      base.push({ descricao: r.descricao.trim(), setor: p.setor, categoria: p.categoria, tokens: tokenizarTexto(r.descricao) });
+      base.push({ descricao: r.descricao.trim(), tipo: p.tipo || r.tipo || '', setor: p.setor, categoria: p.categoria, tokens: tokenizarTexto(r.descricao) });
     });
   });
   return base;
@@ -5525,7 +5668,7 @@ function buscarExemplosSimilares(descricao, limite){
     const chavePar = `${ex.setor}|${ex.categoria}`;
     porPar[chavePar] = (porPar[chavePar] || 0) + 1;
     if(porPar[chavePar] > 2) continue;
-    escolhidos.push({ descricao: ex.descricao, setor: ex.setor, categoria: ex.categoria });
+    escolhidos.push({ descricao: ex.descricao, tipo: ex.tipo, setor: ex.setor, categoria: ex.categoria });
     if(escolhidos.length >= limite) break;
   }
   return escolhidos;
@@ -5569,7 +5712,7 @@ async function sugerirClassificacaoIA(prefixo){
     const data = await resp.json();
     if(data.error) throw new Error(data.error);
 
-    const { setor, categoria } = data;
+    const { tipo, setor, categoria } = data;
     if(!setor || !SETOR_CATEGORIAS[setor]){
       throw new Error('A IA sugeriu um setor fora da lista conhecida — confira manualmente.');
     }
@@ -5579,8 +5722,13 @@ async function sugerirClassificacaoIA(prefixo){
     if(categoria && SETOR_CATEGORIAS[setor].includes(categoria)){
       document.getElementById(`${prefixo}-categoria`).value = categoria;
     }
+    // Campo de Tipo tem id diferente em cada formulário: in-pair-tipo (lançamento) vs ed-tipo (edição)
+    const tipoFieldId = prefixo === 'in' ? 'in-pair-tipo' : 'ed-tipo';
+    if(tipo === 'Corretiva' || tipo === 'Preventiva'){
+      document.getElementById(tipoFieldId).value = tipo;
+    }
     const baseTxt = exemplos.length ? ` (baseado em ${exemplos.length} OS parecidas do seu histórico)` : '';
-    status.textContent = `✅ Sugestão: ${setor}${categoria ? ' › '+categoria : ''}${baseTxt} — confira, escolha o Tipo e clique em "+".`;
+    status.textContent = `✅ Sugestão: ${tipo ? tipo+' · ' : ''}${setor}${categoria ? ' › '+categoria : ''}${baseTxt} — confira e clique em "+" (isso já garante a chave de erro).`;
     status.style.color = 'var(--green)';
   } catch(err){
     status.textContent = `⚠️ ${err.message}`;
@@ -5914,16 +6062,84 @@ function recalcularHodometros(){
   return changed;
 }
 
+// ════════════════════════════════════════════════════════
+// GARANTE CHAVE DE ERRO POR LINHA — toda linha com Setor+Categoria
+// definidos precisa ter uma Chave de Erro; gera automaticamente (via
+// ensureChave) quando estiver faltando. Trata também OS com múltiplos
+// pares (Setor+Categoria+Tipo), garantindo chave em cada par.
+// ════════════════════════════════════════════════════════
+function garantirChavesPorLinha(){
+  let atualizadas = 0;
+
+  function preencherPares(pares, tipoRegistro){
+    let mudou = false;
+    pares.forEach(p => {
+      if(!p.setor || !p.categoria || p.chave) return; // sem Setor/Categoria não dá pra gerar, ou já tem
+      const chave = ensureChave(p.tipo || tipoRegistro || '', p.setor, p.categoria);
+      if(chave){ p.chave = chave; mudou = true; }
+    });
+    return mudou;
+  }
+
+  DATA.forEach((r, idx) => {
+    if(deletedKeys[keyForRecord(r)]) return;
+    const key = keyForRecord(r);
+    const current = overrides[key] ? {...r, ...overrides[key]} : r;
+    let mudou = false;
+    let novaChaveTop = current.chave_erro;
+    let novosPares = null;
+
+    if(Array.isArray(current.pares) && current.pares.length){
+      novosPares = JSON.parse(JSON.stringify(current.pares));
+      mudou = preencherPares(novosPares, current.tipo) || mudou;
+      if(novosPares[0]?.chave && novosPares[0].chave !== current.chave_erro){
+        novaChaveTop = novosPares[0].chave;
+        mudou = true;
+      }
+    } else if(isClassificado(current.setor, current.categoria) && !current.chave_erro){
+      const chave = ensureChave(current.tipo, current.setor, current.categoria);
+      if(chave){ novaChaveTop = chave; mudou = true; }
+    }
+
+    if(mudou){
+      const updates = { chave_erro: novaChaveTop };
+      if(novosPares) updates.pares = novosPares;
+      overrides[key] = { ...(overrides[key] || {}), ...updates };
+      Object.assign(DATA[idx], updates);
+      atualizadas++;
+    }
+  });
+
+  manualRecords.forEach(r => {
+    let mudou = false;
+    if(Array.isArray(r.pares) && r.pares.length){
+      mudou = preencherPares(r.pares, r.tipo) || mudou;
+      if(r.pares[0]?.chave && r.pares[0].chave !== r.chave_erro){
+        r.chave_erro = r.pares[0].chave;
+        mudou = true;
+      }
+    } else if(isClassificado(r.setor, r.categoria) && !r.chave_erro){
+      const chave = ensureChave(r.tipo, r.setor, r.categoria);
+      if(chave){ r.chave_erro = chave; mudou = true; }
+    }
+    if(mudou) atualizadas++;
+  });
+
+  if(atualizadas) saveOverrides();
+  return atualizadas;
+}
+
 document.getElementById('btn-recalcular').addEventListener('click', () => {
-  if(!confirm('Identificar/atualizar Setor e Categoria de registros não classificados, reprocessar reincidências (todas as chaves, corretiva + preventiva) e atualizar o hodômetro de todos os registros?')) return;
+  if(!confirm('Identificar/atualizar Setor e Categoria de registros não classificados, garantir uma Chave de Erro para toda linha já classificada, reprocessar reincidências (todas as chaves, corretiva + preventiva) e atualizar o hodômetro de todos os registros?')) return;
   const { classificados, naoEncontrados } = autoClassificarSetores();
+  const chavesGeradas = garantirChavesPorLinha();
   const reincChanged = recalcularReincidencias();
   const hodoChanged  = recalcularHodometros();
   saveManualRecords(manualRecords);
   addLog('recalculo', 'Recálculo de base executado',
-    `${classificados} chave(s) de erro classificada(s) automaticamente${naoEncontrados ? ` · ${naoEncontrados} sem correspondência` : ''} · ${reincChanged} reincidência(s) atualizada(s) · ${hodoChanged} hodômetro(s) atualizado(s)`);
+    `${classificados} chave(s) de erro classificada(s) automaticamente${naoEncontrados ? ` · ${naoEncontrados} sem correspondência` : ''} · ${chavesGeradas} linha(s) receberam chave de erro obrigatória · ${reincChanged} reincidência(s) atualizada(s) · ${hodoChanged} hodômetro(s) atualizado(s)`);
   renderAll();
-  alert(`✅ Recálculo concluído.\n${classificados} chave(s) de erro classificada(s) automaticamente.${naoEncontrados ? `\n${naoEncontrados} registro(s) sem correspondência confiável (revise manualmente).` : ''}\n${reincChanged} reincidência(s) atualizada(s).\n${hodoChanged} hodômetro(s) atualizado(s).`);
+  alert(`✅ Recálculo concluído.\n${classificados} chave(s) de erro classificada(s) automaticamente.${naoEncontrados ? `\n${naoEncontrados} registro(s) sem correspondência confiável (revise manualmente).` : ''}\n${chavesGeradas} linha(s) sem chave de erro receberam uma automaticamente.\n${reincChanged} reincidência(s) atualizada(s).\n${hodoChanged} hodômetro(s) atualizado(s).`);
 });
 
 // ---- Preview de reincidência no formulário ----
