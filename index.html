@@ -1355,7 +1355,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v8.5</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v8.6</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -4008,6 +4008,7 @@ function edAddPair(){
   const setor = document.getElementById('ed-setor').value;
   const cat   = document.getElementById('ed-categoria').value;
   if(!setor){ alert('Selecione um setor.'); return; }
+  if(!cat){ alert('Selecione uma categoria.'); return; }
   if(!tipo){ alert('Selecione o Tipo (Corretiva ou Preventiva) antes de adicionar o par.'); return; }
   if(edPares.find(p => p.setor === setor && p.categoria === cat && p.tipo === tipo)){
     alert('Este par já foi adicionado.'); return;
@@ -4864,7 +4865,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v8.5 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v8.6 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -5676,6 +5677,9 @@ function buscarExemplosSimilares(descricao, limite){
 
 // ── Classificação de Setor/Categoria via IA (proxy externo — ver deploy do Worker) ──
 // prefixo: 'in' (Lançamento Manual) ou 'ed' (Editar registro já existente)
+// A descrição pode ter mais de um problema — a IA devolve uma classificação
+// (Tipo+Setor+Categoria) por problema, e cada uma vira um par adicionado
+// automaticamente (isso já garante a chave de erro para cada uma).
 async function sugerirClassificacaoIA(prefixo){
   const btn        = document.getElementById(`${prefixo}-ia-classificar-btn`);
   const status      = document.getElementById(`${prefixo}-ia-classificar-status`);
@@ -5702,6 +5706,12 @@ async function sugerirClassificacaoIA(prefixo){
   btn.textContent = '🤖 Classificando...';
   status.textContent = '';
 
+  const setorFieldId    = `${prefixo}-setor`;
+  const categoriaFieldId= `${prefixo}-categoria`;
+  const tipoFieldId     = prefixo === 'in' ? 'in-pair-tipo' : 'ed-tipo';
+  const addPairFn       = prefixo === 'in' ? addPair : edAddPair;
+  const updateCatFn     = prefixo === 'ed' ? () => edUpdateCategorias('') : updateCategorias;
+
   try{
     const resp = await fetch(IA_PROXY_URL, {
       method: 'POST',
@@ -5712,24 +5722,40 @@ async function sugerirClassificacaoIA(prefixo){
     const data = await resp.json();
     if(data.error) throw new Error(data.error);
 
-    const { tipo, setor, categoria } = data;
-    if(!setor || !SETOR_CATEGORIAS[setor]){
-      throw new Error('A IA sugeriu um setor fora da lista conhecida — confira manualmente.');
-    }
+    const classificacoes = Array.isArray(data.classificacoes) ? data.classificacoes : [];
+    if(!classificacoes.length) throw new Error('A IA não retornou nenhuma classificação.');
 
-    document.getElementById(`${prefixo}-setor`).value = setor;
-    if(prefixo === 'ed'){ edUpdateCategorias(''); } else { updateCategorias(); }
-    if(categoria && SETOR_CATEGORIAS[setor].includes(categoria)){
-      document.getElementById(`${prefixo}-categoria`).value = categoria;
-    }
-    // Campo de Tipo tem id diferente em cada formulário: in-pair-tipo (lançamento) vs ed-tipo (edição)
-    const tipoFieldId = prefixo === 'in' ? 'in-pair-tipo' : 'ed-tipo';
-    if(tipo === 'Corretiva' || tipo === 'Preventiva'){
-      document.getElementById(tipoFieldId).value = tipo;
-    }
+    let adicionados = 0;
+    const pendentes = [];
+
+    classificacoes.forEach(c => {
+      const setor     = c.setor;
+      const categoria = c.categoria || '';
+      const tipo      = (c.tipo === 'Corretiva' || c.tipo === 'Preventiva') ? c.tipo : '';
+      if(!setor || !SETOR_CATEGORIAS[setor]) return; // setor fora da lista conhecida, ignora
+
+      document.getElementById(setorFieldId).value = setor;
+      updateCatFn();
+      const categoriaValida = categoria && SETOR_CATEGORIAS[setor].includes(categoria);
+      if(categoriaValida) document.getElementById(categoriaFieldId).value = categoria;
+      if(tipo) document.getElementById(tipoFieldId).value = tipo;
+
+      if(categoriaValida && tipo){
+        addPairFn(); // já garante a chave de erro deste par
+        adicionados++;
+      } else {
+        pendentes.push(`${setor}${categoria ? ' › '+categoria : ''} (falta ${!categoriaValida ? 'categoria' : ''}${!categoriaValida && !tipo ? '/' : ''}${!tipo ? 'tipo' : ''} confiável)`);
+      }
+    });
+
     const baseTxt = exemplos.length ? ` (baseado em ${exemplos.length} OS parecidas do seu histórico)` : '';
-    status.textContent = `✅ Sugestão: ${tipo ? tipo+' · ' : ''}${setor}${categoria ? ' › '+categoria : ''}${baseTxt} — confira e clique em "+" (isso já garante a chave de erro).`;
-    status.style.color = 'var(--green)';
+    const partes = [];
+    if(adicionados) partes.push(`✅ ${adicionados} par(es) adicionado(s) automaticamente${baseTxt}.`);
+    if(pendentes.length) partes.push(`⚠️ Revise manualmente: ${pendentes.join('; ')}.`);
+    if(!partes.length) partes.push('⚠️ Nenhuma sugestão pôde ser aplicada automaticamente — revise manualmente.');
+
+    status.textContent = partes.join(' ');
+    status.style.color = adicionados ? 'var(--green)' : 'var(--red)';
   } catch(err){
     status.textContent = `⚠️ ${err.message}`;
     status.style.color = 'var(--red)';
