@@ -1355,7 +1355,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v8.6</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v8.7</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -4865,7 +4865,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v8.6 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v8.7 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -5677,9 +5677,16 @@ function buscarExemplosSimilares(descricao, limite){
 
 // ── Classificação de Setor/Categoria via IA (proxy externo — ver deploy do Worker) ──
 // prefixo: 'in' (Lançamento Manual) ou 'ed' (Editar registro já existente)
-// A descrição pode ter mais de um problema — a IA devolve uma classificação
-// (Tipo+Setor+Categoria) por problema, e cada uma vira um par adicionado
-// automaticamente (isso já garante a chave de erro para cada uma).
+// A descrição é dividida em linhas AQUI no painel (não depende da IA acertar
+// onde separar) e cada linha vira uma chamada própria ao proxy — garantindo
+// exatamente 1 classificação (Tipo+Setor+Categoria+Chave) por linha.
+function dividirDescricaoEmLinhas(descricao){
+  return String(descricao || '')
+    .split(/\r?\n/)
+    .map(l => l.replace(/^[\s\-•*]+/, '').replace(/^\d+[.)]\s*/, '').trim())
+    .filter(Boolean);
+}
+
 async function sugerirClassificacaoIA(prefixo){
   const btn        = document.getElementById(`${prefixo}-ia-classificar-btn`);
   const status      = document.getElementById(`${prefixo}-ia-classificar-status`);
@@ -5694,17 +5701,12 @@ async function sugerirClassificacaoIA(prefixo){
     return;
   }
 
+  const linhas = dividirDescricaoEmLinhas(descricao);
+  if(!linhas.length){ alert('Escreva a Descrição da OS antes de pedir a sugestão da IA.'); return; }
+
   // Manda apenas os setores "reais" (exclui "Não classificado") como opções válidas
   const setoresValidos = { ...SETOR_CATEGORIAS };
   delete setoresValidos['Não classificado'];
-
-  // Exemplos reais do histórico (planilha + manuais) parecidos com esta descrição
-  const exemplos = buscarExemplosSimilares(descricao, 12);
-
-  btn.disabled = true;
-  const textoOriginal = btn.textContent;
-  btn.textContent = '🤖 Classificando...';
-  status.textContent = '';
 
   const setorFieldId    = `${prefixo}-setor`;
   const categoriaFieldId= `${prefixo}-categoria`;
@@ -5712,27 +5714,45 @@ async function sugerirClassificacaoIA(prefixo){
   const addPairFn       = prefixo === 'in' ? addPair : edAddPair;
   const updateCatFn     = prefixo === 'ed' ? () => edUpdateCategorias('') : updateCategorias;
 
+  btn.disabled = true;
+  const textoOriginal = btn.textContent;
+  status.textContent = '';
+
+  let adicionados = 0;
+  const pendentes = [];
+  const falhas = [];
+
   try{
-    const resp = await fetch(IA_PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ descricao, setores: setoresValidos, exemplos }),
-    });
-    if(!resp.ok) throw new Error(`Proxy respondeu ${resp.status}`);
-    const data = await resp.json();
-    if(data.error) throw new Error(data.error);
+    // Uma chamada por linha, em sequência (evita sobrecarregar o limite gratuito de requisições)
+    for(let i = 0; i < linhas.length; i++){
+      const linha = linhas[i];
+      btn.textContent = linhas.length > 1 ? `🤖 Classificando ${i+1}/${linhas.length}...` : '🤖 Classificando...';
 
-    const classificacoes = Array.isArray(data.classificacoes) ? data.classificacoes : [];
-    if(!classificacoes.length) throw new Error('A IA não retornou nenhuma classificação.');
+      const exemplos = buscarExemplosSimilares(linha, 12);
 
-    let adicionados = 0;
-    const pendentes = [];
+      let data;
+      try{
+        const resp = await fetch(IA_PROXY_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ descricao: linha, setores: setoresValidos, exemplos }),
+        });
+        if(!resp.ok) throw new Error(`Proxy respondeu ${resp.status}`);
+        data = await resp.json();
+        if(data.error) throw new Error(data.error);
+      } catch(errLinha){
+        falhas.push(`"${linha.slice(0,40)}" (${errLinha.message})`);
+        continue;
+      }
 
-    classificacoes.forEach(c => {
-      const setor     = c.setor;
-      const categoria = c.categoria || '';
-      const tipo      = (c.tipo === 'Corretiva' || c.tipo === 'Preventiva') ? c.tipo : '';
-      if(!setor || !SETOR_CATEGORIAS[setor]) return; // setor fora da lista conhecida, ignora
+      const setor     = data.setor;
+      const categoria = data.categoria || '';
+      const tipo      = (data.tipo === 'Corretiva' || data.tipo === 'Preventiva') ? data.tipo : '';
+
+      if(!setor || !SETOR_CATEGORIAS[setor]){
+        pendentes.push(`"${linha.slice(0,40)}" (setor fora da lista)`);
+        continue;
+      }
 
       document.getElementById(setorFieldId).value = setor;
       updateCatFn();
@@ -5744,21 +5764,18 @@ async function sugerirClassificacaoIA(prefixo){
         addPairFn(); // já garante a chave de erro deste par
         adicionados++;
       } else {
-        pendentes.push(`${setor}${categoria ? ' › '+categoria : ''} (falta ${!categoriaValida ? 'categoria' : ''}${!categoriaValida && !tipo ? '/' : ''}${!tipo ? 'tipo' : ''} confiável)`);
+        pendentes.push(`"${linha.slice(0,40)}" → ${setor}${categoria ? ' › '+categoria : ''} (falta ${!categoriaValida ? 'categoria' : ''}${!categoriaValida && !tipo ? '/' : ''}${!tipo ? 'tipo' : ''} confiável)`);
       }
-    });
+    }
 
-    const baseTxt = exemplos.length ? ` (baseado em ${exemplos.length} OS parecidas do seu histórico)` : '';
     const partes = [];
-    if(adicionados) partes.push(`✅ ${adicionados} par(es) adicionado(s) automaticamente${baseTxt}.`);
+    if(adicionados) partes.push(`✅ ${adicionados}/${linhas.length} par(es) adicionado(s) automaticamente (1 por linha da descrição).`);
     if(pendentes.length) partes.push(`⚠️ Revise manualmente: ${pendentes.join('; ')}.`);
+    if(falhas.length) partes.push(`❌ Falha ao classificar: ${falhas.join('; ')}.`);
     if(!partes.length) partes.push('⚠️ Nenhuma sugestão pôde ser aplicada automaticamente — revise manualmente.');
 
     status.textContent = partes.join(' ');
     status.style.color = adicionados ? 'var(--green)' : 'var(--red)';
-  } catch(err){
-    status.textContent = `⚠️ ${err.message}`;
-    status.style.color = 'var(--red)';
   } finally {
     btn.disabled = false;
     btn.textContent = textoOriginal;
