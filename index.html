@@ -1210,14 +1210,15 @@
     display:block;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;
     letter-spacing:.06em;color:var(--dim);margin-bottom:4px;
   }
-  @media(max-width:900px){
-    .hodo-layout{grid-template-columns:1fr;}
-    .hodo-right{position:static;}
-  }
-
   @media(max-width:1200px){
     .charts{grid-template-columns:1fr 1fr;}
     .charts .card:last-child{grid-column:1 / -1;}
+    .hodo-layout{grid-template-columns:1fr 260px;gap:14px;}
+  }
+
+  /* ── Tablet (900–1100px): KPIs em 3 colunas, sidebar ainda fixa ── */
+  @media(max-width:1100px){
+    .kpis{grid-template-columns:repeat(3,1fr);}
   }
 
   @media(max-width:900px){
@@ -1225,6 +1226,35 @@
     .kpis .kpi:last-child{grid-column:1 / -1;}
     .charts{grid-template-columns:1fr;}
     .field-row{grid-template-columns:1fr;}
+    .hodo-layout{grid-template-columns:1fr;}
+    .hodo-right{position:static;}
+    header{padding:30px 5vw 22px;}
+    main{padding:22px 4vw 60px;}
+    .gns-kpis{gap:8px;}
+    .gns-kpi{min-width:calc(50% - 8px);}
+  }
+
+  /* ── Tabelas densas sem data-label (Frota, GNS, Solicitações, Hodômetro, Log):
+     mantêm layout de tabela mas com scroll horizontal suave e indicador visual ── */
+  @media(max-width:900px){
+    .frota-card,.gns-list-card,.hodo-card,.log-card{
+      -webkit-overflow-scrolling:touch;
+      background-image:
+        linear-gradient(to right, var(--panel) 0%, transparent 20px),
+        linear-gradient(to left, var(--panel) 0%, transparent 20px);
+      background-position:left, right;
+      background-repeat:no-repeat;
+      background-attachment:local, local;
+    }
+    .frota-card table,.gns-list-card table,.hodo-card table,.log-card table{
+      font-size:12px;
+    }
+    .frota-card thead th,.frota-card tbody td,
+    .gns-list-card thead th,.gns-list-card tbody td,
+    .hodo-card thead th,.hodo-card tbody td,
+    .log-card thead th,.log-card tbody td{
+      padding:8px 10px;
+    }
   }
 
   /* ══════════════════════════════════════════════════════
@@ -1339,7 +1369,7 @@
 
     /* Formulário do hodômetro */
     .hodo-manual-form{grid-template-columns:1fr;}
-    .hodo-search-input{width:100%;}
+    .hodo-search-input{width:100%;font-size:16px;}
     .hodo-left-head{flex-direction:column;align-items:stretch;}
 
     /* Drawer ocupa a tela toda, evita zoom automático do iOS nos campos */
@@ -1352,6 +1382,55 @@
     .field select,.field textarea,.gns-field input,.gns-field select,.gns-field textarea{
       font-size:16px;
     }
+
+    /* Modais: ocupam a largura útil, campos sem zoom automático do iOS */
+    .modal{padding:20px 18px;width:94vw;max-height:88vh;overflow-y:auto;}
+    .modal h2{font-size:16px;}
+    .modal .field input,.modal .field select,
+    .hodo-manual-form .import-field input,
+    .import-field input,.import-field select,.import-field textarea,
+    .pairs-builder .pair-row select,.sug-exemplo-input{
+      font-size:16px;
+    }
+    .modal-foot{flex-direction:column-reverse;}
+    .modal-foot button{width:100%;}
+
+    /* Paginação: empilha e evita overflow */
+    .pager{flex-wrap:wrap;gap:8px !important;}
+    .pager button{flex:1;min-width:90px;}
+
+    /* Duplicadas: linhas e ações mais folgadas para toque */
+    .dup-group{padding:12px;}
+    .dup-row{gap:8px;padding:10px 0;}
+    .dup-row .dup-desc{flex-basis:100%;order:5;}
+    .dup-row .dup-actions{margin-left:0;width:100%;justify-content:flex-end;}
+    .dup-toolbar{flex-direction:column;align-items:stretch;}
+    .dup-toolbar button{width:100%;}
+    .dup-group-head{gap:6px;}
+    .dup-group-head .dup-count{margin-left:0;}
+
+    /* Chaves de Erro (categorias): cards e chips mais folgados */
+    .cat-setor-head{flex-wrap:wrap;}
+    .cat-add-row{flex-direction:column;align-items:stretch;}
+    .cat-add-row button{width:100%;}
+    .sug-exemplo-row{flex-wrap:wrap;}
+    .sug-exemplo-input{width:100%;}
+
+    /* Import: grade em 1 coluna, ações empilhadas */
+    .import-area{padding:16px;}
+    .import-grid{grid-template-columns:1fr;}
+    .import-actions{flex-direction:column-reverse;}
+    .import-actions button{width:100%;}
+    .import-drop{padding:20px 14px;}
+
+    /* Barra superior de backup/config: quebra em telas estreitas sem transbordar */
+    .backup-bar{padding:10px 4vw;gap:8px;}
+    .backup-bar .last-backup{flex-basis:100%;order:5;}
+    .btn-backup{flex:1;min-width:calc(50% - 4px);justify-content:center;padding:8px 10px;font-size:11.5px;}
+  }
+
+  @media(max-width:420px){
+    .gns-kpi{min-width:100%;}
   }
 
 
@@ -1548,6 +1627,15 @@
     <input type="number" id="ordens-page-input" min="1" value="1" style="width:56px;text-align:center;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);font-family:var(--font-mono);font-size:12.5px;border-radius:3px;padding:6px 4px;">
     <span id="ordens-page-total">de 1</span>
     <button class="clear-btn" id="ordens-page-next">Próxima ›</button>
+    <span style="margin-left:8px;color:var(--dim);">|</span>
+    <label for="ordens-per-page" style="color:var(--dim);">por página</label>
+    <select id="ordens-per-page" style="background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);font-family:var(--font-mono);font-size:12.5px;border-radius:3px;padding:5px 7px;outline:none;cursor:pointer;">
+      <option value="25">25</option>
+      <option value="50" selected>50</option>
+      <option value="100">100</option>
+      <option value="200">200</option>
+      <option value="9999">Todos</option>
+    </select>
   </div>
 
 </div><!-- /tab-ordens -->
@@ -3459,7 +3547,7 @@ function refreshDatalists(){
 
 // ── Paginação da tabela de Ordens de Serviço — evita desenhar centenas/
 // milhares de linhas de uma vez; só a página atual vai pro DOM. ──
-const ORDENS_POR_PAGINA = 50;
+let ORDENS_POR_PAGINA = 50;
 let ordensRowsAtuais = [];
 let ordensPageAtual = 1;
 
@@ -3654,6 +3742,12 @@ document.getElementById('ordens-page-input').addEventListener('keydown', e=>{
   if(e.key === 'Enter') irParaPaginaDigitada();
 });
 document.getElementById('ordens-page-input').addEventListener('change', irParaPaginaDigitada);
+
+document.getElementById('ordens-per-page').addEventListener('change', function(){
+  ORDENS_POR_PAGINA = parseInt(this.value, 10) || 50;
+  ordensPageAtual = 1;
+  renderOrdensPagina();
+});
 document.getElementById('f-clear').addEventListener('click', ()=>{
   document.getElementById('f-operacao').value='';
   document.getElementById('f-tipo').value='';
