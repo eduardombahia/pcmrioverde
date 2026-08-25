@@ -1411,7 +1411,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.2</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.3</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1528,7 +1528,9 @@
 
   <div class="pager" id="ordens-pager" style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;font-family:var(--font-mono);font-size:12.5px;color:var(--dim);">
     <button class="clear-btn" id="ordens-page-prev">‹ Anterior</button>
-    <span id="ordens-page-label">Página 1 de 1</span>
+    <span id="ordens-page-label">Página</span>
+    <input type="number" id="ordens-page-input" min="1" value="1" style="width:56px;text-align:center;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);font-family:var(--font-mono);font-size:12.5px;border-radius:3px;padding:6px 4px;">
+    <span id="ordens-page-total">de 1</span>
     <button class="clear-btn" id="ordens-page-next">Próxima ›</button>
   </div>
 
@@ -2655,7 +2657,7 @@ const TIPOS_VALIDOS = ['Ambos','Corretiva','Preventiva'];
 // Depois de publicar o proxy (Cloudflare Worker — ver instruções à parte),
 // cole aqui a URL do endpoint. Deixe '' para manter o botão "Sugerir com IA"
 // desativado (nada quebra sem essa configuração).
-const IA_PROXY_URL = 'https://pcm-ia-proxy.eduardombahia.workers.dev'; // ex: 'https://pcm-ia-proxy.SEU-USUARIO.workers.dev'
+const IA_PROXY_URL = 'https://pcm-ia-proxy.eduardombahia.workers.dev';
 
 // ── Estado ativo (base + personalizações do usuário) ──
 // Estes objetos começam como cópia da base e podem ser sobrescritos pelo
@@ -3458,7 +3460,11 @@ function renderOrdensPagina(){
   document.getElementById('count-total').textContent = allRows().length;
 
   const label = document.getElementById('ordens-page-label');
-  if(label) label.textContent = `Página ${ordensPageAtual} de ${totalPaginas}`;
+  if(label) label.textContent = 'Página';
+  const pageInput = document.getElementById('ordens-page-input');
+  if(pageInput){ pageInput.value = ordensPageAtual; pageInput.max = totalPaginas; }
+  const pageTotal = document.getElementById('ordens-page-total');
+  if(pageTotal) pageTotal.textContent = `de ${totalPaginas}`;
   const prevBtn = document.getElementById('ordens-page-prev');
   const nextBtn = document.getElementById('ordens-page-next');
   if(prevBtn) prevBtn.disabled = ordensPageAtual <= 1;
@@ -3618,6 +3624,20 @@ document.getElementById('ordens-page-next').addEventListener('click', ()=>{
   ordensPageAtual++;
   renderOrdensPagina();
 });
+function irParaPaginaDigitada(){
+  const input = document.getElementById('ordens-page-input');
+  const n = parseInt(input.value, 10);
+  if(!Number.isNaN(n)){
+    ordensPageAtual = n;
+    renderOrdensPagina();
+  } else {
+    input.value = ordensPageAtual; // valor inválido: volta pro atual
+  }
+}
+document.getElementById('ordens-page-input').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') irParaPaginaDigitada();
+});
+document.getElementById('ordens-page-input').addEventListener('change', irParaPaginaDigitada);
 document.getElementById('f-clear').addEventListener('click', ()=>{
   document.getElementById('f-operacao').value='';
   document.getElementById('f-tipo').value='';
@@ -5274,7 +5294,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v9.2 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v7.6 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
