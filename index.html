@@ -1025,6 +1025,15 @@
   }
   .sug-criar-btn.aplicar{background:var(--green);color:#0d1f15;}
   .sug-criar-btn.aplicar:hover{background:#6de89a;}
+  .sug-setor-select{
+    background:var(--panel-2);border:1px solid var(--amber);color:var(--amber);
+    font-family:var(--font-display);font-size:15px;letter-spacing:.03em;
+    padding:2px 6px;border-radius:3px;outline:none;cursor:pointer;
+    appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23F5A623'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 6px center;padding-right:20px;
+  }
+  .sug-setor-select:focus{border-color:var(--amber);}
 
   /* Tipo (Corretiva/Preventiva) selectors */
   .cat-tipo-select{
@@ -1402,7 +1411,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v8.9</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.0</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -2639,7 +2648,7 @@ const TIPOS_VALIDOS = ['Ambos','Corretiva','Preventiva'];
 // Depois de publicar o proxy (Cloudflare Worker — ver instruções à parte),
 // cole aqui a URL do endpoint. Deixe '' para manter o botão "Sugerir com IA"
 // desativado (nada quebra sem essa configuração).
-const IA_PROXY_URL = 'https://pcm-ia-proxy.eduardombahia.workers.dev'; // ex: 'https://pcm-ia-proxy.SEU-USUARIO.workers.dev'
+const IA_PROXY_URL = 'https://pcm-ia-proxy.edduardombahia.workers.dev'; // ex: 'https://pcm-ia-proxy.SEU-USUARIO.workers.dev'
 
 // ── Estado ativo (base + personalizações do usuário) ──
 // Estes objetos começam como cópia da base e podem ser sobrescritos pelo
@@ -3690,7 +3699,7 @@ document.getElementById('drawer-submit').addEventListener('click', ()=>{
 // ════════════════════════════════════════════════════════
 const FROTA_STORAGE_KEY = 'pcm_frota_v1';
 const FROTA_SEED_VERSION = 2;
-const FROTA_SEED = {"142464": {"placa": "SQZ8B68", "operacao": "080 - COMIGO"}, "142465": {"placa": "SRG4I41", "operacao": "080 - COMIGO"}, "142466": {"placa": "SRO5E17", "operacao": "080 - COMIGO"}, "142467": {"placa": "SQZ8D12", "operacao": "080 - COMIGO"}, "142468": {"placa": "SRL5E56", "operacao": "080 - COMIGO"}, "142469": {"placa": "SQZ8B59", "operacao": "080 - COMIGO"}, "142470": {"placa": "SQZ8D08", "operacao": "080 - COMIGO"}, "142471": {"placa": "SRM4H19", "operacao": "080 - COMIGO"}, "142472": {"placa": "SRB0A78", "operacao": "080 - COMIGO"}, "142473": {"placa": "SRB0A70", "operacao": "080 - COMIGO"}, "142474": {"placa": "SQZ8D18", "operacao": "080 - COMIGO"}, "142475": {"placa": "SRP7J01", "operacao": "080 - COMIGO"}, "142476": {"placa": "SRC5B29", "operacao": "080 - COMIGO"}, "142477": {"placa": "SRD4E10", "operacao": "080 - COMIGO"}, "142478": {"placa": "SRC4H23", "operacao": "080 - COMIGO"}, "142479": {"placa": "SRL7A36", "operacao": "080 - COMIGO"}, "142480": {"placa": "SRG8E28", "operacao": "080 - COMIGO"}, "222439": {"placa": "SJY6D12", "operacao": "080 - COMIGO"}, "222440": {"placa": "SJY6A17", "operacao": "080 - COMIGO"}, "222441": {"placa": "SJY2H99", "operacao": "080 - COMIGO"}, "222442": {"placa": "SKA9F59", "operacao": "080 - COMIGO"}, "222443": {"placa": "SJY4H88", "operacao": "080 - COMIGO"}, "222444": {"placa": "SJY5F67", "operacao": "080 - COMIGO"}, "222445": {"placa": "SKA2G19", "operacao": "080 - COMIGO"}, "992012": {"placa": "QUZ4271", "operacao": "APOIO"}, "992602": {"placa": "TZI4D96", "operacao": "APOIO"}, "221945": {"placa": "QQK0922", "operacao": "087 - URBANO"}, "221946": {"placa": "QQQ3799", "operacao": "087 - URBANO"}, "221949": {"placa": "QQQ4213", "operacao": "087 - URBANO"}, "221950": {"placa": "QQK1832", "operacao": "087 - URBANO"}, "222401": {"placa": "SDI6A17", "operacao": "087 - URBANO"}, "222402": {"placa": "SDK2G77", "operacao": "087 - URBANO"}, "222403": {"placa": "SDH6B77", "operacao": "087 - URBANO"}, "222404": {"placa": "SDM2D97", "operacao": "087 - URBANO"}, "222405": {"placa": "SDL3C67", "operacao": "087 - URBANO"}, "222406": {"placa": "SDL8D17", "operacao": "087 - URBANO"}, "222407": {"placa": "SDJ4C97", "operacao": "087 - URBANO"}, "222408": {"placa": "SDG0J37", "operacao": "087 - URBANO"}, "222409": {"placa": "SDG7F37", "operacao": "087 - URBANO"}, "222410": {"placa": "SDF3I47", "operacao": "087 - URBANO"}, "222411": {"placa": "SDJ6A97", "operacao": "087 - URBANO"}, "222412": {"placa": "SDI6F47", "operacao": "087 - URBANO"}, "222413": {"placa": "SDH5D67", "operacao": "087 - URBANO"}, "222414": {"placa": "SDJ6G17", "operacao": "087 - URBANO"}, "222415": {"placa": "SDL5J17", "operacao": "087 - URBANO"}, "222416": {"placa": "SDL1F97", "operacao": "087 - URBANO"}, "222417": {"placa": "SDH0C07", "operacao": "087 - URBANO"}, "222418": {"placa": "SDL7E37", "operacao": "087 - URBANO"}, "222419": {"placa": "SDF9I27", "operacao": "087 - URBANO"}, "222420": {"placa": "SDK9A77", "operacao": "087 - URBANO"}, "222421": {"placa": "SDO7C37", "operacao": "087 - URBANO"}, "222422": {"placa": "SDF1A27", "operacao": "087 - URBANO"}, "222423": {"placa": "SDI1G57", "operacao": "087 - URBANO"}, "222424": {"placa": "SDH9A37", "operacao": "087 - URBANO"}, "222425": {"placa": "SDH8C07", "operacao": "087 - URBANO"}, "242454": {"placa": "SDN1J61", "operacao": "087 - URBANO"}, "242455": {"placa": "SDH6G11", "operacao": "087 - URBANO"}, "242456": {"placa": "SDL9J91", "operacao": "087 - URBANO"}, "242457": {"placa": "SDK8A01", "operacao": "087 - URBANO"}, "242458": {"placa": "SDK7B71", "operacao": "087 - URBANO"}, "242459": {"placa": "SDL2C21", "operacao": "087 - URBANO"}, "242460": {"placa": "SCJ8D69", "operacao": "087 - URBANO"}, "242461": {"placa": "SDM7D33", "operacao": "087 - URBANO"}, "242462": {"placa": "SDN4D43", "operacao": "087 - URBANO"}, "242463": {"placa": "SDN3I83", "operacao": "087 - URBANO"}, "410": {"placa": "PYF1486", "operacao": "087 - URBANO"}, "411": {"placa": "PYF1492", "operacao": "087 - URBANO"}, "992601": {"placa": "TYJ95", "operacao": "APOIO"}};
+const FROTA_SEED = {"142464": {"placa": "SQZ8B68", "operacao": "080 - COMIGO"}, "142465": {"placa": "SRG4I41", "operacao": "080 - COMIGO"}, "142466": {"placa": "SRO5E17", "operacao": "080 - COMIGO"}, "142467": {"placa": "SQZ8D12", "operacao": "080 - COMIGO"}, "142468": {"placa": "SRL5E56", "operacao": "080 - COMIGO"}, "142469": {"placa": "SQZ8B59", "operacao": "080 - COMIGO"}, "142470": {"placa": "SQZ8D08", "operacao": "080 - COMIGO"}, "142471": {"placa": "SRM4H19", "operacao": "080 - COMIGO"}, "142472": {"placa": "SRB0A78", "operacao": "080 - COMIGO"}, "142473": {"placa": "SRB0A70", "operacao": "080 - COMIGO"}, "142474": {"placa": "SQZ8D18", "operacao": "080 - COMIGO"}, "142475": {"placa": "SRP7J01", "operacao": "080 - COMIGO"}, "142476": {"placa": "SRC5B29", "operacao": "080 - COMIGO"}, "142477": {"placa": "SRD4E10", "operacao": "080 - COMIGO"}, "142478": {"placa": "SRC4H23", "operacao": "080 - COMIGO"}, "142479": {"placa": "SRL7A36", "operacao": "080 - COMIGO"}, "142480": {"placa": "SRG8E28", "operacao": "080 - COMIGO"}, "222439": {"placa": "SJY6D12", "operacao": "080 - COMIGO"}, "222440": {"placa": "SJY6A17", "operacao": "080 - COMIGO"}, "222441": {"placa": "SJY2H99", "operacao": "080 - COMIGO"}, "222442": {"placa": "SKA9F59", "operacao": "080 - COMIGO"}, "222443": {"placa": "SJY4H88", "operacao": "080 - COMIGO"}, "222444": {"placa": "SJY5F67", "operacao": "080 - COMIGO"}, "222445": {"placa": "SKA2G19", "operacao": "080 - COMIGO"}, "992012": {"placa": "QUZ4271", "operacao": "APOIO"}, "992602": {"placa": "TZI4D96", "operacao": "APOIO"}, "221945": {"placa": "QQK0922", "operacao": "087 - URBANO"}, "221946": {"placa": "QQQ3799", "operacao": "087 - URBANO"}, "221949": {"placa": "QQQ4213", "operacao": "087 - URBANO"}, "221950": {"placa": "QQK1832", "operacao": "087 - URBANO"}, "222401": {"placa": "SDI6A17", "operacao": "087 - URBANO"}, "222402": {"placa": "SDK2G77", "operacao": "087 - URBANO"}, "222403": {"placa": "SDH6B77", "operacao": "087 - URBANO"}, "222404": {"placa": "SDM2D97", "operacao": "087 - URBANO"}, "222405": {"placa": "SDL3C67", "operacao": "087 - URBANO"}, "222406": {"placa": "SDL8D17", "operacao": "087 - URBANO"}, "222407": {"placa": "SDJ4C97", "operacao": "087 - URBANO"}, "222408": {"placa": "SDG0J37", "operacao": "087 - URBANO"}, "222409": {"placa": "SDG7F37", "operacao": "087 - URBANO"}, "222410": {"placa": "SDF3I47", "operacao": "087 - URBANO"}, "222411": {"placa": "SDJ6A97", "operacao": "087 - URBANO"}, "222412": {"placa": "SDI6F47", "operacao": "087 - URBANO"}, "222413": {"placa": "SDH5D67", "operacao": "087 - URBANO"}, "222414": {"placa": "SDJ6G17", "operacao": "087 - URBANO"}, "222415": {"placa": "SDL5J17", "operacao": "087 - URBANO"}, "222416": {"placa": "SDL1F97", "operacao": "087 - URBANO"}, "222417": {"placa": "SDH0C07", "operacao": "087 - URBANO"}, "222418": {"placa": "SDL7E37", "operacao": "087 - URBANO"}, "222419": {"placa": "SDF9I27", "operacao": "087 - URBANO"}, "222420": {"placa": "SDK9A77", "operacao": "087 - URBANO"}, "222421": {"placa": "SDO7C37", "operacao": "087 - URBANO"}, "222422": {"placa": "SDF1A27", "operacao": "087 - URBANO"}, "222423": {"placa": "SDI1G57", "operacao": "087 - URBANO"}, "222424": {"placa": "SDH9A37", "operacao": "087 - URBANO"}, "222425": {"placa": "SDH8C07", "operacao": "087 - URBANO"}, "242454": {"placa": "SDN1J61", "operacao": "087 - URBANO"}, "242455": {"placa": "SDH6G11", "operacao": "087 - URBANO"}, "242456": {"placa": "SDL9J91", "operacao": "087 - URBANO"}, "242457": {"placa": "SDK8A01", "operacao": "087 - URBANO"}, "242458": {"placa": "SDK7B71", "operacao": "087 - URBANO"}, "242459": {"placa": "SDL2C21", "operacao": "087 - URBANO"}, "242460": {"placa": "SCJ8D69", "operacao": "087 - URBANO"}, "242461": {"placa": "SDM7D33", "operacao": "087 - URBANO"}, "242462": {"placa": "SDN4D43", "operacao": "087 - URBANO"}, "242463": {"placa": "SDN3I83", "operacao": "087 - URBANO"}, "410": {"placa": "PYF1486", "operacao": "087 - URBANO"}, "411": {"placa": "PYF1492", "operacao": "087 - URBANO"}, "992601": {"placa": "TYV8J95", "operacao": "APOIO"}};
 
 function loadFrota(){
   try{
@@ -4450,9 +4459,14 @@ function renderSugestoesTab(){
     // Datalist com categorias existentes do setor (para autocomplete)
     const catsExistentes = (SETOR_CATEGORIAS[item.setor] || []);
     const dlOpts = catsExistentes.map(c => `<option value="${escAttr(c)}">`).join('');
+    // Select de setores reais para troca inline
+    const setoresReais = Object.keys(SETOR_CATEGORIAS).filter(s => s !== 'Não classificado');
+    const setorOpts = setoresReais.map(s =>
+      `<option value="${escAttr(s)}"${s === item.setor ? ' selected' : ''}>${escAttr(s)}</option>`
+    ).join('');
     return `<div class="cat-setor-card" data-id="${escAttr(item.id)}">
       <div class="cat-setor-head">
-        <div class="cat-setor-nome" style="flex:none;">${escAttr(item.setor)}</div>
+        <select class="sug-setor-select" title="Clique para alterar o setor">${setorOpts}</select>
         <span class="cat-tipo-select" data-tipo="${escAttr(item.tipo)}" style="border:1px solid var(--line);border-radius:3px;padding:4px 8px;font-size:11px;">${escAttr(tipoLabel)}</span>
         <span class="cat-setor-count">${item.exemplos.length} ocorrência(s)</span>
         <button type="button" class="cat-icon-btn danger sug-dismiss-btn" title="Descartar sugestão">🗑</button>
@@ -4480,8 +4494,9 @@ function renderSugestoesTab(){
 
     function atualizarHint(){
       const nome = input.value.trim();
+      const setorAtual = card.querySelector('.sug-setor-select').value;
       if(!nome){ hint.className = 'sug-match-hint'; return; }
-      const cats = SETOR_CATEGORIAS[sug.setor] || [];
+      const cats = SETOR_CATEGORIAS[setorAtual] || [];
       const jaTem = cats.some(c => c.toLowerCase() === nome.toLowerCase());
       if(jaTem){
         hint.className = 'sug-match-hint existe';
@@ -4490,11 +4505,28 @@ function renderSugestoesTab(){
         btn.classList.add('aplicar');
       } else {
         hint.className = 'sug-match-hint novo';
-        hint.textContent = `➕ "${nome}" é nova — será criada em "${sug.setor}" e aplicada às OS acima.`;
-        btn.textContent  = `+ Criar "${nome}" em "${sug.setor}"`;
+        hint.textContent = `➕ "${nome}" é nova — será criada em "${setorAtual}" e aplicada às OS acima.`;
+        btn.textContent  = `+ Criar "${nome}" em "${setorAtual}"`;
         btn.classList.remove('aplicar');
       }
     }
+
+    // Quando o setor muda: atualiza sugestoesCategoria em memória, recarrega datalist e hint
+    const setorSel = card.querySelector('.sug-setor-select');
+    setorSel.addEventListener('change', () => {
+      const novoSetor = setorSel.value;
+      // Atualiza o item em memória (não salva ainda — só ao confirmar)
+      sug.setor = novoSetor;
+      // Recarrega datalist com categorias do novo setor
+      const dl = card.querySelector(`datalist`);
+      if(dl){
+        dl.innerHTML = (SETOR_CATEGORIAS[novoSetor] || [])
+          .map(c => `<option value="${escAttr(c)}">`)
+          .join('');
+      }
+      atualizarHint();
+    });
+
     input.addEventListener('input', atualizarHint);
     // Hint inicial (pré-preenchido pela IA)
     atualizarHint();
@@ -4518,10 +4550,12 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
 
   if(e.target.closest('.sug-criar-btn')){
     const input = card.querySelector('.sug-nome-input');
+    const setorSel = card.querySelector('.sug-setor-select');
+    const setorEscolhido = setorSel ? setorSel.value : item.setor;
     const nome = input.value.trim();
     if(!nome){ alert('Digite o nome da categoria.'); return; }
 
-    const lista = SETOR_CATEGORIAS[item.setor] || (SETOR_CATEGORIAS[item.setor] = []);
+    const lista = SETOR_CATEGORIAS[setorEscolhido] || (SETOR_CATEGORIAS[setorEscolhido] = []);
     const normalizar = s => s.trim().toLowerCase();
     const jaTem = lista.some(c => normalizar(c) === normalizar(nome));
     // Nome real da categoria (case original da lista ou o digitado se novo)
@@ -4531,37 +4565,35 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
       // Categoria nova: cria na taxonomia
       lista.push(nomeReal);
       if(item.tipo && item.tipo !== 'Ambos'){
-        CATEGORIA_TIPOS[`${item.setor}|${nomeReal}`] = item.tipo;
+        CATEGORIA_TIPOS[`${setorEscolhido}|${nomeReal}`] = item.tipo;
       }
       saveCategorias();
-      addLog('sistema', `Categoria "${nomeReal}" criada em "${item.setor}"`, 'Criada a partir de uma sugestão da IA');
+      addLog('sistema', `Categoria "${nomeReal}" criada em "${setorEscolhido}"`, 'Criada a partir de uma sugestão da IA');
     }
 
-    // Aplica retroativamente às OS geradoras (exemplos da sugestão):
-    // percorre todos os registros, encontra os que têm a descrição entre os exemplos
-    // e ainda estão no setor da sugestão sem categoria válida, e classifica.
+    // Aplica retroativamente às OS geradoras usando o setor escolhido
     let aplicados = 0;
     const exemplosNorm = new Set(item.exemplos.map(e => normalizar(e)));
-    const chaveErro = ensureChave(item.tipo || '', item.setor, nomeReal) || '';
+    const chaveErro = ensureChave(item.tipo || '', setorEscolhido, nomeReal) || '';
 
     DATA.forEach(r => {
       if(deletedKeys[keyForRecord(r)]) return;
       const key = keyForRecord(r);
       const merged = overrides[key] ? {...r, ...overrides[key]} : r;
-      // Candidato: setor bate e descrição está nos exemplos da sugestão
       const linhas = dividirDescricaoEmLinhas(merged.descricao || '');
       const bate = linhas.some(l => exemplosNorm.has(normalizar(l)));
       if(!bate) return;
-      // Só aplica se o par do setor ainda não tiver categoria válida
       const parExistente = Array.isArray(merged.pares)
-        ? merged.pares.find(p => p.setor === item.setor)
-        : (merged.setor === item.setor ? merged : null);
+        ? merged.pares.find(p => p.setor === setorEscolhido)
+        : (merged.setor === setorEscolhido ? merged : null);
       if(parExistente && parExistente.categoria && parExistente.categoria !== '') return;
 
-      // Monta pares atualizados
       let pares = Array.isArray(merged.pares) ? [...merged.pares] : [];
-      const idxPar = pares.findIndex(p => p.setor === item.setor && !p.categoria);
-      const parNovo = { tipo: item.tipo || merged.tipo || '', setor: item.setor, categoria: nomeReal, chave: chaveErro };
+      // Se o setor foi trocado, remove par antigo sem categoria do setor original
+      const idxAntigo = pares.findIndex(p => p.setor === item.setor && !p.categoria);
+      if(idxAntigo >= 0) pares.splice(idxAntigo, 1);
+      const idxPar = pares.findIndex(p => p.setor === setorEscolhido && !p.categoria);
+      const parNovo = { tipo: item.tipo || merged.tipo || '', setor: setorEscolhido, categoria: nomeReal, chave: chaveErro };
       if(idxPar >= 0) pares[idxPar] = parNovo;
       else pares.push(parNovo);
 
@@ -4580,13 +4612,15 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
       const bate = linhas.some(l => exemplosNorm.has(normalizar(l)));
       if(!bate) return;
       const parExistente = Array.isArray(r.pares)
-        ? r.pares.find(p => p.setor === item.setor)
-        : (r.setor === item.setor ? r : null);
+        ? r.pares.find(p => p.setor === setorEscolhido)
+        : (r.setor === setorEscolhido ? r : null);
       if(parExistente && parExistente.categoria && parExistente.categoria !== '') return;
 
       let pares = Array.isArray(r.pares) ? [...r.pares] : [];
-      const idxPar = pares.findIndex(p => p.setor === item.setor && !p.categoria);
-      const parNovo = { tipo: item.tipo || r.tipo || '', setor: item.setor, categoria: nomeReal, chave: chaveErro };
+      const idxAntigo = pares.findIndex(p => p.setor === item.setor && !p.categoria);
+      if(idxAntigo >= 0) pares.splice(idxAntigo, 1);
+      const idxPar = pares.findIndex(p => p.setor === setorEscolhido && !p.categoria);
+      const parNovo = { tipo: item.tipo || r.tipo || '', setor: setorEscolhido, categoria: nomeReal, chave: chaveErro };
       if(idxPar >= 0) pares[idxPar] = parNovo;
       else pares.push(parNovo);
 
@@ -4606,7 +4640,7 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
       renderAll();
       addLog('sistema',
         `Categoria "${nomeReal}" aplicada retroativamente a ${aplicados} OS`,
-        `Setor: ${item.setor} · ${jaTem ? 'categoria existente reutilizada' : 'categoria criada'}`);
+        `Setor: ${setorEscolhido} · ${jaTem ? 'categoria existente reutilizada' : 'categoria criada'}`);
     }
 
     sugestoesCategoria = sugestoesCategoria.filter(s => s.id !== id);
@@ -5194,7 +5228,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v8.9 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v9.0 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
