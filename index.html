@@ -1011,6 +1011,20 @@
     color:var(--dim); font-size:12px; font-style:italic; padding:4px 8px;
     background:var(--panel-2); border-radius:3px; border-left:2px solid var(--line);
   }
+  .sug-match-hint{
+    font-size:11px;font-family:var(--font-mono);padding:4px 8px;border-radius:3px;margin-top:4px;
+    display:none;
+  }
+  .sug-match-hint.existe{
+    color:var(--green);background:rgba(79,180,119,.08);border:1px solid rgba(79,180,119,.3);
+    display:block;
+  }
+  .sug-match-hint.novo{
+    color:var(--amber);background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.25);
+    display:block;
+  }
+  .sug-criar-btn.aplicar{background:var(--green);color:#0d1f15;}
+  .sug-criar-btn.aplicar:hover{background:#6de89a;}
 
   /* Tipo (Corretiva/Preventiva) selectors */
   .cat-tipo-select{
@@ -1388,7 +1402,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v8.8</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v8.9</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -3676,7 +3690,7 @@ document.getElementById('drawer-submit').addEventListener('click', ()=>{
 // ════════════════════════════════════════════════════════
 const FROTA_STORAGE_KEY = 'pcm_frota_v1';
 const FROTA_SEED_VERSION = 2;
-const FROTA_SEED = {"142464": {"placa": "SQZ8B68", "operacao": "080 - COMIGO"}, "142465": {"placa": "SRG4I41", "operacao": "080 - COMIGO"}, "142466": {"placa": "SRO5E17", "operacao": "080 - COMIGO"}, "142467": {"placa": "SQZ8D12", "operacao": "080 - COMIGO"}, "142468": {"placa": "SRL5E56", "operacao": "080 - COMIGO"}, "142469": {"placa": "SQZ8B59", "operacao": "080 - COMIGO"}, "142470": {"placa": "SQZ8D08", "operacao": "080 - COMIGO"}, "142471": {"placa": "SRM4H19", "operacao": "080 - COMIGO"}, "142472": {"placa": "SRB0A78", "operacao": "080 - COMIGO"}, "142473": {"placa": "SRB0A70", "operacao": "080 - COMIGO"}, "142474": {"placa": "SQZ8D18", "operacao": "080 - COMIGO"}, "142475": {"placa": "SRP7J01", "operacao": "080 - COMIGO"}, "142476": {"placa": "SRC5B29", "operacao": "080 - COMIGO"}, "142477": {"placa": "SRD4E10", "operacao": "080 - COMIGO"}, "142478": {"placa": "SRC4H23", "operacao": "080 - COMIGO"}, "142479": {"placa": "SRL7A36", "operacao": "080 - COMIGO"}, "142480": {"placa": "SRG8E28", "operacao": "080 - COMIGO"}, "222439": {"placa": "SJY6D12", "operacao": "080 - COMIGO"}, "222440": {"placa": "SJY6A17", "operacao": "080 - COMIGO"}, "222441": {"placa": "SJY2H99", "operacao": "080 - COMIGO"}, "222442": {"placa": "SKA9F59", "operacao": "080 - COMIGO"}, "222443": {"placa": "SJY4H88", "operacao": "080 - COMIGO"}, "222444": {"placa": "SJY5F67", "operacao": "080 - COMIGO"}, "222445": {"placa": "SKA2G19", "operacao": "080 - COMIGO"}, "992012": {"placa": "QUZ4271", "operacao": "APOIO"}, "992602": {"placa": "TZI4D96", "operacao": "APOIO"}, "221945": {"placa": "QQK0922", "operacao": "087 - URBANO"}, "221946": {"placa": "QQQ3799", "operacao": "087 - URBANO"}, "221949": {"placa": "QQQ4213", "operacao": "087 - URBANO"}, "221950": {"placa": "QQK1832", "operacao": "087 - URBANO"}, "222401": {"placa": "SDI6A17", "operacao": "087 - URBANO"}, "222402": {"placa": "SDK2G77", "operacao": "087 - URBANO"}, "222403": {"placa": "SDH6B77", "operacao": "087 - URBANO"}, "222404": {"placa": "SDM2D97", "operacao": "087 - URBANO"}, "222405": {"placa": "SDL3C67", "operacao": "087 - URBANO"}, "222406": {"placa": "SDL8D17", "operacao": "087 - URBANO"}, "222407": {"placa": "SDJ4C97", "operacao": "087 - URBANO"}, "222408": {"placa": "SDG0J37", "operacao": "087 - URBANO"}, "222409": {"placa": "SDG7F37", "operacao": "087 - URBANO"}, "222410": {"placa": "SDF3I47", "operacao": "087 - URBANO"}, "222411": {"placa": "SDJ6A97", "operacao": "087 - URBANO"}, "222412": {"placa": "SDI6F47", "operacao": "087 - URBANO"}, "222413": {"placa": "SDH5D67", "operacao": "087 - URBANO"}, "222414": {"placa": "SDJ6G17", "operacao": "087 - URBANO"}, "222415": {"placa": "SDL5J17", "operacao": "087 - URBANO"}, "222416": {"placa": "SDL1F97", "operacao": "087 - URBANO"}, "222417": {"placa": "SDH0C07", "operacao": "087 - URBANO"}, "222418": {"placa": "SDL7E37", "operacao": "087 - URBANO"}, "222419": {"placa": "SDF9I27", "operacao": "087 - URBANO"}, "222420": {"placa": "SDK9A77", "operacao": "087 - URBANO"}, "222421": {"placa": "SDO7C37", "operacao": "087 - URBANO"}, "222422": {"placa": "SDF1A27", "operacao": "087 - URBANO"}, "222423": {"placa": "SDI1G57", "operacao": "087 - URBANO"}, "222424": {"placa": "SDH9A37", "operacao": "087 - URBANO"}, "222425": {"placa": "SDH8C07", "operacao": "087 - URBANO"}, "242454": {"placa": "SDN1J61", "operacao": "087 - URBANO"}, "242455": {"placa": "SDH6G11", "operacao": "087 - URBANO"}, "242456": {"placa": "SDL9J91", "operacao": "087 - URBANO"}, "242457": {"placa": "SDK8A01", "operacao": "087 - URBANO"}, "242458": {"placa": "SDK7B71", "operacao": "087 - URBANO"}, "242459": {"placa": "SDL2C21", "operacao": "087 - URBANO"}, "242460": {"placa": "SCJ8D69", "operacao": "087 - URBANO"}, "242461": {"placa": "SDM7D33", "operacao": "087 - URBANO"}, "242462": {"placa": "SDN4D43", "operacao": "087 - URBANO"}, "242463": {"placa": "SDN3I83", "operacao": "087 - URBANO"}, "410": {"placa": "PYF1486", "operacao": "087 - URBANO"}, "411": {"placa": "PYF1492", "operacao": "087 - URBANO"}, "992601": {"placa": "TYV8J95", "operacao": "APOIO"}};
+const FROTA_SEED = {"142464": {"placa": "SQZ8B68", "operacao": "080 - COMIGO"}, "142465": {"placa": "SRG4I41", "operacao": "080 - COMIGO"}, "142466": {"placa": "SRO5E17", "operacao": "080 - COMIGO"}, "142467": {"placa": "SQZ8D12", "operacao": "080 - COMIGO"}, "142468": {"placa": "SRL5E56", "operacao": "080 - COMIGO"}, "142469": {"placa": "SQZ8B59", "operacao": "080 - COMIGO"}, "142470": {"placa": "SQZ8D08", "operacao": "080 - COMIGO"}, "142471": {"placa": "SRM4H19", "operacao": "080 - COMIGO"}, "142472": {"placa": "SRB0A78", "operacao": "080 - COMIGO"}, "142473": {"placa": "SRB0A70", "operacao": "080 - COMIGO"}, "142474": {"placa": "SQZ8D18", "operacao": "080 - COMIGO"}, "142475": {"placa": "SRP7J01", "operacao": "080 - COMIGO"}, "142476": {"placa": "SRC5B29", "operacao": "080 - COMIGO"}, "142477": {"placa": "SRD4E10", "operacao": "080 - COMIGO"}, "142478": {"placa": "SRC4H23", "operacao": "080 - COMIGO"}, "142479": {"placa": "SRL7A36", "operacao": "080 - COMIGO"}, "142480": {"placa": "SRG8E28", "operacao": "080 - COMIGO"}, "222439": {"placa": "SJY6D12", "operacao": "080 - COMIGO"}, "222440": {"placa": "SJY6A17", "operacao": "080 - COMIGO"}, "222441": {"placa": "SJY2H99", "operacao": "080 - COMIGO"}, "222442": {"placa": "SKA9F59", "operacao": "080 - COMIGO"}, "222443": {"placa": "SJY4H88", "operacao": "080 - COMIGO"}, "222444": {"placa": "SJY5F67", "operacao": "080 - COMIGO"}, "222445": {"placa": "SKA2G19", "operacao": "080 - COMIGO"}, "992012": {"placa": "QUZ4271", "operacao": "APOIO"}, "992602": {"placa": "TZI4D96", "operacao": "APOIO"}, "221945": {"placa": "QQK0922", "operacao": "087 - URBANO"}, "221946": {"placa": "QQQ3799", "operacao": "087 - URBANO"}, "221949": {"placa": "QQQ4213", "operacao": "087 - URBANO"}, "221950": {"placa": "QQK1832", "operacao": "087 - URBANO"}, "222401": {"placa": "SDI6A17", "operacao": "087 - URBANO"}, "222402": {"placa": "SDK2G77", "operacao": "087 - URBANO"}, "222403": {"placa": "SDH6B77", "operacao": "087 - URBANO"}, "222404": {"placa": "SDM2D97", "operacao": "087 - URBANO"}, "222405": {"placa": "SDL3C67", "operacao": "087 - URBANO"}, "222406": {"placa": "SDL8D17", "operacao": "087 - URBANO"}, "222407": {"placa": "SDJ4C97", "operacao": "087 - URBANO"}, "222408": {"placa": "SDG0J37", "operacao": "087 - URBANO"}, "222409": {"placa": "SDG7F37", "operacao": "087 - URBANO"}, "222410": {"placa": "SDF3I47", "operacao": "087 - URBANO"}, "222411": {"placa": "SDJ6A97", "operacao": "087 - URBANO"}, "222412": {"placa": "SDI6F47", "operacao": "087 - URBANO"}, "222413": {"placa": "SDH5D67", "operacao": "087 - URBANO"}, "222414": {"placa": "SDJ6G17", "operacao": "087 - URBANO"}, "222415": {"placa": "SDL5J17", "operacao": "087 - URBANO"}, "222416": {"placa": "SDL1F97", "operacao": "087 - URBANO"}, "222417": {"placa": "SDH0C07", "operacao": "087 - URBANO"}, "222418": {"placa": "SDL7E37", "operacao": "087 - URBANO"}, "222419": {"placa": "SDF9I27", "operacao": "087 - URBANO"}, "222420": {"placa": "SDK9A77", "operacao": "087 - URBANO"}, "222421": {"placa": "SDO7C37", "operacao": "087 - URBANO"}, "222422": {"placa": "SDF1A27", "operacao": "087 - URBANO"}, "222423": {"placa": "SDI1G57", "operacao": "087 - URBANO"}, "222424": {"placa": "SDH9A37", "operacao": "087 - URBANO"}, "222425": {"placa": "SDH8C07", "operacao": "087 - URBANO"}, "242454": {"placa": "SDN1J61", "operacao": "087 - URBANO"}, "242455": {"placa": "SDH6G11", "operacao": "087 - URBANO"}, "242456": {"placa": "SDL9J91", "operacao": "087 - URBANO"}, "242457": {"placa": "SDK8A01", "operacao": "087 - URBANO"}, "242458": {"placa": "SDK7B71", "operacao": "087 - URBANO"}, "242459": {"placa": "SDL2C21", "operacao": "087 - URBANO"}, "242460": {"placa": "SCJ8D69", "operacao": "087 - URBANO"}, "242461": {"placa": "SDM7D33", "operacao": "087 - URBANO"}, "242462": {"placa": "SDN4D43", "operacao": "087 - URBANO"}, "242463": {"placa": "SDN3I83", "operacao": "087 - URBANO"}, "410": {"placa": "PYF1486", "operacao": "087 - URBANO"}, "411": {"placa": "PYF1492", "operacao": "087 - URBANO"}, "992601": {"placa": "TYJ95", "operacao": "APOIO"}};
 
 function loadFrota(){
   try{
@@ -4432,6 +4446,10 @@ function renderSugestoesTab(){
   wrap.innerHTML = ordenadas.map(item => {
     const exemplosHtml = item.exemplos.map(e => `<div class="sug-exemplo">"${escAttr(e)}"</div>`).join('');
     const tipoLabel = item.tipo || 'Tipo não definido';
+    const dlId = `sug-dl-${escAttr(item.id)}`;
+    // Datalist com categorias existentes do setor (para autocomplete)
+    const catsExistentes = (SETOR_CATEGORIAS[item.setor] || []);
+    const dlOpts = catsExistentes.map(c => `<option value="${escAttr(c)}">`).join('');
     return `<div class="cat-setor-card" data-id="${escAttr(item.id)}">
       <div class="cat-setor-head">
         <div class="cat-setor-nome" style="flex:none;">${escAttr(item.setor)}</div>
@@ -4440,12 +4458,47 @@ function renderSugestoesTab(){
         <button type="button" class="cat-icon-btn danger sug-dismiss-btn" title="Descartar sugestão">🗑</button>
       </div>
       <div class="sug-exemplos">${exemplosHtml}</div>
-      <div class="cat-add-row">
-        <input type="text" class="sug-nome-input" value="${escAttr(item.categoriaSugerida)}" placeholder="Nome da nova categoria...">
-        <button type="button" class="sug-criar-btn">+ Criar categoria em "${escAttr(item.setor)}"</button>
+      <datalist id="${dlId}">${dlOpts}</datalist>
+      <div class="cat-add-row" style="flex-direction:column;gap:6px;">
+        <div style="display:flex;gap:8px;">
+          <input type="text" class="sug-nome-input" list="${dlId}" value="${escAttr(item.categoriaSugerida)}" placeholder="Nome da categoria (nova ou existente)...">
+          <button type="button" class="sug-criar-btn">+ Criar em "${escAttr(item.setor)}"</button>
+        </div>
+        <div class="sug-match-hint"></div>
       </div>
     </div>`;
   }).join('');
+
+  // Após renderizar, ativa hint de match em cada card
+  wrap.querySelectorAll('.cat-setor-card').forEach(card => {
+    const input = card.querySelector('.sug-nome-input');
+    const hint  = card.querySelector('.sug-match-hint');
+    const btn   = card.querySelector('.sug-criar-btn');
+    const id    = card.dataset.id;
+    const sug   = sugestoesCategoria.find(s => s.id === id);
+    if(!input || !hint || !sug) return;
+
+    function atualizarHint(){
+      const nome = input.value.trim();
+      if(!nome){ hint.className = 'sug-match-hint'; return; }
+      const cats = SETOR_CATEGORIAS[sug.setor] || [];
+      const jaTem = cats.some(c => c.toLowerCase() === nome.toLowerCase());
+      if(jaTem){
+        hint.className = 'sug-match-hint existe';
+        hint.textContent = `✅ "${nome}" já existe — será aplicada retroativamente às OS listadas acima.`;
+        btn.textContent = `✅ Aplicar "${nome}" às OS`;
+        btn.classList.add('aplicar');
+      } else {
+        hint.className = 'sug-match-hint novo';
+        hint.textContent = `➕ "${nome}" é nova — será criada em "${sug.setor}" e aplicada às OS acima.`;
+        btn.textContent  = `+ Criar "${nome}" em "${sug.setor}"`;
+        btn.classList.remove('aplicar');
+      }
+    }
+    input.addEventListener('input', atualizarHint);
+    // Hint inicial (pré-preenchido pela IA)
+    atualizarHint();
+  });
 }
 
 document.getElementById('sugestoes-list')?.addEventListener('click', e => {
@@ -4467,17 +4520,95 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
     const input = card.querySelector('.sug-nome-input');
     const nome = input.value.trim();
     if(!nome){ alert('Digite o nome da categoria.'); return; }
+
     const lista = SETOR_CATEGORIAS[item.setor] || (SETOR_CATEGORIAS[item.setor] = []);
-    if(lista.includes(nome)){
-      alert('Esta categoria já existe nesse setor — a sugestão será descartada, já que a categoria já está disponível.');
-    } else {
-      lista.push(nome);
+    const normalizar = s => s.trim().toLowerCase();
+    const jaTem = lista.some(c => normalizar(c) === normalizar(nome));
+    // Nome real da categoria (case original da lista ou o digitado se novo)
+    const nomeReal = jaTem ? lista.find(c => normalizar(c) === normalizar(nome)) : nome;
+
+    if(!jaTem){
+      // Categoria nova: cria na taxonomia
+      lista.push(nomeReal);
       if(item.tipo && item.tipo !== 'Ambos'){
-        CATEGORIA_TIPOS[`${item.setor}|${nome}`] = item.tipo;
+        CATEGORIA_TIPOS[`${item.setor}|${nomeReal}`] = item.tipo;
       }
       saveCategorias();
-      addLog('sistema', `Categoria "${nome}" criada em "${item.setor}"`, 'Criada a partir de uma sugestão da IA');
+      addLog('sistema', `Categoria "${nomeReal}" criada em "${item.setor}"`, 'Criada a partir de uma sugestão da IA');
     }
+
+    // Aplica retroativamente às OS geradoras (exemplos da sugestão):
+    // percorre todos os registros, encontra os que têm a descrição entre os exemplos
+    // e ainda estão no setor da sugestão sem categoria válida, e classifica.
+    let aplicados = 0;
+    const exemplosNorm = new Set(item.exemplos.map(e => normalizar(e)));
+    const chaveErro = ensureChave(item.tipo || '', item.setor, nomeReal) || '';
+
+    DATA.forEach(r => {
+      if(deletedKeys[keyForRecord(r)]) return;
+      const key = keyForRecord(r);
+      const merged = overrides[key] ? {...r, ...overrides[key]} : r;
+      // Candidato: setor bate e descrição está nos exemplos da sugestão
+      const linhas = dividirDescricaoEmLinhas(merged.descricao || '');
+      const bate = linhas.some(l => exemplosNorm.has(normalizar(l)));
+      if(!bate) return;
+      // Só aplica se o par do setor ainda não tiver categoria válida
+      const parExistente = Array.isArray(merged.pares)
+        ? merged.pares.find(p => p.setor === item.setor)
+        : (merged.setor === item.setor ? merged : null);
+      if(parExistente && parExistente.categoria && parExistente.categoria !== '') return;
+
+      // Monta pares atualizados
+      let pares = Array.isArray(merged.pares) ? [...merged.pares] : [];
+      const idxPar = pares.findIndex(p => p.setor === item.setor && !p.categoria);
+      const parNovo = { tipo: item.tipo || merged.tipo || '', setor: item.setor, categoria: nomeReal, chave: chaveErro };
+      if(idxPar >= 0) pares[idxPar] = parNovo;
+      else pares.push(parNovo);
+
+      const updates = {
+        setor: pares[0].setor, categoria: pares[0].categoria,
+        tipo: pares[0].tipo, chave_erro: pares[0].chave,
+        pares,
+      };
+      overrides[key] = { ...(overrides[key] || {}), ...updates };
+      Object.assign(r, updates);
+      aplicados++;
+    });
+
+    manualRecords.forEach(r => {
+      const linhas = dividirDescricaoEmLinhas(r.descricao || '');
+      const bate = linhas.some(l => exemplosNorm.has(normalizar(l)));
+      if(!bate) return;
+      const parExistente = Array.isArray(r.pares)
+        ? r.pares.find(p => p.setor === item.setor)
+        : (r.setor === item.setor ? r : null);
+      if(parExistente && parExistente.categoria && parExistente.categoria !== '') return;
+
+      let pares = Array.isArray(r.pares) ? [...r.pares] : [];
+      const idxPar = pares.findIndex(p => p.setor === item.setor && !p.categoria);
+      const parNovo = { tipo: item.tipo || r.tipo || '', setor: item.setor, categoria: nomeReal, chave: chaveErro };
+      if(idxPar >= 0) pares[idxPar] = parNovo;
+      else pares.push(parNovo);
+
+      r.setor = pares[0].setor; r.categoria = pares[0].categoria;
+      r.tipo = pares[0].tipo; r.chave_erro = pares[0].chave;
+      r.pares = pares;
+      aplicados++;
+    });
+
+    if(aplicados){
+      saveOverrides();
+      saveManualRecords(manualRecords);
+      recalcularReincidencias();
+      recalcularHodometros();
+      saveOverrides();
+      saveManualRecords(manualRecords);
+      renderAll();
+      addLog('sistema',
+        `Categoria "${nomeReal}" aplicada retroativamente a ${aplicados} OS`,
+        `Setor: ${item.setor} · ${jaTem ? 'categoria existente reutilizada' : 'categoria criada'}`);
+    }
+
     sugestoesCategoria = sugestoesCategoria.filter(s => s.id !== id);
     saveSugestoesCategoria();
     refreshSetorSelectOptions();
@@ -5063,7 +5194,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v8.8 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v8.9 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
