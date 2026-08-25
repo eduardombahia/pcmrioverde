@@ -6092,6 +6092,11 @@ async function sugerirClassificacaoIA(prefixo){
       btn.textContent = linhas.length > 1 ? `🤖 Classificando ${i+1}/${linhas.length}...` : '🤖 Classificando...';
 
       const exemplos = buscarExemplosSimilares(linha, 12);
+      // DEBUG: mostra no console quantos exemplos reais (base local + Firestore)
+      // foram encontrados para esta linha — ajuda a diagnosticar se o problema
+      // e o Firestore nao ter carregado os dados ou so falta de historico parecido.
+      console.info(`[IA] "${linha}" -> ${exemplos.length} exemplo(s) encontrado(s)`, exemplos);
+      console.info(`[IA] Base disponivel: ${DATA.length} (seed) + ${manualRecords.length} (manualRecords/Firestore) registros`);
 
       let data;
       try{
@@ -6287,6 +6292,11 @@ async function classificarEmMassaIA(){
       if(massaCancelado) break;
       const linha = linhas[j];
       const exemplos = buscarExemplosSimilares(linha, 12);
+      // DEBUG: mostra no console quantos exemplos reais (base local + Firestore)
+      // foram encontrados para esta linha — ajuda a diagnosticar se o problema
+      // e o Firestore nao ter carregado os dados ou so falta de historico parecido.
+      console.info(`[IA] "${linha}" -> ${exemplos.length} exemplo(s) encontrado(s)`, exemplos);
+      console.info(`[IA] Base disponivel: ${DATA.length} (seed) + ${manualRecords.length} (manualRecords/Firestore) registros`);
 
       let data;
       try{
