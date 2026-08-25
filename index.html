@@ -1006,11 +1006,27 @@
     font-weight:700;font-size:13px;padding:6px 14px;border-radius:3px;cursor:pointer;
   }
   .cat-add-row button:hover{background:var(--amber);}
-  .sug-exemplos{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+  .sug-exemplos{display:flex;flex-direction:column;gap:6px;margin-bottom:0;}
+  .sug-exemplo-row{display:flex;align-items:center;gap:8px;}
   .sug-exemplo{
-    color:var(--dim); font-size:12px; font-style:italic; padding:4px 8px;
+    flex:1;color:var(--dim); font-size:12px; font-style:italic; padding:5px 8px;
     background:var(--panel-2); border-radius:3px; border-left:2px solid var(--line);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
+  .sug-exemplo-input{
+    width:160px;flex:none;background:var(--panel-2);border:1px solid var(--line);
+    color:var(--chalk);font-family:var(--font-body);font-size:12px;
+    padding:5px 7px;border-radius:3px;outline:none;
+  }
+  .sug-exemplo-input:focus{border-color:var(--amber);}
+  .sug-exemplo-btn{
+    flex:none;background:var(--orange);border:none;color:#1a1207;
+    font-family:var(--font-display);font-weight:700;font-size:11.5px;
+    padding:5px 10px;border-radius:3px;cursor:pointer;white-space:nowrap;
+  }
+  .sug-exemplo-btn:hover{background:var(--amber);}
+  .sug-exemplo-btn.aplicar{background:var(--green);color:#0d1f15;}
+  .sug-exemplo-btn.aplicar:hover{background:#6de89a;}
   .sug-match-hint{
     font-size:11px;font-family:var(--font-mono);padding:4px 8px;border-radius:3px;margin-top:4px;
     display:none;
@@ -1411,7 +1427,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.3</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.4</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1498,7 +1514,6 @@
     </span>
     <input type="text" id="f-search" placeholder="Buscar veículo, OS, descrição, chave...">
     <label class="toggle"><input type="checkbox" id="f-reinc"> Só reincidentes</label>
-    <button class="btn-secondary" id="f-search-btn">🔎 Pesquisar</button>
     <button class="clear-btn" id="f-clear">Limpar filtros</button>
     <span class="count"><b id="count-n">0</b> de <span id="count-total">0</span> ordens</span>
     <button class="btn-secondary" id="btn-massa-ia" title="Classificar com IA todos os registros ainda sem Setor/Categoria">🤖 Classificar com IA</button>
@@ -1524,14 +1539,6 @@
       </thead>
       <tbody id="tbody"></tbody>
     </table>
-  </div>
-
-  <div class="pager" id="ordens-pager" style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;font-family:var(--font-mono);font-size:12.5px;color:var(--dim);">
-    <button class="clear-btn" id="ordens-page-prev">‹ Anterior</button>
-    <span id="ordens-page-label">Página</span>
-    <input type="number" id="ordens-page-input" min="1" value="1" style="width:56px;text-align:center;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);font-family:var(--font-mono);font-size:12.5px;border-radius:3px;padding:6px 4px;">
-    <span id="ordens-page-total">de 1</span>
-    <button class="clear-btn" id="ordens-page-next">Próxima ›</button>
   </div>
 
 </div><!-- /tab-ordens -->
@@ -2657,7 +2664,7 @@ const TIPOS_VALIDOS = ['Ambos','Corretiva','Preventiva'];
 // Depois de publicar o proxy (Cloudflare Worker — ver instruções à parte),
 // cole aqui a URL do endpoint. Deixe '' para manter o botão "Sugerir com IA"
 // desativado (nada quebra sem essa configuração).
-const IA_PROXY_URL = 'https://pcm-ia-proxy.eduardombahia.workers.dev';
+const IA_PROXY_URL = 'https://pcm-ia-proxy.eduardombahia.workers.dev'; // ex: 'https://pcm-ia-proxy.SEU-USUARIO.workers.dev'
 
 // ── Estado ativo (base + personalizações do usuário) ──
 // Estes objetos começam como cópia da base e podem ser sobrescritos pelo
@@ -3441,36 +3448,6 @@ function refreshDatalists(){
   fill('dl-chave','chave_erro');
 }
 
-// ── Paginação da tabela de Ordens de Serviço — evita desenhar centenas/
-// milhares de linhas de uma vez; só a página atual vai pro DOM. ──
-const ORDENS_POR_PAGINA = 50;
-let ordensRowsAtuais = [];
-let ordensPageAtual = 1;
-
-function renderOrdensPagina(){
-  const totalPaginas = Math.max(1, Math.ceil(ordensRowsAtuais.length / ORDENS_POR_PAGINA));
-  if(ordensPageAtual > totalPaginas) ordensPageAtual = totalPaginas;
-  if(ordensPageAtual < 1) ordensPageAtual = 1;
-
-  const inicio = (ordensPageAtual - 1) * ORDENS_POR_PAGINA;
-  const pagina = ordensRowsAtuais.slice(inicio, inicio + ORDENS_POR_PAGINA);
-  renderTable(pagina);
-
-  document.getElementById('count-n').textContent = ordensRowsAtuais.length;
-  document.getElementById('count-total').textContent = allRows().length;
-
-  const label = document.getElementById('ordens-page-label');
-  if(label) label.textContent = 'Página';
-  const pageInput = document.getElementById('ordens-page-input');
-  if(pageInput){ pageInput.value = ordensPageAtual; pageInput.max = totalPaginas; }
-  const pageTotal = document.getElementById('ordens-page-total');
-  if(pageTotal) pageTotal.textContent = `de ${totalPaginas}`;
-  const prevBtn = document.getElementById('ordens-page-prev');
-  const nextBtn = document.getElementById('ordens-page-next');
-  if(prevBtn) prevBtn.disabled = ordensPageAtual <= 1;
-  if(nextBtn) nextBtn.disabled = ordensPageAtual >= totalPaginas;
-}
-
 function applyFilters(){
   const op = document.getElementById('f-operacao').value;
   const tp = document.getElementById('f-tipo').value;
@@ -3511,9 +3488,9 @@ function applyFilters(){
   });
 
   updateSortIndicators();
-  ordensRowsAtuais = rows;
-  ordensPageAtual = 1; // toda nova pesquisa/filtro volta pra 1ª página
-  renderOrdensPagina();
+  renderTable(rows);
+  document.getElementById('count-n').textContent = rows.length;
+  document.getElementById('count-total').textContent = allRows().length;
 }
 
 // Show a ▲/▼ arrow on the currently active sort column header
@@ -3610,34 +3587,7 @@ function deleteOSRecordConfirm(id, origin){
 ['f-operacao','f-tipo','f-setor','f-categoria','f-resp','f-reinc','f-data-de','f-data-ate'].forEach(id=>{
   document.getElementById(id).addEventListener('change', applyFilters);
 });
-// Busca por texto só roda ao clicar em "Pesquisar" ou apertar Enter —
-// evita re-renderizar a tabela inteira a cada tecla digitada.
-document.getElementById('f-search-btn').addEventListener('click', applyFilters);
-document.getElementById('f-search').addEventListener('keydown', e=>{
-  if(e.key === 'Enter') applyFilters();
-});
-document.getElementById('ordens-page-prev').addEventListener('click', ()=>{
-  ordensPageAtual--;
-  renderOrdensPagina();
-});
-document.getElementById('ordens-page-next').addEventListener('click', ()=>{
-  ordensPageAtual++;
-  renderOrdensPagina();
-});
-function irParaPaginaDigitada(){
-  const input = document.getElementById('ordens-page-input');
-  const n = parseInt(input.value, 10);
-  if(!Number.isNaN(n)){
-    ordensPageAtual = n;
-    renderOrdensPagina();
-  } else {
-    input.value = ordensPageAtual; // valor inválido: volta pro atual
-  }
-}
-document.getElementById('ordens-page-input').addEventListener('keydown', e=>{
-  if(e.key === 'Enter') irParaPaginaDigitada();
-});
-document.getElementById('ordens-page-input').addEventListener('change', irParaPaginaDigitada);
+document.getElementById('f-search').addEventListener('input', applyFilters);
 document.getElementById('f-clear').addEventListener('click', ()=>{
   document.getElementById('f-operacao').value='';
   document.getElementById('f-tipo').value='';
@@ -4519,16 +4469,21 @@ function renderSugestoesTab(){
   const ordenadas = sugestoesCategoria.slice().sort((a,b) => (b.ultimaOcorrencia||0) - (a.ultimaOcorrencia||0));
 
   wrap.innerHTML = ordenadas.map(item => {
-    const exemplosHtml = item.exemplos.map(e => `<div class="sug-exemplo">"${escAttr(e)}"</div>`).join('');
     const tipoLabel = item.tipo || 'Tipo não definido';
     const dlId = `sug-dl-${escAttr(item.id)}`;
-    // Datalist com categorias existentes do setor (para autocomplete)
     const catsExistentes = (SETOR_CATEGORIAS[item.setor] || []);
     const dlOpts = catsExistentes.map(c => `<option value="${escAttr(c)}">`).join('');
-    // Select de setores reais para troca inline
     const setoresReais = Object.keys(SETOR_CATEGORIAS).filter(s => s !== 'Não classificado');
     const setorOpts = setoresReais.map(s =>
       `<option value="${escAttr(s)}"${s === item.setor ? ' selected' : ''}>${escAttr(s)}</option>`
+    ).join('');
+    // Uma linha por exemplo: texto da descrição + input de categoria + botão
+    const exemplosHtml = item.exemplos.map((e, i) =>
+      `<div class="sug-exemplo-row" data-idx="${i}">
+        <div class="sug-exemplo" title="${escAttr(e)}">"${escAttr(e)}"</div>
+        <input type="text" class="sug-exemplo-input" list="${dlId}" value="${escAttr(item.categoriaSugerida)}" placeholder="Categoria...">
+        <button type="button" class="sug-exemplo-btn">Aplicar</button>
+      </div>`
     ).join('');
     return `<div class="cat-setor-card" data-id="${escAttr(item.id)}">
       <div class="cat-setor-head">
@@ -4537,68 +4492,44 @@ function renderSugestoesTab(){
         <span class="cat-setor-count">${item.exemplos.length} ocorrência(s)</span>
         <button type="button" class="cat-icon-btn danger sug-dismiss-btn" title="Descartar sugestão">🗑</button>
       </div>
-      <div class="sug-exemplos">${exemplosHtml}</div>
       <datalist id="${dlId}">${dlOpts}</datalist>
-      <div class="cat-add-row" style="flex-direction:column;gap:6px;">
-        <div style="display:flex;gap:8px;">
-          <input type="text" class="sug-nome-input" list="${dlId}" value="${escAttr(item.categoriaSugerida)}" placeholder="Nome da categoria (nova ou existente)...">
-          <button type="button" class="sug-criar-btn">+ Criar em "${escAttr(item.setor)}"</button>
-        </div>
-        <div class="sug-match-hint"></div>
-      </div>
+      <div class="sug-exemplos">${exemplosHtml}</div>
     </div>`;
   }).join('');
 
-  // Após renderizar, ativa hint de match em cada card
+  // Após renderizar: handler de mudança de setor e atualização de botões por linha
   wrap.querySelectorAll('.cat-setor-card').forEach(card => {
-    const input = card.querySelector('.sug-nome-input');
-    const hint  = card.querySelector('.sug-match-hint');
-    const btn   = card.querySelector('.sug-criar-btn');
-    const id    = card.dataset.id;
-    const sug   = sugestoesCategoria.find(s => s.id === id);
-    if(!input || !hint || !sug) return;
+    const id  = card.dataset.id;
+    const sug = sugestoesCategoria.find(s => s.id === id);
+    if(!sug) return;
 
-    function atualizarHint(){
+    function atualizarBotaoLinha(row){
+      const input = row.querySelector('.sug-exemplo-input');
+      const btn   = row.querySelector('.sug-exemplo-btn');
+      if(!input || !btn) return;
       const nome = input.value.trim();
       const setorAtual = card.querySelector('.sug-setor-select').value;
-      if(!nome){ hint.className = 'sug-match-hint'; return; }
       const cats = SETOR_CATEGORIAS[setorAtual] || [];
-      const jaTem = cats.some(c => c.toLowerCase() === nome.toLowerCase());
-      if(jaTem){
-        hint.className = 'sug-match-hint existe';
-        hint.textContent = `✅ "${nome}" já existe — será aplicada retroativamente às OS listadas acima.`;
-        btn.textContent = `✅ Aplicar "${nome}" às OS`;
-        btn.classList.add('aplicar');
-      } else {
-        hint.className = 'sug-match-hint novo';
-        hint.textContent = `➕ "${nome}" é nova — será criada em "${setorAtual}" e aplicada às OS acima.`;
-        btn.textContent  = `+ Criar "${nome}" em "${setorAtual}"`;
-        btn.classList.remove('aplicar');
-      }
+      const jaTem = nome && cats.some(c => c.toLowerCase() === nome.toLowerCase());
+      btn.textContent = jaTem ? '✅ Aplicar' : 'Aplicar';
+      btn.classList.toggle('aplicar', jaTem);
     }
 
-    // Quando o setor muda: atualiza sugestoesCategoria em memória, recarrega datalist e hint
     const setorSel = card.querySelector('.sug-setor-select');
     setorSel.addEventListener('change', () => {
-      const novoSetor = setorSel.value;
-      // Atualiza o item em memória (não salva ainda — só ao confirmar)
-      sug.setor = novoSetor;
-      // Recarrega datalist com categorias do novo setor
-      const dl = card.querySelector(`datalist`);
-      if(dl){
-        dl.innerHTML = (SETOR_CATEGORIAS[novoSetor] || [])
-          .map(c => `<option value="${escAttr(c)}">`)
-          .join('');
-      }
-      atualizarHint();
+      sug.setor = setorSel.value;
+      const dl = card.querySelector('datalist');
+      if(dl) dl.innerHTML = (SETOR_CATEGORIAS[sug.setor] || []).map(c => `<option value="${escAttr(c)}">`).join('');
+      card.querySelectorAll('.sug-exemplo-row').forEach(row => atualizarBotaoLinha(row));
     });
 
-    input.addEventListener('input', atualizarHint);
-    // Hint inicial (pré-preenchido pela IA)
-    atualizarHint();
+    card.querySelectorAll('.sug-exemplo-row').forEach(row => {
+      const input = row.querySelector('.sug-exemplo-input');
+      if(input) input.addEventListener('input', () => atualizarBotaoLinha(row));
+      atualizarBotaoLinha(row);
+    });
   });
 }
-
 document.getElementById('sugestoes-list')?.addEventListener('click', e => {
   const card = e.target.closest('.cat-setor-card');
   if(!card) return;
@@ -4614,21 +4545,27 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
     return;
   }
 
-  if(e.target.closest('.sug-criar-btn')){
-    const input = card.querySelector('.sug-nome-input');
+  if(e.target.closest('.sug-exemplo-btn')){
+    const row = e.target.closest('.sug-exemplo-row');
+    if(!row) return;
+    const input = row.querySelector('.sug-exemplo-input');
     const setorSel = card.querySelector('.sug-setor-select');
     const setorEscolhido = setorSel ? setorSel.value : item.setor;
-    const nome = input.value.trim();
+    const nome = input ? input.value.trim() : '';
     if(!nome){ alert('Digite o nome da categoria.'); return; }
 
-    const lista = SETOR_CATEGORIAS[setorEscolhido] || (SETOR_CATEGORIAS[setorEscolhido] = []);
+    // Descrição exata desta linha (texto dentro das aspas do sug-exemplo)
+    const exemploEl = row.querySelector('.sug-exemplo');
+    const descricaoLinha = exemploEl
+      ? exemploEl.getAttribute('title') || exemploEl.textContent.replace(/^"|"$/g,'').trim()
+      : '';
+
     const normalizar = s => s.trim().toLowerCase();
+    const lista = SETOR_CATEGORIAS[setorEscolhido] || (SETOR_CATEGORIAS[setorEscolhido] = []);
     const jaTem = lista.some(c => normalizar(c) === normalizar(nome));
-    // Nome real da categoria (case original da lista ou o digitado se novo)
     const nomeReal = jaTem ? lista.find(c => normalizar(c) === normalizar(nome)) : nome;
 
     if(!jaTem){
-      // Categoria nova: cria na taxonomia
       lista.push(nomeReal);
       if(item.tipo && item.tipo !== 'Ambos'){
         CATEGORIA_TIPOS[`${setorEscolhido}|${nomeReal}`] = item.tipo;
@@ -4637,9 +4574,8 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
       addLog('sistema', `Categoria "${nomeReal}" criada em "${setorEscolhido}"`, 'Criada a partir de uma sugestão da IA');
     }
 
-    // Aplica retroativamente às OS geradoras usando o setor escolhido
+    // Aplica apenas ao(s) registro(s) cuja descrição contém ESTA linha específica
     let aplicados = 0;
-    const exemplosNorm = new Set(item.exemplos.map(e => normalizar(e)));
     const chaveErro = ensureChave(item.tipo || '', setorEscolhido, nomeReal) || '';
 
     DATA.forEach(r => {
@@ -4647,27 +4583,19 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
       const key = keyForRecord(r);
       const merged = overrides[key] ? {...r, ...overrides[key]} : r;
       const linhas = dividirDescricaoEmLinhas(merged.descricao || '');
-      const bate = linhas.some(l => exemplosNorm.has(normalizar(l)));
-      if(!bate) return;
+      if(!linhas.some(l => normalizar(l) === normalizar(descricaoLinha))) return;
       const parExistente = Array.isArray(merged.pares)
         ? merged.pares.find(p => p.setor === setorEscolhido)
         : (merged.setor === setorEscolhido ? merged : null);
       if(parExistente && parExistente.categoria && parExistente.categoria !== '') return;
 
       let pares = Array.isArray(merged.pares) ? [...merged.pares] : [];
-      // Se o setor foi trocado, remove par antigo sem categoria do setor original
       const idxAntigo = pares.findIndex(p => p.setor === item.setor && !p.categoria);
       if(idxAntigo >= 0) pares.splice(idxAntigo, 1);
       const idxPar = pares.findIndex(p => p.setor === setorEscolhido && !p.categoria);
       const parNovo = { tipo: item.tipo || merged.tipo || '', setor: setorEscolhido, categoria: nomeReal, chave: chaveErro };
-      if(idxPar >= 0) pares[idxPar] = parNovo;
-      else pares.push(parNovo);
-
-      const updates = {
-        setor: pares[0].setor, categoria: pares[0].categoria,
-        tipo: pares[0].tipo, chave_erro: pares[0].chave,
-        pares,
-      };
+      if(idxPar >= 0) pares[idxPar] = parNovo; else pares.push(parNovo);
+      const updates = { setor: pares[0].setor, categoria: pares[0].categoria, tipo: pares[0].tipo, chave_erro: pares[0].chave, pares };
       overrides[key] = { ...(overrides[key] || {}), ...updates };
       Object.assign(r, updates);
       aplicados++;
@@ -4675,8 +4603,7 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
 
     manualRecords.forEach(r => {
       const linhas = dividirDescricaoEmLinhas(r.descricao || '');
-      const bate = linhas.some(l => exemplosNorm.has(normalizar(l)));
-      if(!bate) return;
+      if(!linhas.some(l => normalizar(l) === normalizar(descricaoLinha))) return;
       const parExistente = Array.isArray(r.pares)
         ? r.pares.find(p => p.setor === setorEscolhido)
         : (r.setor === setorEscolhido ? r : null);
@@ -4687,12 +4614,9 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
       if(idxAntigo >= 0) pares.splice(idxAntigo, 1);
       const idxPar = pares.findIndex(p => p.setor === setorEscolhido && !p.categoria);
       const parNovo = { tipo: item.tipo || r.tipo || '', setor: setorEscolhido, categoria: nomeReal, chave: chaveErro };
-      if(idxPar >= 0) pares[idxPar] = parNovo;
-      else pares.push(parNovo);
-
+      if(idxPar >= 0) pares[idxPar] = parNovo; else pares.push(parNovo);
       r.setor = pares[0].setor; r.categoria = pares[0].categoria;
-      r.tipo = pares[0].tipo; r.chave_erro = pares[0].chave;
-      r.pares = pares;
+      r.tipo = pares[0].tipo; r.chave_erro = pares[0].chave; r.pares = pares;
       aplicados++;
     });
 
@@ -4705,11 +4629,15 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
       saveManualRecords(manualRecords);
       renderAll();
       addLog('sistema',
-        `Categoria "${nomeReal}" aplicada retroativamente a ${aplicados} OS`,
+        `Categoria "${nomeReal}" aplicada a ${aplicados} OS (linha: "${descricaoLinha}")`,
         `Setor: ${setorEscolhido} · ${jaTem ? 'categoria existente reutilizada' : 'categoria criada'}`);
     }
 
-    sugestoesCategoria = sugestoesCategoria.filter(s => s.id !== id);
+    // Remove apenas este exemplo da sugestão; se não sobrar nenhum, descarta o item inteiro
+    item.exemplos = item.exemplos.filter(e => normalizar(e) !== normalizar(descricaoLinha));
+    if(!item.exemplos.length){
+      sugestoesCategoria = sugestoesCategoria.filter(s => s.id !== id);
+    }
     saveSugestoesCategoria();
     refreshSetorSelectOptions();
     renderCategoriasTab();
@@ -5294,7 +5222,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v7.6 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v9.4 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -6097,7 +6025,7 @@ function buscarExemplosSimilares(descricao, limite){
   for(const { ex } of pontuados){
     const chavePar = `${ex.setor}|${ex.categoria}`;
     porPar[chavePar] = (porPar[chavePar] || 0) + 1;
-    if(porPar[chavePar] > 3) continue; // até 3 exemplos por par Setor+Categoria
+    if(porPar[chavePar] > 2) continue;
     escolhidos.push({ descricao: ex.descricao, tipo: ex.tipo, setor: ex.setor, categoria: ex.categoria });
     if(escolhidos.length >= limite) break;
   }
@@ -6157,12 +6085,7 @@ async function sugerirClassificacaoIA(prefixo){
       const linha = linhas[i];
       btn.textContent = linhas.length > 1 ? `🤖 Classificando ${i+1}/${linhas.length}...` : '🤖 Classificando...';
 
-      const exemplos = buscarExemplosSimilares(linha, 20);
-      // DEBUG: mostra no console quantos exemplos reais (base local + Firestore)
-      // foram encontrados para esta linha — ajuda a diagnosticar se o problema
-      // e o Firestore nao ter carregado os dados ou so falta de historico parecido.
-      console.info(`[IA] "${linha}" -> ${exemplos.length} exemplo(s) encontrado(s)`, exemplos);
-      console.info(`[IA] Base disponivel: ${DATA.length} (seed) + ${manualRecords.length} (manualRecords/Firestore) registros`);
+      const exemplos = buscarExemplosSimilares(linha, 12);
 
       let data;
       try{
@@ -6173,7 +6096,6 @@ async function sugerirClassificacaoIA(prefixo){
         });
         if(!resp.ok) throw new Error(`Proxy respondeu ${resp.status}`);
         data = await resp.json();
-        console.info(`[IA] Resposta crua do worker para "${linha}":`, JSON.parse(JSON.stringify(data)));
         if(data.error) throw new Error(data.error);
       } catch(errLinha){
         falhas.push(`"${linha.slice(0,40)}" (${errLinha.message})`);
@@ -6358,12 +6280,7 @@ async function classificarEmMassaIA(){
     for(let j = 0; j < linhas.length; j++){
       if(massaCancelado) break;
       const linha = linhas[j];
-      const exemplos = buscarExemplosSimilares(linha, 20);
-      // DEBUG: mostra no console quantos exemplos reais (base local + Firestore)
-      // foram encontrados para esta linha — ajuda a diagnosticar se o problema
-      // e o Firestore nao ter carregado os dados ou so falta de historico parecido.
-      console.info(`[IA] "${linha}" -> ${exemplos.length} exemplo(s) encontrado(s)`, exemplos);
-      console.info(`[IA] Base disponivel: ${DATA.length} (seed) + ${manualRecords.length} (manualRecords/Firestore) registros`);
+      const exemplos = buscarExemplosSimilares(linha, 12);
 
       let data;
       try{
@@ -6374,7 +6291,6 @@ async function classificarEmMassaIA(){
         });
         if(!resp.ok) throw new Error(`Proxy respondeu ${resp.status}`);
         data = await resp.json();
-        console.info(`[IA] Resposta crua do worker para "${linha}":`, JSON.parse(JSON.stringify(data)));
         if(data.error) throw new Error(data.error);
       } catch(err){
         massaLog(`❌ [${i+1}/${pendentes.length}] ${veicLabel} OS ${osLabel} L${j+1}: ${err.message}`, 'fail');
