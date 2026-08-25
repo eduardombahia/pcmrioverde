@@ -6107,6 +6107,7 @@ async function sugerirClassificacaoIA(prefixo){
         });
         if(!resp.ok) throw new Error(`Proxy respondeu ${resp.status}`);
         data = await resp.json();
+        console.info(`[IA] Resposta crua do worker para "${linha}":`, JSON.parse(JSON.stringify(data)));
         if(data.error) throw new Error(data.error);
       } catch(errLinha){
         falhas.push(`"${linha.slice(0,40)}" (${errLinha.message})`);
@@ -6307,6 +6308,7 @@ async function classificarEmMassaIA(){
         });
         if(!resp.ok) throw new Error(`Proxy respondeu ${resp.status}`);
         data = await resp.json();
+        console.info(`[IA] Resposta crua do worker para "${linha}":`, JSON.parse(JSON.stringify(data)));
         if(data.error) throw new Error(data.error);
       } catch(err){
         massaLog(`❌ [${i+1}/${pendentes.length}] ${veicLabel} OS ${osLabel} L${j+1}: ${err.message}`, 'fail');
