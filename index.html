@@ -1411,7 +1411,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.0</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.1</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -5228,7 +5228,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v9.0 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v9.1 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -6031,7 +6031,7 @@ function buscarExemplosSimilares(descricao, limite){
   for(const { ex } of pontuados){
     const chavePar = `${ex.setor}|${ex.categoria}`;
     porPar[chavePar] = (porPar[chavePar] || 0) + 1;
-    if(porPar[chavePar] > 2) continue;
+    if(porPar[chavePar] > 3) continue; // até 3 exemplos por par Setor+Categoria
     escolhidos.push({ descricao: ex.descricao, tipo: ex.tipo, setor: ex.setor, categoria: ex.categoria });
     if(escolhidos.length >= limite) break;
   }
@@ -6091,7 +6091,7 @@ async function sugerirClassificacaoIA(prefixo){
       const linha = linhas[i];
       btn.textContent = linhas.length > 1 ? `🤖 Classificando ${i+1}/${linhas.length}...` : '🤖 Classificando...';
 
-      const exemplos = buscarExemplosSimilares(linha, 12);
+      const exemplos = buscarExemplosSimilares(linha, 20);
       // DEBUG: mostra no console quantos exemplos reais (base local + Firestore)
       // foram encontrados para esta linha — ajuda a diagnosticar se o problema
       // e o Firestore nao ter carregado os dados ou so falta de historico parecido.
@@ -6292,7 +6292,7 @@ async function classificarEmMassaIA(){
     for(let j = 0; j < linhas.length; j++){
       if(massaCancelado) break;
       const linha = linhas[j];
-      const exemplos = buscarExemplosSimilares(linha, 12);
+      const exemplos = buscarExemplosSimilares(linha, 20);
       // DEBUG: mostra no console quantos exemplos reais (base local + Firestore)
       // foram encontrados para esta linha — ajuda a diagnosticar se o problema
       // e o Firestore nao ter carregado os dados ou so falta de historico parecido.
