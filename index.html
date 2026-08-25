@@ -1411,7 +1411,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.1</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.2</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1498,6 +1498,7 @@
     </span>
     <input type="text" id="f-search" placeholder="Buscar veículo, OS, descrição, chave...">
     <label class="toggle"><input type="checkbox" id="f-reinc"> Só reincidentes</label>
+    <button class="btn-secondary" id="f-search-btn">🔎 Pesquisar</button>
     <button class="clear-btn" id="f-clear">Limpar filtros</button>
     <span class="count"><b id="count-n">0</b> de <span id="count-total">0</span> ordens</span>
     <button class="btn-secondary" id="btn-massa-ia" title="Classificar com IA todos os registros ainda sem Setor/Categoria">🤖 Classificar com IA</button>
@@ -1523,6 +1524,12 @@
       </thead>
       <tbody id="tbody"></tbody>
     </table>
+  </div>
+
+  <div class="pager" id="ordens-pager" style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;font-family:var(--font-mono);font-size:12.5px;color:var(--dim);">
+    <button class="clear-btn" id="ordens-page-prev">‹ Anterior</button>
+    <span id="ordens-page-label">Página 1 de 1</span>
+    <button class="clear-btn" id="ordens-page-next">Próxima ›</button>
   </div>
 
 </div><!-- /tab-ordens -->
@@ -3432,6 +3439,32 @@ function refreshDatalists(){
   fill('dl-chave','chave_erro');
 }
 
+// ── Paginação da tabela de Ordens de Serviço — evita desenhar centenas/
+// milhares de linhas de uma vez; só a página atual vai pro DOM. ──
+const ORDENS_POR_PAGINA = 50;
+let ordensRowsAtuais = [];
+let ordensPageAtual = 1;
+
+function renderOrdensPagina(){
+  const totalPaginas = Math.max(1, Math.ceil(ordensRowsAtuais.length / ORDENS_POR_PAGINA));
+  if(ordensPageAtual > totalPaginas) ordensPageAtual = totalPaginas;
+  if(ordensPageAtual < 1) ordensPageAtual = 1;
+
+  const inicio = (ordensPageAtual - 1) * ORDENS_POR_PAGINA;
+  const pagina = ordensRowsAtuais.slice(inicio, inicio + ORDENS_POR_PAGINA);
+  renderTable(pagina);
+
+  document.getElementById('count-n').textContent = ordensRowsAtuais.length;
+  document.getElementById('count-total').textContent = allRows().length;
+
+  const label = document.getElementById('ordens-page-label');
+  if(label) label.textContent = `Página ${ordensPageAtual} de ${totalPaginas}`;
+  const prevBtn = document.getElementById('ordens-page-prev');
+  const nextBtn = document.getElementById('ordens-page-next');
+  if(prevBtn) prevBtn.disabled = ordensPageAtual <= 1;
+  if(nextBtn) nextBtn.disabled = ordensPageAtual >= totalPaginas;
+}
+
 function applyFilters(){
   const op = document.getElementById('f-operacao').value;
   const tp = document.getElementById('f-tipo').value;
@@ -3472,9 +3505,9 @@ function applyFilters(){
   });
 
   updateSortIndicators();
-  renderTable(rows);
-  document.getElementById('count-n').textContent = rows.length;
-  document.getElementById('count-total').textContent = allRows().length;
+  ordensRowsAtuais = rows;
+  ordensPageAtual = 1; // toda nova pesquisa/filtro volta pra 1ª página
+  renderOrdensPagina();
 }
 
 // Show a ▲/▼ arrow on the currently active sort column header
@@ -3571,7 +3604,20 @@ function deleteOSRecordConfirm(id, origin){
 ['f-operacao','f-tipo','f-setor','f-categoria','f-resp','f-reinc','f-data-de','f-data-ate'].forEach(id=>{
   document.getElementById(id).addEventListener('change', applyFilters);
 });
-document.getElementById('f-search').addEventListener('input', applyFilters);
+// Busca por texto só roda ao clicar em "Pesquisar" ou apertar Enter —
+// evita re-renderizar a tabela inteira a cada tecla digitada.
+document.getElementById('f-search-btn').addEventListener('click', applyFilters);
+document.getElementById('f-search').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') applyFilters();
+});
+document.getElementById('ordens-page-prev').addEventListener('click', ()=>{
+  ordensPageAtual--;
+  renderOrdensPagina();
+});
+document.getElementById('ordens-page-next').addEventListener('click', ()=>{
+  ordensPageAtual++;
+  renderOrdensPagina();
+});
 document.getElementById('f-clear').addEventListener('click', ()=>{
   document.getElementById('f-operacao').value='';
   document.getElementById('f-tipo').value='';
@@ -5228,7 +5274,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v9.1 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v9.2 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
