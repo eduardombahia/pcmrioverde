@@ -330,6 +330,7 @@
   }
   .pill.Corretiva{background:rgba(255,106,43,.14);color:var(--orange);border-color:rgba(255,106,43,.3);}
   .pill.Preventiva{background:rgba(79,180,119,.14);color:var(--green);border-color:rgba(79,180,119,.3);}
+  .pill.Socorro{background:rgba(200,13,0,.14);color:var(--red1);border-color:rgba(200,13,0,.3);}
   .flag-reinc{color:var(--red);font-family:var(--font-mono);font-size:11.5px;}
   .flag-ok{color:var(--dim);font-family:var(--font-mono);font-size:11.5px;}
   .os-code{font-family:var(--font-mono);color:var(--dim);font-size:11.5px;}
@@ -1523,7 +1524,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.6</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.8</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -2808,7 +2809,7 @@ function saveCategorias(){
 }
 // Atualiza as <option> de Setor nos 3 formulários que ainda usam lista fixa em HTML
 function refreshSetorSelectOptions(){
-  const setores = Object.keys(SETOR_CATEGORIAS);
+  const setores = Object.keys(SETOR_CATEGORIAS).sort((a,b)=>a.localeCompare(b,'pt-BR'));
   ['in-setor','ed-setor','imp-setor'].forEach(id=>{
     const el = document.getElementById(id);
     if(!el) return;
@@ -4609,7 +4610,7 @@ function renderSugestoesTab(){
     const dlId = `sug-dl-${escAttr(item.id)}`;
     const catsExistentes = (SETOR_CATEGORIAS[item.setor] || []);
     const dlOpts = catsExistentes.map(c => `<option value="${escAttr(c)}">`).join('');
-    const setoresReais = Object.keys(SETOR_CATEGORIAS).filter(s => s !== 'Não classificado');
+    const setoresReais = Object.keys(SETOR_CATEGORIAS).filter(s => s !== 'Não classificado').sort((a,b)=>a.localeCompare(b,'pt-BR'));
     const setorOpts = setoresReais.map(s =>
       `<option value="${escAttr(s)}"${s === item.setor ? ' selected' : ''}>${escAttr(s)}</option>`
     ).join('');
