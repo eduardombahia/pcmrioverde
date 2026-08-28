@@ -1524,7 +1524,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.8</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.9</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1578,13 +1578,11 @@
     </div>
     <div class="card">
       <h3 class="card-h-row">Top categorias de intervenção
-        <select id="catbars-month" class="card-h-select"><option value="">Todos os meses</option></select>
       </h3>
       <div id="catbars"></div>
     </div>
     <div class="card">
       <h3 class="card-h-row">Top veículos com mais intervenções
-        <select id="vehbars-month" class="card-h-select"><option value="">Todos os meses</option></select>
       </h3>
       <div id="vehbars"></div>
     </div>
@@ -3124,9 +3122,7 @@ function renderAll(){
   renderPeriodo();
   populateMonthsMonths();
   renderMonths();
-  populateCatbarsMonths();
   renderCatBars();
-  populateVehbarsMonths();
   renderVehBars();
   refreshSelectsPreservingValue();
   refreshDatalists();
@@ -3398,21 +3394,9 @@ function renderMonths(){
   }).join('');
 }
 
-// Popula o seletor de mês do card "Top categorias de intervenção" com os
-// meses presentes na base, preservando a seleção atual quando possível.
-function populateCatbarsMonths(){
-  const sel = document.getElementById('catbars-month');
-  const prev = sel.value;
-  const months = [...new Set(allRows().map(r => r.data.slice(0,7)))].sort();
-  sel.innerHTML = '<option value="">Todos os meses</option>' + months.map(m => {
-    const label = `${MESES[parseInt(m.slice(5,7),10)-1]}/${m.slice(0,4)}`;
-    return `<option value="${m}">${label}</option>`;
-  }).join('');
-  if(months.includes(prev)) sel.value = prev;
-}
-
 function renderCatBars(){
-  const monthFilter = document.getElementById('catbars-month').value;
+  const monthSel = document.getElementById('months-month');
+  const monthFilter = monthSel ? monthSel.value : '';
   const rows = allRows().filter(r => !monthFilter || r.data.slice(0,7) === monthFilter);
   const catCount = {};
   rows.forEach(r=>{ if(r.categoria) catCount[r.categoria] = (catCount[r.categoria]||0)+1; });
@@ -3429,26 +3413,13 @@ function renderCatBars(){
       <div class="bar-val">${n}</div>
     </div>`).join('');
 }
-document.getElementById('catbars-month').addEventListener('change', renderCatBars);
-document.getElementById('months-month').addEventListener('change', ()=>{ renderMonths(); renderKpis(); });
-
-// Popula o seletor de mês do card "Top veículos com mais intervenções" com os
-// meses presentes na base, preservando a seleção atual quando possível.
-function populateVehbarsMonths(){
-  const sel = document.getElementById('vehbars-month');
-  const prev = sel.value;
-  const months = [...new Set(allRows().map(r => r.data.slice(0,7)))].sort();
-  sel.innerHTML = '<option value="">Todos os meses</option>' + months.map(m => {
-    const label = `${MESES[parseInt(m.slice(5,7),10)-1]}/${m.slice(0,4)}`;
-    return `<option value="${m}">${label}</option>`;
-  }).join('');
-  if(months.includes(prev)) sel.value = prev;
-}
+document.getElementById('months-month').addEventListener('change', ()=>{ renderMonths(); renderKpis(); renderCatBars(); renderVehBars(); });
 
 // "Intervenções" = número de ordens de serviço distintas (OS) por veículo —
 // evita contar múltiplas vezes uma OS que tenha várias chaves de erro.
 function renderVehBars(){
-  const monthFilter = document.getElementById('vehbars-month').value;
+  const monthSel = document.getElementById('months-month');
+  const monthFilter = monthSel ? monthSel.value : '';
   const rows = allRows().filter(r => !monthFilter || r.data.slice(0,7) === monthFilter);
   const vehOs = {};
   rows.forEach(r=>{
@@ -3477,7 +3448,6 @@ function renderVehBars(){
     </div>`;
   }).join('');
 }
-document.getElementById('vehbars-month').addEventListener('change', renderVehBars);
 
 // ---- Filters ----
 function uniqueSorted(field){
