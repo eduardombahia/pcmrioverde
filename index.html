@@ -784,6 +784,36 @@
   }
 
 
+  /* ── Update banner ── */
+  .update-banner{
+    display:none;
+    align-items:center;
+    gap:8px;
+    background:var(--panel-2);
+    border:1px solid var(--amber);
+    color:var(--chalk);
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    letter-spacing:.03em;
+    padding:6px 12px;
+    border-radius:3px;
+    margin-left:10px;
+    cursor:pointer;
+    vertical-align:middle;
+    user-select:none;
+  }
+  .update-banner.show{display:inline-flex;}
+  .update-banner .dot-pulse{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--amber);flex:none;
+    animation:dot-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes dot-pulse{
+    0%,100%{opacity:1;}
+    50%{opacity:.35;}
+  }
+  .update-banner:hover{border-color:var(--orange);color:var(--orange);}
+
   /* ── Backup bar ── */
   .backup-bar{
     display:flex;align-items:center;gap:10px;
@@ -1526,7 +1556,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v10.1</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.02</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -7622,6 +7652,42 @@ document.getElementById('cat-setores-list').addEventListener('change', e=>{
     return;
   }
 });
+
+// ── Checagem de nova versão publicada no GitHub ──
+const GITHUB_REPO = 'eduardombahia/pcmrioverde';
+const VERSAO_ATUAL = document.getElementById('version-badge').textContent.trim();
+const CHECK_VERSAO_INTERVALO_MS = 30000;
+let novaVersaoDetectada = null;
+
+function normalizaVersao(v){
+  return String(v||'').trim().replace(/^v/i,'').toLowerCase();
+}
+
+async function checarNovaVersao(){
+  try{
+    const resp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
+      headers:{ 'Accept':'application/vnd.github+json' }
+    });
+    if(!resp.ok) return;
+    const data = await resp.json();
+    const tag = data && data.tag_name;
+    if(!tag) return;
+    if(normalizaVersao(tag) !== normalizaVersao(VERSAO_ATUAL)){
+      novaVersaoDetectada = tag;
+      const banner = document.getElementById('update-banner');
+      if(banner) banner.classList.add('show');
+    }
+  }catch(err){
+    // Falha de rede/CORS ao checar versão: ignora silenciosamente e tenta de novo no próximo ciclo
+  }
+}
+
+document.getElementById('update-banner').addEventListener('click', ()=>{
+  location.reload();
+});
+
+checarNovaVersao();
+setInterval(checarNovaVersao, CHECK_VERSAO_INTERVALO_MS);
 
 // Firestore loads data and calls renderAll() after sync
 initFirestore();
