@@ -562,10 +562,11 @@
     background:var(--panel-2); color:var(--amber);
     border-left-color:var(--amber); border-bottom-color:transparent;
   }
-  .sidebar .tab-icon{font-size:16px; flex:none; width:18px; text-align:center;}
+  .sidebar .tab-icon{font-size:16px; flex:none; width:18px; text-align:center; display:inline-flex; align-items:center; justify-content:center;}
   .sidebar .tab-label{overflow:hidden; text-overflow:ellipsis;}
   .sidebar.collapsed .tab-btn{justify-content:center; padding:10px 0;}
   .sidebar.collapsed .tab-label{display:none;}
+  .sidebar.collapsed .tab-badge{display:none !important;}
   .content-area{flex:1; min-width:0;}
   @media(max-width:900px){
     .app-shell{flex-direction:column;}
@@ -1524,7 +1525,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v9.9</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge">v10.0</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
