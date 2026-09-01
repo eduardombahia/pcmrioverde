@@ -1547,6 +1547,241 @@
   @media(max-width:380px){
     .kpis{grid-template-columns:1fr;}
   }
+
+  @media(max-width:600px){
+    .fech-form-row{flex-direction:column;align-items:stretch;}
+    .fech-form-row input[type=date],
+    .fech-form-row input[type=text],
+    .fech-form-row textarea{font-size:16px;}
+    .btn-fechar-massa{width:100%;text-align:center;}
+    .fech-toolbar{flex-direction:column;align-items:stretch;}
+    .fech-search{font-size:16px;}
+    .fech-count{text-align:center;margin-left:0;}
+    .fech-select-all-btn,.fech-clear-sel-btn{width:100%;}
+  }
+
+  /* ── Fechamento de OS ── */
+  .fechamento-section{
+    margin-top:20px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .fechamento-toggle-bar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:13px 18px;
+    cursor:pointer;
+    user-select:none;
+    border-bottom:1px solid transparent;
+    transition:border-color .15s, background .15s;
+  }
+  .fechamento-toggle-bar:hover{background:rgba(255,255,255,.025);}
+  .fechamento-section.open .fechamento-toggle-bar{border-bottom-color:var(--line);}
+  .fechamento-toggle-bar .fech-title{
+    font-family:var(--font-display);
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--chalk);
+    flex:1;
+  }
+  .fechamento-toggle-bar .fech-badge{
+    font-family:var(--font-mono);
+    font-size:11px;
+    padding:3px 10px;
+    border-radius:3px;
+    background:rgba(245,166,35,.12);
+    color:var(--amber);
+    border:1px solid rgba(245,166,35,.3);
+  }
+  .fechamento-toggle-bar .fech-badge.zero{
+    background:rgba(79,180,119,.10);
+    color:var(--green);
+    border-color:rgba(79,180,119,.3);
+  }
+  .fechamento-toggle-bar .fech-arrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--dim);
+    transition:transform .2s ease;
+  }
+  .fechamento-section.open .fech-arrow{transform:rotate(180deg);}
+
+  .fechamento-body{
+    display:none;
+    padding:16px 18px 18px;
+  }
+  .fechamento-section.open .fechamento-body{display:block;}
+
+  .fech-toolbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .fech-search{
+    flex:1;
+    min-width:160px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--chalk);
+    font-family:var(--font-body);
+    font-size:13px;
+    padding:8px 10px;
+    border-radius:3px;
+    outline:none;
+  }
+  .fech-search:focus{border-color:var(--amber);}
+  .fech-select-all-btn, .fech-clear-sel-btn{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--dim);
+    border-radius:3px;
+    padding:7px 13px;
+    font-size:12.5px;
+    cursor:pointer;
+    font-family:var(--font-body);
+    white-space:nowrap;
+  }
+  .fech-select-all-btn:hover,.fech-clear-sel-btn:hover{color:var(--chalk);border-color:var(--dim);}
+  .fech-count{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--dim);
+    margin-left:auto;
+    white-space:nowrap;
+  }
+  .fech-count b{color:var(--amber);}
+
+  .fech-form-row{
+    display:flex;
+    gap:10px;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    padding:12px 14px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:3px;
+    margin-bottom:14px;
+  }
+  .fech-form-row .fech-field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .fech-form-row label{
+    font-family:var(--font-mono);
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    color:var(--dim);
+  }
+  .fech-form-row input[type=date],
+  .fech-form-row input[type=text],
+  .fech-form-row textarea{
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--chalk);
+    font-family:var(--font-body);
+    font-size:13px;
+    padding:7px 10px;
+    border-radius:3px;
+    outline:none;
+  }
+  .fech-form-row input[type=date]:focus,
+  .fech-form-row input[type=text]:focus,
+  .fech-form-row textarea:focus{border-color:var(--amber);}
+  .fech-form-row textarea{resize:none;height:36px;min-width:200px;}
+  .fech-form-row .fech-field-obs{flex:1;min-width:180px;}
+  .fech-form-row .fech-field-obs textarea{width:100%;}
+
+  .btn-fechar-massa{
+    background:var(--green);
+    border:none;
+    color:#0d1f15;
+    font-family:var(--font-display);
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+    font-size:13px;
+    padding:9px 18px;
+    border-radius:3px;
+    cursor:pointer;
+    white-space:nowrap;
+    opacity:.4;
+    pointer-events:none;
+    transition:opacity .15s, background .15s;
+  }
+  .btn-fechar-massa.active{opacity:1;pointer-events:auto;}
+  .btn-fechar-massa.active:hover{background:#6de89a;}
+
+  .fech-table-wrap{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:3px;
+    overflow:auto;
+    max-height:420px;
+  }
+  .fech-table-wrap table{width:100%;border-collapse:collapse;font-size:12.8px;}
+  .fech-table-wrap thead th{
+    position:sticky;top:0;
+    background:var(--panel-2);
+    text-align:left;
+    padding:9px 12px;
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--dim);
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  .fech-table-wrap thead th.th-check{width:36px;text-align:center;padding:9px 6px;}
+  .fech-table-wrap tbody td{
+    padding:8px 12px;
+    border-bottom:1px solid var(--line);
+    color:var(--chalk);
+    white-space:nowrap;
+  }
+  .fech-table-wrap tbody td.fech-td-check{text-align:center;padding:8px 6px;}
+  .fech-table-wrap tbody td.fech-td-desc{white-space:normal;min-width:200px;color:var(--dim);}
+  .fech-table-wrap tbody tr:hover{background:rgba(255,255,255,.02);}
+  .fech-table-wrap .fech-row-check{
+    width:15px;height:15px;accent-color:var(--green);cursor:pointer;
+  }
+  .fech-empty{
+    padding:32px;text-align:center;color:var(--dim);font-size:13px;
+  }
+
+  /* Status pill */
+  .pill-status-aberta{
+    background:rgba(245,166,35,.12);color:var(--amber);
+    border:1px solid rgba(245,166,35,.3);
+    display:inline-block;padding:2px 8px;border-radius:3px;
+    font-size:11px;font-family:var(--font-mono);
+  }
+  .pill-status-fechada{
+    background:rgba(79,180,119,.12);color:var(--green);
+    border:1px solid rgba(79,180,119,.3);
+    display:inline-block;padding:2px 8px;border-radius:3px;
+    font-size:11px;font-family:var(--font-mono);
+  }
+  .pill-status-reaberta{
+    background:rgba(255,201,60,.10);color:var(--yellow);
+    border:1px solid rgba(255,201,60,.3);
+    display:inline-block;padding:2px 8px;border-radius:3px;
+    font-size:11px;font-family:var(--font-mono);
+  }
+  .btn-reabrir{
+    background:none;border:1px solid var(--line);color:var(--dim);
+    font-size:11px;padding:3px 8px;border-radius:3px;cursor:pointer;
+    font-family:var(--font-mono);
+  }
+  .btn-reabrir:hover{border-color:var(--orange);color:var(--orange);}
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a1a1a'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' font-family='sans-serif'%3E%F0%9F%94%A7%3C/text%3E%3C/svg%3E">
@@ -1556,7 +1791,7 @@
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.02</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.1</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -1633,6 +1868,7 @@
     <select id="f-setor"><option value="">Setor: todos</option></select>
     <select id="f-categoria"><option value="">Categoria: todas</option></select>
     <select id="f-resp"><option value="">Responsável: todos</option></select>
+    <select id="f-status"><option value="">Status: todos</option><option value="aberta">Abertas</option><option value="fechada">Fechadas</option></select>
     <span class="date-range">
       <input type="date" id="f-data-de" title="Data inicial">
       <span>a</span>
@@ -1661,6 +1897,7 @@
           <th data-k="descricao">Descrição</th>
           <th data-k="responsavel">Responsável</th>
           <th data-k="reincidente_bool">Reincidência</th>
+          <th data-k="status_fechamento">Status</th>
           <th></th>
         </tr>
       </thead>
@@ -1683,6 +1920,88 @@
       <option value="200">200</option>
       <option value="9999">Todos</option>
     </select>
+  </div>
+
+  <!-- ── Fechamento de OS ── -->
+  <div class="fechamento-section" id="fechamento-section">
+    <div class="fechamento-toggle-bar" id="fechamento-toggle">
+      <span style="font-size:16px;">🔒</span>
+      <span class="fech-title">Fechamento de Ordens de Serviço</span>
+      <span class="fech-badge" id="fech-abertas-badge">0 abertas</span>
+      <span class="fech-arrow">▼</span>
+    </div>
+    <div class="fechamento-body" id="fechamento-body">
+
+      <!-- Formulário de fechamento em massa -->
+      <div class="fech-form-row">
+        <div class="fech-field">
+          <label>Data de fechamento *</label>
+          <input type="date" id="fech-data">
+        </div>
+        <div class="fech-field">
+          <label>Responsável pelo fechamento</label>
+          <input type="text" id="fech-responsavel" placeholder="ex: Ronaldo" list="dl-responsavel" style="min-width:160px;">
+        </div>
+        <div class="fech-field fech-field-obs">
+          <label>Observação</label>
+          <textarea id="fech-obs" placeholder="opcional — motivo, conclusão, etc."></textarea>
+        </div>
+        <button class="btn-fechar-massa" id="btn-fechar-massa">✔ Fechar selecionadas (<span id="fech-sel-count">0</span>)</button>
+      </div>
+
+      <!-- Toolbar de seleção -->
+      <div class="fech-toolbar">
+        <input type="text" class="fech-search" id="fech-search" placeholder="Buscar veículo, OS, descrição…">
+        <button type="button" class="fech-select-all-btn" id="fech-select-all-btn">Selecionar todas</button>
+        <button type="button" class="fech-clear-sel-btn" id="fech-clear-sel-btn">Limpar seleção</button>
+        <span class="fech-count" id="fech-count"><b>0</b> OS abertas</span>
+      </div>
+
+      <!-- Tabela de OS abertas -->
+      <div class="fech-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="th-check"><input type="checkbox" id="fech-check-all" title="Selecionar todas" style="accent-color:var(--green);cursor:pointer;"></th>
+              <th>Data</th>
+              <th>Veículo</th>
+              <th>OS</th>
+              <th>Operação</th>
+              <th>Tipo</th>
+              <th>Setor</th>
+              <th>Descrição</th>
+              <th>Responsável</th>
+            </tr>
+          </thead>
+          <tbody id="fech-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Tabela de OS fechadas -->
+      <div style="margin-top:18px;">
+        <div style="font-family:var(--font-display);font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin-bottom:10px;">OS Fechadas</div>
+        <div class="fech-table-wrap" style="max-height:280px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Data Abertura</th>
+                <th>Data Fechamento</th>
+                <th>Veículo</th>
+                <th>OS</th>
+                <th>Tipo</th>
+                <th>Setor</th>
+                <th>Descrição</th>
+                <th>Fechado por</th>
+                <th>Observação</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="fech-fechadas-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
   </div>
 
 </div><!-- /tab-ordens -->
@@ -3063,6 +3382,19 @@ async function initFirestore(){
       pcmTentaRenderInicial(timeoutId);
     }, err => { console.warn('Firestore meta:', err); pcmRecebeuMeta = true; pcmTentaRenderInicial(timeoutId); });
 
+    // ── fechamentos de OS — tempo real ──
+    db.collection('pcm').doc('fechamentos').onSnapshot(snap => {
+      if(snap.exists && snap.data().data){
+        fechamentos = snap.data().data;
+        try{ localStorage.setItem(FECHAMENTO_KEY, JSON.stringify(fechamentos)); }catch(e){}
+      }
+      if(!pcmPrimeiraCarga){
+        renderFechamento();
+        const pagina = ordensRowsAtuais.slice((ordensPageAtual-1)*ORDENS_POR_PAGINA, ordensPageAtual*ORDENS_POR_PAGINA);
+        renderTable(pagina);
+      }
+    }, err => console.warn('Firestore fechamentos:', err));
+
     // ── categorias (setores/categorias/chaves personalizados) — tempo real ──
     db.collection('pcm').doc('categorias').onSnapshot(snap => {
       if(snap.exists){
@@ -3162,6 +3494,20 @@ function renderAll(){
   renderCategoriasTab();
   renderDuplicatas();
   renderSugestoesBadge();
+  // Atualiza badge de abertas e, se o painel estiver aberto, re-renderiza a lista
+  if(typeof renderFechamento === 'function'){
+    const sec = document.getElementById('fechamento-section');
+    if(sec && sec.classList.contains('open')) renderFechamento();
+    else {
+      // Só atualiza o badge sem re-renderizar a tabela
+      const badge = document.getElementById('fech-abertas-badge');
+      if(badge){
+        const abertas = allRows().filter(r => !getFechamento(r)).length;
+        badge.textContent = `${abertas} abertas`;
+        badge.classList.toggle('zero', abertas === 0);
+      }
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -3560,6 +3906,7 @@ function applyFilters(){
   const st = document.getElementById('f-setor').value;
   const ct = document.getElementById('f-categoria').value;
   const rp = document.getElementById('f-resp').value;
+  const statusFilt = document.getElementById('f-status')?.value || '';
   const dataDe = document.getElementById('f-data-de').value;   // 'YYYY-MM-DD' ou ''
   const dataAte = document.getElementById('f-data-ate').value; // 'YYYY-MM-DD' ou ''
   const q = document.getElementById('f-search').value.trim().toLowerCase();
@@ -3574,6 +3921,11 @@ function applyFilters(){
       if(!cats.includes(ct)) return false;
     }
     if(rp && !(r.responsavel && r.responsavel.split(',').map(x=>x.trim()).includes(rp))) return false;
+    if(statusFilt){
+      const isFechada = !!(typeof getFechamento === 'function' && getFechamento(r));
+      if(statusFilt === 'aberta' && isFechada) return false;
+      if(statusFilt === 'fechada' && !isFechada) return false;
+    }
     if(dataDe && r.data < dataDe) return false;
     if(dataAte && r.data > dataAte) return false;
     if(onlyReinc && !r.reincidente_bool) return false;
@@ -3630,6 +3982,12 @@ function fmtReincidencia(r){
   return `<span class="flag-reinc">${partes[0]} <span title="${tooltip}" style="cursor:default;color:var(--amber);font-family:var(--font-mono);font-size:11px;">+</span></span>`;
 }
 
+function fmtStatusFechamento(r){
+  const f = (typeof getFechamento === 'function') ? getFechamento(r) : null;
+  if(!f) return '<span class="pill-status-aberta">Aberta</span>';
+  return `<span class="pill-status-fechada" title="Fechada em ${fmtDate(f.data_fechamento)}${f.responsavel_fechamento?' por '+f.responsavel_fechamento:''}">Fechada</span>`;
+}
+
 function renderTable(rows){
   document.getElementById('tbody').innerHTML = rows.map(r=>`
     <tr>
@@ -3643,6 +4001,7 @@ function renderTable(rows){
       <td class="desc" data-label="Descrição">${r.descricao||''}${r.origin==='manual' ? '<span class="origin-manual">M</span>' : ''}</td>
       <td data-label="Responsável">${r.responsavel||'—'}</td>
       <td data-label="Reincidência">${fmtReincidencia(r)}</td>
+      <td data-label="Status">${fmtStatusFechamento(r)}</td>
       <td data-label="Ações" style="display:flex;gap:4px;align-items:center;">
         <button class="edit-btn" data-id="${r.origin==='manual' ? r._id : r._edit_id}" data-origin="${r.origin}" title="Editar">✏️</button>
         <button class="del-btn" data-id="${r.origin==='manual' ? r._id : r._edit_id}" data-origin="${r.origin}" title="Remover">✕</button>
@@ -3690,8 +4049,253 @@ function deleteOSRecordConfirm(id, origin){
   renderAll();
 }
 
-['f-operacao','f-tipo','f-setor','f-categoria','f-resp','f-reinc','f-data-de','f-data-ate'].forEach(id=>{
-  document.getElementById(id).addEventListener('change', applyFilters);
+// ════════════════════════════════════════════════════════
+// FECHAMENTO DE OS
+// Persiste no Firestore + localStorage; chave única por OS = os_veiculo_origin_id
+// ════════════════════════════════════════════════════════
+const FECHAMENTO_KEY = 'pcm_fechamentos_v1';
+let fechamentos = {}; // { uid: { uid, osNum, veiculo, data_abertura, data_fechamento, responsavel_fechamento, obs_fechamento, origin, record_id } }
+
+function loadFechamentos(){
+  try{ const r = localStorage.getItem(FECHAMENTO_KEY); return r ? JSON.parse(r) : {}; }catch(e){ return {}; }
+}
+function saveFechamentos(){
+  try{ localStorage.setItem(FECHAMENTO_KEY, JSON.stringify(fechamentos)); }catch(e){}
+  if(window._db){
+    window._db.collection('pcm').doc('fechamentos')
+      .set({ data: fechamentos, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e => console.warn('Firestore saveFechamentos:', e));
+  }
+}
+fechamentos = loadFechamentos();
+
+// Chave única do fechamento para um registro de OS
+function fechamentoUid(r){
+  return `${r.os}_${r.veiculo}_${r.origin}_${r.origin==='manual' ? r._id : r._edit_id}`;
+}
+
+// Retorna o objeto de fechamento de um registro, ou null se aberto
+function getFechamento(r){
+  return fechamentos[fechamentoUid(r)] || null;
+}
+
+// Fechar uma lista de registros com data+responsavel+obs
+function fecharOS(records, dataFechamento, responsavelFechamento, obsFechamento){
+  records.forEach(r => {
+    const uid = fechamentoUid(r);
+    fechamentos[uid] = {
+      uid,
+      osNum: r.os,
+      veiculo: r.veiculo,
+      data_abertura: r.data,
+      data_fechamento: dataFechamento,
+      responsavel_fechamento: responsavelFechamento || null,
+      obs_fechamento: obsFechamento || null,
+      origin: r.origin,
+      record_id: r.origin === 'manual' ? r._id : r._edit_id,
+      fechado_em: new Date().toISOString(),
+    };
+    addLog('os-fechamento', `OS fechada: ${r.os} — Veículo ${r.veiculo}`,
+      `Data fechamento: ${dataFechamento}${responsavelFechamento ? ' · '+responsavelFechamento : ''}`);
+  });
+  saveFechamentos();
+  renderFechamento();
+  renderTable(ordensRowsAtuais.slice((ordensPageAtual-1)*ORDENS_POR_PAGINA, ordensPageAtual*ORDENS_POR_PAGINA));
+}
+
+// Reabrir uma OS
+function reabrirOS(uid){
+  if(!confirm('Reabrir esta OS?')) return;
+  const f = fechamentos[uid];
+  if(f) addLog('os-fechamento', `OS reaberta: ${f.osNum} — Veículo ${f.veiculo}`, '');
+  delete fechamentos[uid];
+  saveFechamentos();
+  renderFechamento();
+  renderTable(ordensRowsAtuais.slice((ordensPageAtual-1)*ORDENS_POR_PAGINA, ordensPageAtual*ORDENS_POR_PAGINA));
+}
+
+// ── Renderizar painel de fechamento ──
+let fechSelIds = new Set();
+
+function renderFechamento(){
+  const tbody = document.getElementById('fech-tbody');
+  const fechadasTbody = document.getElementById('fech-fechadas-tbody');
+  const badge = document.getElementById('fech-abertas-badge');
+  const countEl = document.getElementById('fech-count');
+  if(!tbody || !fechadasTbody) return;
+
+  const q = (document.getElementById('fech-search')?.value || '').toLowerCase();
+  const rows = allRows();
+
+  // Separar abertas e fechadas
+  const abertas = rows.filter(r => !getFechamento(r));
+  const fechadas = rows.filter(r => !!getFechamento(r));
+
+  // Filtrar abertas por busca
+  const abertasFiltradas = abertas.filter(r => {
+    if(!q) return true;
+    return `${r.veiculo} ${r.os} ${r.descricao||''}`.toLowerCase().includes(q);
+  });
+
+  // Badge no header
+  if(badge){
+    badge.textContent = `${abertas.length} abertas`;
+    badge.classList.toggle('zero', abertas.length === 0);
+  }
+  if(countEl) countEl.innerHTML = `<b>${abertasFiltradas.length}</b> OS abertas`;
+
+  // Limpar seleções que não existem mais
+  fechSelIds = new Set([...fechSelIds].filter(uid =>
+    abertasFiltradas.some(r => fechamentoUid(r) === uid)
+  ));
+  updateFechBtnState();
+
+  // Tabela de abertas
+  if(abertasFiltradas.length === 0){
+    tbody.innerHTML = `<tr><td colspan="9" class="fech-empty">${abertas.length === 0 ? '✓ Todas as OS estão fechadas.' : 'Nenhuma OS encontrada com esse filtro.'}</td></tr>`;
+  } else {
+    tbody.innerHTML = abertasFiltradas.map(r => {
+      const uid = fechamentoUid(r);
+      const checked = fechSelIds.has(uid) ? 'checked' : '';
+      return `<tr>
+        <td class="fech-td-check"><input type="checkbox" class="fech-row-check" data-uid="${uid}" ${checked}></td>
+        <td>${fmtDate(r.data)}</td>
+        <td style="font-family:var(--font-mono);color:var(--amber);">${r.veiculo}</td>
+        <td class="os-code">${r.os}</td>
+        <td>${r.operacao ? `<span class="${opClass(r.operacao)}">${r.operacao}</span>` : '—'}</td>
+        <td><span class="pill ${r.tipo}">${r.tipo}</span></td>
+        <td>${r.pares ? [...new Set(r.pares.map(p=>p.setor))].join(', ') : (r.setor||'—')}</td>
+        <td class="fech-td-desc">${(r.descricao||'').slice(0,80)}</td>
+        <td>${r.responsavel||'—'}</td>
+      </tr>`;
+    }).join('');
+
+    // Wire checkboxes
+    tbody.querySelectorAll('.fech-row-check').forEach(chk => {
+      chk.addEventListener('change', () => {
+        if(chk.checked) fechSelIds.add(chk.dataset.uid);
+        else fechSelIds.delete(chk.dataset.uid);
+        updateFechBtnState();
+        syncFechCheckAll(abertasFiltradas);
+      });
+    });
+    syncFechCheckAll(abertasFiltradas);
+  }
+
+  // Tabela de fechadas
+  if(fechadas.length === 0){
+    fechadasTbody.innerHTML = '<tr><td colspan="10" class="fech-empty">Nenhuma OS fechada ainda.</td></tr>';
+  } else {
+    const fechadasSorted = fechadas.slice().sort((a,b)=>{
+      const fa = getFechamento(a), fb = getFechamento(b);
+      return (fb.data_fechamento||'').localeCompare(fa.data_fechamento||'');
+    });
+    fechadasTbody.innerHTML = fechadasSorted.map(r => {
+      const f = getFechamento(r);
+      return `<tr>
+        <td>${fmtDate(r.data)}</td>
+        <td style="font-family:var(--font-mono);color:var(--green);">${fmtDate(f.data_fechamento)}</td>
+        <td style="font-family:var(--font-mono);color:var(--amber);">${r.veiculo}</td>
+        <td class="os-code">${r.os}</td>
+        <td><span class="pill ${r.tipo}">${r.tipo}</span></td>
+        <td>${r.pares ? [...new Set(r.pares.map(p=>p.setor))].join(', ') : (r.setor||'—')}</td>
+        <td class="fech-td-desc">${(r.descricao||'').slice(0,60)}</td>
+        <td>${f.responsavel_fechamento||'—'}</td>
+        <td style="color:var(--dim);font-size:12px;">${f.obs_fechamento||'—'}</td>
+        <td><button class="btn-reabrir" data-uid="${f.uid}" title="Reabrir esta OS">↩ Reabrir</button></td>
+      </tr>`;
+    }).join('');
+    fechadasTbody.querySelectorAll('.btn-reabrir').forEach(btn => {
+      btn.addEventListener('click', () => reabrirOS(btn.dataset.uid));
+    });
+  }
+}
+
+function syncFechCheckAll(abertasFiltradas){
+  const chkAll = document.getElementById('fech-check-all');
+  if(!chkAll) return;
+  const total = abertasFiltradas.length;
+  const sel = abertasFiltradas.filter(r => fechSelIds.has(fechamentoUid(r))).length;
+  chkAll.checked = total > 0 && sel === total;
+  chkAll.indeterminate = sel > 0 && sel < total;
+}
+
+function updateFechBtnState(){
+  const btn = document.getElementById('btn-fechar-massa');
+  const cnt = document.getElementById('fech-sel-count');
+  if(!btn) return;
+  const n = fechSelIds.size;
+  if(cnt) cnt.textContent = n;
+  btn.classList.toggle('active', n > 0);
+}
+
+// Toggle da seção
+document.getElementById('fechamento-toggle').addEventListener('click', ()=>{
+  const sec = document.getElementById('fechamento-section');
+  const isOpen = sec.classList.toggle('open');
+  if(isOpen) renderFechamento();
+});
+
+// Select all / clear
+document.getElementById('fech-check-all')?.addEventListener('change', function(){
+  const q = (document.getElementById('fech-search')?.value || '').toLowerCase();
+  const rows = allRows().filter(r => !getFechamento(r)).filter(r => {
+    if(!q) return true;
+    return `${r.veiculo} ${r.os} ${r.descricao||''}`.toLowerCase().includes(q);
+  });
+  if(this.checked) rows.forEach(r => fechSelIds.add(fechamentoUid(r)));
+  else fechSelIds.clear();
+  updateFechBtnState();
+  renderFechamento();
+});
+
+document.getElementById('fech-select-all-btn')?.addEventListener('click', ()=>{
+  const q = (document.getElementById('fech-search')?.value || '').toLowerCase();
+  const rows = allRows().filter(r => !getFechamento(r)).filter(r => {
+    if(!q) return true;
+    return `${r.veiculo} ${r.os} ${r.descricao||''}`.toLowerCase().includes(q);
+  });
+  rows.forEach(r => fechSelIds.add(fechamentoUid(r)));
+  updateFechBtnState();
+  renderFechamento();
+});
+
+document.getElementById('fech-clear-sel-btn')?.addEventListener('click', ()=>{
+  fechSelIds.clear();
+  updateFechBtnState();
+  renderFechamento();
+});
+
+document.getElementById('fech-search')?.addEventListener('input', ()=>{
+  fechSelIds.clear();
+  renderFechamento();
+});
+
+// Botão fechar em massa
+document.getElementById('btn-fechar-massa')?.addEventListener('click', ()=>{
+  const dataFech = document.getElementById('fech-data').value;
+  if(!dataFech){ alert('Informe a data de fechamento.'); return; }
+  if(fechSelIds.size === 0) return;
+  const resp = document.getElementById('fech-responsavel').value.trim();
+  const obs = document.getElementById('fech-obs').value.trim();
+  if(!confirm(`Fechar ${fechSelIds.size} OS selecionada(s) com data ${fmtDate(dataFech)}?`)) return;
+
+  const rows = allRows().filter(r => fechSelIds.has(fechamentoUid(r)));
+  fecharOS(rows, dataFech, resp, obs);
+  fechSelIds.clear();
+  updateFechBtnState();
+});
+
+// Pre-fill data de fechamento com hoje
+(function(){
+  const el = document.getElementById('fech-data');
+  if(el) el.value = new Date().toISOString().slice(0,10);
+})();
+
+
+
+['f-operacao','f-tipo','f-setor','f-categoria','f-resp','f-reinc','f-data-de','f-data-ate','f-status'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('change', applyFilters);
 });
 // Busca por texto só roda ao clicar em "Pesquisar" ou apertar Enter —
 // evita re-renderizar a tabela inteira a cada tecla digitada.
@@ -3733,6 +4337,7 @@ document.getElementById('f-clear').addEventListener('click', ()=>{
   document.getElementById('f-setor').value='';
   document.getElementById('f-categoria').value='';
   document.getElementById('f-resp').value='';
+  const fStatus = document.getElementById('f-status'); if(fStatus) fStatus.value='';
   document.getElementById('f-data-de').value='';
   document.getElementById('f-data-ate').value='';
   document.getElementById('f-search').value='';
