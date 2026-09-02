@@ -3198,16 +3198,16 @@ function hideOverlay(){
   if(ov){ ov.classList.add('hidden'); setTimeout(()=>{ if(ov.parentNode) ov.remove(); }, 500); }
 }
 
-// Flags de "primeiro carregamento" — precisam vir true nos 8 documentos antes de pintar a tela pela primeira vez
+// Flags de "primeiro carregamento" — precisam vir true nos 9 documentos antes de pintar a tela pela primeira vez
 let pcmRecebeuMR = false, pcmRecebeuFrota = false, pcmRecebeuOv = false, pcmRecebeuMeta = false,
     pcmRecebeuHodo = false, pcmRecebeuLog = false, pcmRecebeuDel = false, pcmRecebeuGns = false,
-    pcmRecebeuSol = false, pcmRecebeuCat = false;
+    pcmRecebeuSol = false, pcmRecebeuCat = false, pcmRecebeuFech = false;
 let pcmPrimeiraCarga = true;
 let pcmLastBackup = null;
 
 function pcmTentaRenderInicial(timeoutId){
   if(pcmPrimeiraCarga && pcmRecebeuMR && pcmRecebeuFrota && pcmRecebeuOv && pcmRecebeuMeta &&
-     pcmRecebeuHodo && pcmRecebeuLog && pcmRecebeuDel && pcmRecebeuGns && pcmRecebeuSol && pcmRecebeuCat){
+     pcmRecebeuHodo && pcmRecebeuLog && pcmRecebeuDel && pcmRecebeuGns && pcmRecebeuSol && pcmRecebeuCat && pcmRecebeuFech){
     pcmPrimeiraCarga = false;
     purgeManualDuplicates();
     showSyncStatus('✅ Sincronizado com a nuvem', 'var(--green)');
@@ -3388,12 +3388,14 @@ async function initFirestore(){
         fechamentos = snap.data().data;
         try{ localStorage.setItem(FECHAMENTO_KEY, JSON.stringify(fechamentos)); }catch(e){}
       }
+      pcmRecebeuFech = true;
       if(!pcmPrimeiraCarga){
         renderFechamento();
         const pagina = ordensRowsAtuais.slice((ordensPageAtual-1)*ORDENS_POR_PAGINA, ordensPageAtual*ORDENS_POR_PAGINA);
         renderTable(pagina);
       }
-    }, err => console.warn('Firestore fechamentos:', err));
+      pcmTentaRenderInicial(timeoutId);
+    }, err => { console.warn('Firestore fechamentos:', err); pcmRecebeuFech = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── categorias (setores/categorias/chaves personalizados) — tempo real ──
     db.collection('pcm').doc('categorias').onSnapshot(snap => {
