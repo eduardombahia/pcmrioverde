@@ -5864,12 +5864,19 @@ function pruneLog(){
   if(logEntries.length < before) persistLog();
 }
 
+let _persistLogTimer = null;
 function persistLog(){
   try{ localStorage.setItem(LOG_KEY, JSON.stringify(logEntries)); }catch(e){}
   if(window._db){
-    window._db.collection('pcm').doc('log')
-      .set({ entries: logEntries, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(e => console.warn('Firestore log:', e));
+    // Debounce: várias chamadas seguidas (ex.: fechamento em massa de OS)
+    // resultam em UMA única escrita no Firestore, evitando estourar a fila
+    // de writes pendentes (resource-exhausted).
+    clearTimeout(_persistLogTimer);
+    _persistLogTimer = setTimeout(()=>{
+      window._db.collection('pcm').doc('log')
+        .set({ entries: logEntries, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+        .catch(e => console.warn('Firestore log:', e));
+    }, 600);
   }
 }
 
