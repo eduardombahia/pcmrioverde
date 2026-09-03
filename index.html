@@ -7959,29 +7959,97 @@ function extractFrota(raw){
   return parts.length > 1 ? parts[parts.length-1] : s;
 }
 
+// ── Classifica uma linha da coluna "Planos" ──────────────────────────────────
+// Regra fixa do relatório: planos que começam com número (ex.: "189 -
+// PREVENTIVA GERAL") são SEMPRE Preventiva; planos que começam com "CRT"
+// (ex.: "CRT001 - Troca de embreagem") são SEMPRE Corretiva.
+// Retorna { tipo, descricao } ou null se a linha não for um plano reconhecível.
+function classificarLinhaPlano(linhaRaw){
+  const linha = String(linhaRaw || '').trim();
+  if(!linha) return null;
+
+  // "189 - PREVENTIVA GERAL" → tipo Preventiva, descrição = texto após o código
+  const mNumero = linha.match(/^\d+\s*[-–:.]?\s*(.*)$/);
+  if(mNumero){
+    const resto = mNumero[1].trim();
+    return { tipo: 'Preventiva', descricao: smartCaseText(resto || linha) };
+  }
+
+  // "CRT ... " / "CRT001 - ..." → tipo Corretiva, descrição = texto após "CRT"
+  const mCrt = linha.match(/^CRT[A-Z0-9]*\s*[-–:.]?\s*(.*)$/i);
+  if(mCrt){
+    const resto = mCrt[1].trim();
+    return { tipo: 'Corretiva', descricao: smartCaseText(resto || linha) };
+  }
+
+  return null; // linha não segue o padrão conhecido — ignora
+}
+
 // ── Parser dedicado ao relatório de OS (blocos "Data - DD/MM/AAAA", cabeçalho repetido, rodapés "Total...") ──
+// Cada O.S. pode ter VÁRIOS planos vigentes na coluna H (Planos): a linha
+// principal traz o primeiro plano, e as linhas seguintes (com Veículo/O.S.
+// em branco) trazem os planos adicionais, até a próxima O.S., o próximo
+// bloco "Data - ..." ou uma linha "Total...". Lemos todas essas linhas e
+// geramos um registro por plano, classificado individualmente conforme
+// classificarLinhaPlano.
 function parseRelatorioOS(text){
   const table = parseDelimitedText(text, ';');
   const rows = [];
-  for(const r of table){
-    const col0 = (r[0]||'').trim();
-    const col1 = (r[1]||'').trim();
-    // Linha de dado válida: Veículo no formato "NNN - NNNNNN" e O.S. numérica
-    if(/^\d+\s*-\s*\d+$/.test(col0) && /^\d+$/.test(col1)){
-      const veiculo   = extractFrota(col0);
-      const os        = col1;
-      const tipo      = normalizeTipoOS(r[2]);
-      const descricao = smartCaseText((r[3]||'').trim());
-      const aberturaData = (r[4]||'').trim().split(' ')[0]; // só a data, ignora hora
-      const observacoes  = (r[7]||'').trim(); // coluna H = Planos
-      // Colunas F (Fechamento) e G (Tempo) são ignoradas propositalmente
+
+  let bloco = null; // { veiculo, os, aberturaData, observacaoGeral, tipoOS, planos: [] }
+
+  function fecharBloco(){
+    if(!bloco) return;
+    const { veiculo, os, aberturaData, observacaoGeral, tipoOS, planos } = bloco;
+
+    const planosClassificados = planos
+      .map(classificarLinhaPlano)
+      .filter(Boolean);
+
+    if(planosClassificados.length){
+      planosClassificados.forEach(({ tipo, descricao }) => {
+        rows.push({
+          data: aberturaData, veiculo, os, tipo,
+          setor: 'Não classificado', categoria: '',
+          responsavel: '', descricao, observacoes: observacaoGeral
+        });
+      });
+    } else {
+      // Nenhum plano reconhecido na coluna H: mantém o comportamento antigo
+      // como fallback, usando o Tipo de O.S. e a Observação da linha principal.
       rows.push({
-        data: aberturaData, veiculo, os, tipo,
+        data: aberturaData, veiculo, os, tipo: tipoOS,
         setor: 'Não classificado', categoria: '',
-        responsavel: '', descricao, observacoes
+        responsavel: '', descricao: observacaoGeral || tipoOS, observacoes: observacaoGeral
       });
     }
+    bloco = null;
   }
+
+  for(const r of table){
+    const col0 = (r[0] || '').trim();
+    const col1 = (r[1] || '').trim();
+    const colPlanos = (r[7] || '').trim(); // coluna H = Planos
+
+    // Linha de dado válida: Veículo no formato "NNN - NNNNNN" e O.S. numérica → nova O.S.
+    if(/^\d+\s*-\s*\d+$/.test(col0) && /^\d+$/.test(col1)){
+      fecharBloco(); // fecha o bloco da O.S. anterior antes de abrir o novo
+      const veiculo   = extractFrota(col0);
+      const os        = col1;
+      const tipoOS    = normalizeTipoOS(r[2]);
+      const observacaoGeral = smartCaseText((r[3] || '').trim());
+      const aberturaData = (r[4] || '').trim().split(' ')[0]; // só a data, ignora hora
+      // Colunas F (Fechamento) e G (Tempo) são ignoradas propositalmente
+      bloco = { veiculo, os, aberturaData, observacaoGeral, tipoOS, planos: [] };
+      if(colPlanos) bloco.planos.push(colPlanos);
+    } else if(bloco && colPlanos && !col0 && !col1){
+      // Linha de continuação do bloco atual: mais um plano vigente da mesma O.S.
+      bloco.planos.push(colPlanos);
+    }
+    // Outras linhas (cabeçalho repetido, "Data - ...", "Total...") são ignoradas
+  }
+  fecharBloco(); // fecha o último bloco do arquivo
+
   return rows;
 }
 
