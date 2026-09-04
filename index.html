@@ -6238,7 +6238,7 @@ function renderSolTab(){
       <td style="font-family:var(--font-mono);font-size:11.5px;">${fmtDateBR(r.data)}</td>
       <td>${r.veiculo||'—'}</td>
       <td>${r.operacao||'—'}</td>
-      <td title="${esc(r.descricao||'')}">${r.descricao ? (r.descricao.length > 10 ? esc(r.descricao.slice(0,10))+'+' : esc(r.descricao)) : '—'}</td>
+      <td title="${esc(r.descricao||'')}">${(()=>{ const palavras=(r.descricao||'').trim().split(/\s+/).filter(Boolean); return palavras.length ? (palavras.length > 10 ? esc(palavras.slice(0,10).join(' '))+'+' : esc(palavras.join(' '))) : '—'; })()}</td>
       <td>${esc(r.motivo)||'—'}</td>
       <td>${r.situacao ? `<span class="${situacaoClass(r.situacao)}">${esc(r.situacao)}</span>` : '—'}</td>
       <td>${esc(r.funcionario)||'—'}</td>
