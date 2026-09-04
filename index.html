@@ -929,6 +929,7 @@
   .log-tag.os-edit     {background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);}
   .log-tag.os-delete   {background:rgba(220,60,60,.12);color:var(--red);border:1px solid rgba(220,60,60,.3);}
   .log-tag.os-import   {background:rgba(100,160,230,.12);color:#64a0e6;border:1px solid rgba(100,160,230,.3);}
+  .log-tag.sr-import   {background:rgba(160,120,220,.12);color:#a078dc;border:1px solid rgba(160,120,220,.3);}
   .log-tag.frota       {background:rgba(180,130,255,.12);color:#b482ff;border:1px solid rgba(180,130,255,.3);}
   .log-tag.hodo        {background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);}
   .log-tag.backup      {background:rgba(255,255,255,.06);color:var(--dim);border:1px solid var(--line);}
@@ -1190,6 +1191,20 @@
   }
   .gns-act-btn:hover{border-color:var(--amber);color:var(--amber);}
   .gns-act-btn.danger:hover{border-color:var(--red);color:var(--red);}
+
+  /* Seleção em massa (checkbox por linha) em tabelas .gns-list-card */
+  .gns-list-card thead th.th-check{width:34px;text-align:center;padding:9px 6px;}
+  .gns-list-card tbody td.td-check{width:34px;text-align:center;padding:8px 6px;}
+  .gns-list-card th.th-check input,.gns-list-card td.td-check input{
+    width:15px;height:15px;accent-color:var(--red);cursor:pointer;
+  }
+  .bulk-del-btn{
+    background:var(--red);border:none;color:#fff;border-radius:3px;
+    padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;
+    font-family:var(--font-body);display:none;align-items:center;gap:6px;
+    white-space:nowrap;
+  }
+  .bulk-del-btn:hover{background:#c73652;}
   .gns-kpis{
     display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;
   }
@@ -2022,12 +2037,53 @@
 <!-- ═══════════════ SOLICITAÇÕES DE REPARO TAB ═══════════════ -->
 <div id="tab-solicitacoes" class="tab-panel">
   <p class="sub" style="margin-top:0;margin-bottom:16px;">Registre e acompanhe as solicitações de reparo abertas pelos motoristas e líderes antes de virarem uma OS. Cadastre uma nova solicitação, vincule-a ao cadastro de OS quando o reparo for executado, e use a busca para localizar por número, veículo, motorista ou líder.</p>
+
+  <!-- ── Importação de SR (dentro do próprio painel de Solicitações) ── -->
+  <div class="import-area" style="margin-bottom:20px;">
+    <h3>Importar Solicitações de Reparo — CSV ou XLSX</h3>
+
+    <div class="import-drop" id="sol-csv-drop">
+      <div class="drop-icon">📂</div>
+      <div>Arraste um arquivo aqui ou <strong>clique para selecionar</strong></div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
+        <span style="font-family:var(--font-mono);font-size:11px;background:rgba(79,180,119,.12);color:var(--green);border:1px solid rgba(79,180,119,.3);padding:3px 9px;border-radius:3px;">.xlsx / .xls</span>
+        <span style="font-family:var(--font-mono);font-size:11px;background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);padding:3px 9px;border-radius:3px;">.csv</span>
+      </div>
+      <div style="font-size:11px;margin-top:10px;color:var(--dim);">
+        Aceita o relatório de Solicitação de Reparo exportado do sistema (blocos por data, colunas Veículo/Motivo/Situação/Crachá/Funcionario/Obs. Reclamação). Veículo é lido da coluna B (operação é preenchida automaticamente pela frota cadastrada — se não identificar, fica em branco); Motivo (col. E) e Situação (col. F) são transcritos como estão na planilha; Crachá (col. I) vai para "Funcionário"; Funcionario (col. K) vai para "Motorista" (em branco se ausente); Obs. Reclamação (col. L) vai para "Descrição".<br>
+        Também aceita CSV/XLSX genérico com colunas: <code style="color:var(--chalk);">data&nbsp;&nbsp;veiculo&nbsp;&nbsp;motivo&nbsp;&nbsp;situacao&nbsp;&nbsp;funcionario&nbsp;&nbsp;motorista&nbsp;&nbsp;descricao</code>
+      </div>
+      <input type="file" id="sol-csv-input" accept=".csv,.txt,.xlsx,.xls">
+    </div>
+
+    <div id="sol-import-queue-wrap" style="display:none;margin-top:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--dim);">Fila de importação: <b id="sol-queue-count" style="color:var(--amber)">0</b> solicitação(ões)</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" id="sol-imp-clear-queue-btn">Limpar fila</button>
+          <button class="btn-primary" id="sol-imp-commit-btn">✅ Importar tudo</button>
+        </div>
+      </div>
+      <div class="import-preview">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th><th>Veículo</th><th>Operação</th><th>Motivo</th><th>Situação</th><th>Funcionário</th><th>Motorista</th><th>Descrição</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="sol-queue-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <div class="kpis" id="sol-kpis" style="margin-bottom:16px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));"></div>
 
   <!-- ── Listagem ── -->
   <div class="slim-toolbar">
     <input type="text" id="sol-search" placeholder="Buscar por nº, veículo, motorista, líder…">
     <div class="slim-toolbar-actions">
+      <button type="button" class="bulk-del-btn" id="sol-bulk-del-btn" title="Excluir todas as solicitações marcadas">🗑 Excluir selecionadas (<span id="sol-sel-count">0</span>)</button>
       <button class="clear-btn" id="sol-export-btn" title="Exportar como CSV">⬇ Exportar</button>
       <span class="slim-count" id="sol-count"></span>
       <button class="add-btn" id="sol-add-btn"><span class="plus">+</span> Nova Solicitação</button>
@@ -2038,11 +2094,15 @@
     <table>
       <thead>
         <tr>
+          <th class="th-check"><input type="checkbox" id="sol-check-all" title="Selecionar todas"></th>
           <th data-sort="num">Nº Solicitação</th>
           <th data-sort="data">Data</th>
           <th data-sort="veiculo">Veículo</th>
           <th data-sort="operacao">Operação</th>
           <th data-sort="descricao">Descrição</th>
+          <th data-sort="motivo">Motivo</th>
+          <th data-sort="situacao">Situação</th>
+          <th data-sort="funcionario">Funcionário</th>
           <th data-sort="motorista">Motorista</th>
           <th data-sort="lider">Líder Requisitante</th>
           <th>Ações</th>
@@ -2089,6 +2149,27 @@
     </div>
 
     <div class="gns-field">
+      <label for="sol-motivo">Motivo</label>
+      <input type="text" id="sol-motivo" list="dl-motivo-sr" placeholder="ex: Elétrica" autocomplete="off">
+      <datalist id="dl-motivo-sr"></datalist>
+    </div>
+
+    <div class="gns-field">
+      <label for="sol-situacao">Situação</label>
+      <select id="sol-situacao">
+        <option value="">Selecione</option>
+        <option value="Atendida">Atendida</option>
+        <option value="Não atendida">Não atendida</option>
+        <option value="Improcedente">Improcedente</option>
+      </select>
+    </div>
+
+    <div class="gns-field">
+      <label for="sol-funcionario">Funcionário</label>
+      <input type="text" id="sol-funcionario" placeholder="Crachá/nome do funcionário">
+    </div>
+
+    <div class="gns-field">
       <label for="sol-motorista">Motorista</label>
       <input type="text" id="sol-motorista" placeholder="Nome do motorista">
     </div>
@@ -2096,6 +2177,11 @@
     <div class="gns-field">
       <label for="sol-lider">Líder Requisitante</label>
       <input type="text" id="sol-lider" placeholder="Nome do líder requisitante">
+    </div>
+
+    <div class="gns-field">
+      <label for="sol-observacao">Observação</label>
+      <textarea id="sol-observacao" placeholder="Observação da reclamação…"></textarea>
     </div>
 
     <div id="sol-form-error" style="color:var(--red);font-size:12px;margin-top:6px;display:none;"></div>
@@ -2281,6 +2367,7 @@
       <option value="os-edit">Edição OS</option>
       <option value="os-delete">Exclusão OS</option>
       <option value="os-import">Importação OS</option>
+      <option value="sr-import">Importação SR</option>
       <option value="frota">Frota</option>
       <option value="hodo">Hodômetro</option>
       <option value="backup">Backup</option>
@@ -5903,6 +5990,7 @@ function catLabel(cat){
     'os-edit':   'Edição OS',
     'os-delete': 'Exclusão',
     'os-import': 'Importação',
+    'sr-import': 'Importação SR',
     'frota':     'Frota',
     'hodo':      'Hodômetro',
     'backup':    'Backup',
@@ -5977,11 +6065,12 @@ addLog('sistema', 'App iniciado', `v7.6 · ${new Date().toLocaleString('pt-BR')}
 // SOLICITAÇÕES DE REPARO
 // ════════════════════════════════════════════════════════
 const SOL_KEY = 'pcm_solicitacoes_v1';
-let solRecords = [];   // [{ id, num, data, veiculo, operacao, descricao, motorista, lider, createdAt }]
+let solRecords = [];   // [{ id, num, data, veiculo, operacao, descricao, motivo, situacao, funcionario, motorista, lider, observacao, origem_reclamacao, createdAt }]
 let solNextId  = 1;
 let solEditId  = null; // null = nova, número = edição
 let solSortCol = 'data';
 let solSortDir = 'desc';
+let solSelIds  = new Set(); // ids marcados para exclusão em massa
 
 function loadSol(){
   try{
@@ -6113,7 +6202,7 @@ function renderSolTab(){
 
   let rows = solRecords.filter(r => {
     if(search){
-      const hay = [r.num, r.veiculo, r.operacao, r.descricao, r.motorista, r.lider].join(' ').toLowerCase();
+      const hay = [r.num, r.veiculo, r.operacao, r.descricao, r.motivo, r.situacao, r.funcionario, r.motorista, r.lider, r.observacao].join(' ').toLowerCase();
       if(!hay.includes(search)) return false;
     }
     return true;
@@ -6130,18 +6219,29 @@ function renderSolTab(){
 
   document.getElementById('sol-count').innerHTML = `<b>${rows.length}</b> reg.`;
 
+  // Mantém marcadas apenas as seleções que ainda existem na listagem filtrada atual
+  solSelIds = new Set([...solSelIds].filter(id => rows.some(r => r.id === id)));
+  updateSolBulkBtn();
+
   const tbody = document.getElementById('sol-tbody');
   if(!rows.length){
-    tbody.innerHTML=`<tr><td colspan="8" class="gns-empty">Nenhuma solicitação registrada ainda.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="12" class="gns-empty">Nenhuma solicitação registrada ainda.</td></tr>`;
+    syncSolCheckAll(rows);
+    refreshMotivoSRDatalist();
     return;
   }
 
+  const situacaoClass = s => s==='Atendida' ? 'ok' : (s==='Improcedente' ? 'warn' : (s==='Não atendida' ? '' : ''));
   tbody.innerHTML = rows.map(r => `<tr>
+      <td class="td-check"><input type="checkbox" class="sol-row-check" data-id="${r.id}" ${solSelIds.has(r.id)?'checked':''}></td>
       <td><span class="gns-num">${r.num||'—'}</span></td>
       <td style="font-family:var(--font-mono);font-size:11.5px;">${fmtDateBR(r.data)}</td>
       <td>${r.veiculo||'—'}</td>
       <td>${r.operacao||'—'}</td>
       <td>${r.descricao||'—'}</td>
+      <td>${esc(r.motivo)||'—'}</td>
+      <td>${r.situacao ? `<span class="${situacaoClass(r.situacao)}">${esc(r.situacao)}</span>` : '—'}</td>
+      <td>${esc(r.funcionario)||'—'}</td>
       <td>${r.motorista||'—'}</td>
       <td>${r.lider||'—'}</td>
       <td>
@@ -6150,10 +6250,86 @@ function renderSolTab(){
       </td>
     </tr>`).join('');
 
+  tbody.querySelectorAll('.sol-row-check').forEach(chk => {
+    chk.addEventListener('change', () => {
+      const id = Number(chk.dataset.id);
+      if(chk.checked) solSelIds.add(id);
+      else solSelIds.delete(id);
+      updateSolBulkBtn();
+      syncSolCheckAll(rows);
+    });
+  });
+  syncSolCheckAll(rows);
+
   document.querySelectorAll('#tab-solicitacoes .gns-list-card thead th[data-sort]').forEach(th => {
     th.classList.remove('sort-asc','sort-desc');
     if(th.dataset.sort === solSortCol) th.classList.add('sort-'+solSortDir);
   });
+
+  refreshMotivoSRDatalist();
+}
+
+// ── Seleção em massa: sincroniza checkbox "selecionar todas" ─
+function syncSolCheckAll(rows){
+  const chkAll = document.getElementById('sol-check-all');
+  if(!chkAll) return;
+  const total = rows.length;
+  const sel = rows.filter(r => solSelIds.has(r.id)).length;
+  chkAll.checked = total > 0 && sel === total;
+  chkAll.indeterminate = sel > 0 && sel < total;
+}
+
+// ── Seleção em massa: mostra/oculta e atualiza contador do botão ─
+function updateSolBulkBtn(){
+  const btn = document.getElementById('sol-bulk-del-btn');
+  const cnt = document.getElementById('sol-sel-count');
+  if(!btn) return;
+  const n = solSelIds.size;
+  if(cnt) cnt.textContent = n;
+  btn.style.display = n > 0 ? 'inline-flex' : 'none';
+}
+
+// Filtra as solicitações visíveis com base na busca atual (mesma lógica de renderSolTab)
+function solFilteredRows(){
+  const search = (document.getElementById('sol-search')?.value||'').toLowerCase();
+  return solRecords.filter(r => {
+    if(search){
+      const hay = [r.num, r.veiculo, r.operacao, r.descricao, r.motivo, r.situacao, r.funcionario, r.motorista, r.lider, r.observacao].join(' ').toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+document.getElementById('sol-check-all')?.addEventListener('change', function(){
+  const rows = solFilteredRows();
+  if(this.checked) rows.forEach(r => solSelIds.add(r.id));
+  else solSelIds.clear();
+  renderSolTab();
+});
+
+document.getElementById('sol-bulk-del-btn')?.addEventListener('click', ()=>{
+  if(solSelIds.size === 0) return;
+  const selecionadas = solRecords.filter(r => solSelIds.has(r.id));
+  if(!selecionadas.length) return;
+  const nomes = selecionadas.map(r => r.num||'#'+r.id).join(', ');
+  if(!confirm(`Excluir ${selecionadas.length} solicitação(ões) selecionada(s)? Esta ação não pode ser desfeita.\n\n${nomes}`)) return;
+  const idsParaExcluir = new Set(selecionadas.map(r => r.id));
+  solRecords = solRecords.filter(r => !idsParaExcluir.has(r.id));
+  saveSol();
+  addLog('sistema', `${selecionadas.length} solicitação(ões) de reparo excluída(s) em lote`, nomes);
+  if(solEditId !== null && idsParaExcluir.has(solEditId)) solResetForm();
+  solSelIds.clear();
+  renderSolTab();
+});
+
+// ── Datalist de Motivo (SR) — populada a partir dos motivos já usados em
+//    solicitações existentes (cadastradas manualmente ou importadas) ──
+function refreshMotivoSRDatalist(){
+  const dl = document.getElementById('dl-motivo-sr');
+  if(!dl) return;
+  const motivos = [...new Set(solRecords.map(r => (r.motivo||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  dl.innerHTML = motivos.map(v => `<option value="${escAttr(v)}">`).join('');
 }
 
 // ── Sort click ────────────────────────────────────────────
@@ -6192,8 +6368,12 @@ function solResetForm(){
   document.getElementById('sol-veiculo').value = '';
   document.getElementById('sol-operacao').value = '';
   document.getElementById('sol-descricao').value = '';
+  document.getElementById('sol-motivo').value = '';
+  document.getElementById('sol-situacao').value = '';
+  document.getElementById('sol-funcionario').value = '';
   document.getElementById('sol-motorista').value = '';
   document.getElementById('sol-lider').value = '';
+  document.getElementById('sol-observacao').value = '';
   document.getElementById('sol-form-error').style.display = 'none';
 }
 
@@ -6209,8 +6389,12 @@ function solEditOpen(id){
   document.getElementById('sol-veiculo').value = r.veiculo || '';
   document.getElementById('sol-operacao').value = r.operacao || '';
   document.getElementById('sol-descricao').value = r.descricao || '';
+  document.getElementById('sol-motivo').value = r.motivo || '';
+  document.getElementById('sol-situacao').value = r.situacao || '';
+  document.getElementById('sol-funcionario').value = r.funcionario || '';
   document.getElementById('sol-motorista').value = r.motorista || '';
   document.getElementById('sol-lider').value = r.lider || '';
+  document.getElementById('sol-observacao').value = r.observacao || '';
   document.getElementById('sol-form-error').style.display = 'none';
   openSolDrawer();
 }
@@ -6237,8 +6421,12 @@ document.getElementById('sol-submit-btn').addEventListener('click', () => {
   const veiculo   = document.getElementById('sol-veiculo').value.trim();
   const operacao  = document.getElementById('sol-operacao').value.trim() || getOperacao(veiculo) || '';
   const descricao = document.getElementById('sol-descricao').value.trim();
+  const motivo    = document.getElementById('sol-motivo').value.trim();
+  const situacao  = document.getElementById('sol-situacao').value.trim();
+  const funcionario = document.getElementById('sol-funcionario').value.trim();
   const motorista = document.getElementById('sol-motorista').value.trim();
   const lider     = document.getElementById('sol-lider').value.trim();
+  const observacao= document.getElementById('sol-observacao').value.trim();
 
   if(!data)    { errEl.textContent='Informe a data.'; errEl.style.display=''; return; }
   if(!veiculo) { errEl.textContent='Informe o veículo.'; errEl.style.display=''; return; }
@@ -6246,11 +6434,11 @@ document.getElementById('sol-submit-btn').addEventListener('click', () => {
   if(solEditId !== null){
     const idx = solRecords.findIndex(r => r.id === solEditId);
     if(idx >= 0){
-      solRecords[idx] = { ...solRecords[idx], num, data, veiculo, operacao, descricao, motorista, lider };
+      solRecords[idx] = { ...solRecords[idx], num, data, veiculo, operacao, descricao, motivo, situacao, funcionario, motorista, lider, observacao };
       addLog('os-edit', `Solicitação de reparo editada: ${num}`, `Veículo ${veiculo} · ${fmtDateBR(data)}`);
     }
   } else {
-    const rec = { id:solNextId++, num, data, veiculo, operacao, descricao, motorista, lider, createdAt:new Date().toISOString() };
+    const rec = { id:solNextId++, num, data, veiculo, operacao, descricao, motivo, situacao, funcionario, motorista, lider, observacao, createdAt:new Date().toISOString() };
     solRecords.push(rec);
     addLog('os-nova', `Solicitação de reparo criada: ${num}`, `Veículo ${veiculo} · ${fmtDateBR(data)}`);
   }
@@ -6266,14 +6454,294 @@ document.getElementById('sol-cancel-btn').addEventListener('click', () => { solR
 
 // ── Export CSV ────────────────────────────────────────────
 document.getElementById('sol-export-btn').addEventListener('click', () => {
-  const header = ['Nº Solicitação','Data','Veículo','Operação','Descrição','Motorista','Líder Requisitante'];
-  const rows = solRecords.map(r => [r.num, fmtDateBR(r.data), r.veiculo, r.operacao||'', r.descricao||'', r.motorista||'', r.lider||'']);
+  const header = ['Nº Solicitação','Data','Veículo','Operação','Descrição','Motivo','Situação','Funcionário','Motorista','Líder Requisitante','Observação'];
+  const rows = solRecords.map(r => [r.num, fmtDateBR(r.data), r.veiculo, r.operacao||'', r.descricao||'', r.motivo||'', r.situacao||'', r.funcionario||'', r.motorista||'', r.lider||'', r.observacao||'']);
   const csv = [header, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a'); a.href=url; a.download='solicitacoes_reparo_export.csv'; a.click();
   URL.revokeObjectURL(url);
 });
+
+// ════════════════════════════════════════════════════════
+// IMPORTAR SR — dentro do próprio painel de Solicitações de Reparo
+// ════════════════════════════════════════════════════════
+let solImportQueue = [];
+
+// Normaliza a Situação para um dos 3 valores canônicos da coluna F
+// ("Atendida" / "Não atendida" / "Improcedente"); mantém o texto original
+// da planilha caso não bata com nenhum deles (transcrição fiel).
+function normalizeSituacaoSR(raw){
+  const s = String(raw||'').trim();
+  const n = s.toLowerCase();
+  if(n === 'atendida') return 'Atendida';
+  if(n === 'não atendida' || n === 'nao atendida') return 'Não atendida';
+  if(n === 'improcedente') return 'Improcedente';
+  return s;
+}
+
+function buildSolQueueRecord(fields){
+  const { data, veiculo, motivo, situacao, funcionario, motorista, descricao, origem_reclamacao } = fields;
+  const operacao = veiculo ? (getOperacao(veiculo) || '') : '';
+  return {
+    data, veiculo, operacao,
+    descricao: descricao || '',
+    motivo: motivo || '',
+    situacao: normalizeSituacaoSR(situacao),
+    funcionario: funcionario || '',
+    motorista: motorista || '',
+    lider: '',
+    observacao: '',
+    origem_reclamacao: origem_reclamacao || null,
+  };
+}
+
+function renderSolQueue(){
+  const wrap = document.getElementById('sol-import-queue-wrap');
+  document.getElementById('sol-queue-count').textContent = solImportQueue.length;
+  if(solImportQueue.length===0){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+
+  document.getElementById('sol-queue-tbody').innerHTML = solImportQueue.map((r,i)=>`
+    <tr>
+      <td>${fmtDate(r.data)}</td>
+      <td style="font-family:var(--font-mono);color:var(--amber);">${esc(r.veiculo)||'—'}</td>
+      <td style="color:var(--dim);">${esc(r.operacao)||'—'}</td>
+      <td>${esc(r.motivo)||'—'}</td>
+      <td>${esc(r.situacao)||'—'}</td>
+      <td>${esc(r.funcionario)||'—'}</td>
+      <td>${esc(r.motorista)||'—'}</td>
+      <td style="max-width:200px;white-space:normal;color:var(--dim);font-size:11px;">${esc(r.descricao)||''}</td>
+      <td><button class="icon-btn" onclick="removeFromSolQueue(${i})">✕</button></td>
+    </tr>`).join('');
+}
+
+function removeFromSolQueue(i){
+  solImportQueue.splice(i,1);
+  renderSolQueue();
+}
+
+document.getElementById('sol-imp-clear-queue-btn').addEventListener('click', () => {
+  if(solImportQueue.length && !confirm('Limpar toda a fila de importação de SR?')) return;
+  solImportQueue = [];
+  renderSolQueue();
+});
+
+document.getElementById('sol-imp-commit-btn').addEventListener('click', () => {
+  if(!solImportQueue.length) return;
+  let count = 0;
+  solImportQueue.forEach(r => {
+    const num = solNextNum();
+    const rec = { id:solNextId++, num, ...r, createdAt:new Date().toISOString() };
+    solRecords.push(rec);
+    count++;
+  });
+  solImportQueue = [];
+  saveSol();
+  addLog('sr-import', `Importação de SR: ${count} solicitação(ões)`, '');
+  renderSolQueue();
+  renderSolTab();
+  alert(`✅ ${count} solicitação(ões) de reparo importada(s).`);
+});
+
+// ── Drop zone (CSV/XLSX) ──────────────────────────────────
+const solCsvDrop  = document.getElementById('sol-csv-drop');
+const solCsvInput = document.getElementById('sol-csv-input');
+
+solCsvDrop.addEventListener('click',    ()=> solCsvInput.click());
+solCsvDrop.addEventListener('dragover', e => { e.preventDefault(); solCsvDrop.classList.add('drag-over'); });
+solCsvDrop.addEventListener('dragleave',  () => solCsvDrop.classList.remove('drag-over'));
+solCsvDrop.addEventListener('drop', e => {
+  e.preventDefault(); solCsvDrop.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if(file) handleSolImportFile(file);
+});
+solCsvInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(file) handleSolImportFile(file);
+  solCsvInput.value = '';
+});
+
+function handleSolImportFile(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(ext === 'xlsx' || ext === 'xls'){
+    parseSolXLSXFile(file);
+  } else {
+    parseSolCSVFile(file);
+  }
+}
+
+// ── Checa duplicidade — usa o nº de Reclamação de origem (col. C do
+//    relatório) quando disponível, que é único por ocorrência; sem ele,
+//    cai numa chave aproximada por data+veículo+motivo+descrição ──
+function isSolDuplicate(row){
+  if(row.origem_reclamacao){
+    const dupSaved = solRecords.some(r => r.origem_reclamacao && String(r.origem_reclamacao)===String(row.origem_reclamacao));
+    const dupQueue = solImportQueue.some(r => r.origem_reclamacao && String(r.origem_reclamacao)===String(row.origem_reclamacao));
+    return dupSaved || dupQueue;
+  }
+  const key = [row.data, row.veiculo, row.motivo, row.descricao].join('|').toLowerCase();
+  const dupSaved = solRecords.some(r => [r.data, r.veiculo, r.motivo, r.descricao].join('|').toLowerCase() === key);
+  const dupQueue = solImportQueue.some(r => [r.data, r.veiculo, r.motivo, r.descricao].join('|').toLowerCase() === key);
+  return dupSaved || dupQueue;
+}
+
+// ── Processa linhas já normalizadas (usado pelo parser dedicado e pelo genérico) ──
+function processSolImportRows(rawRows){
+  let added = 0, skipped = 0, invalid = 0;
+
+  rawRows.forEach(row => {
+    const dataNorm = normalizeDate(row.data);
+    const veiculo  = (row.veiculo || '').trim();
+    if(!dataNorm || !veiculo){ invalid++; return; }
+
+    const rec = {
+      data: dataNorm,
+      veiculo,
+      motivo: (row.motivo || '').trim(),
+      situacao: (row.situacao || '').trim(),
+      funcionario: (row.funcionario || '').trim(),
+      motorista: (row.motorista || '').trim(),
+      descricao: (row.descricao || '').trim(),
+      origem_reclamacao: row.origem_reclamacao || null,
+    };
+
+    if(isSolDuplicate(rec)){ skipped++; return; }
+
+    solImportQueue.push(buildSolQueueRecord(rec));
+    added++;
+  });
+
+  renderSolQueue();
+
+  const parts = [];
+  if(added   > 0) parts.push(`${added} solicitação(ões) adicionada(s) à fila`);
+  if(skipped > 0) parts.push(`${skipped} ignorada(s) por duplicidade`);
+  if(invalid > 0) parts.push(`${invalid} linha(s) inválida(s) (data ou veículo ausente)`);
+
+  alert(parts.length ? parts.join('\n') : 'Nenhuma linha válida encontrada. Verifique as colunas do arquivo.');
+}
+
+// ── Mapeia linhas de um CSV/XLSX genérico (cabeçalho livre) para os campos da SR ──
+function processSolImportRowsGeneric(rawRows){
+  const mapped = rawRows.map(row => {
+    const norm = {};
+    Object.entries(row).forEach(([k, v]) => {
+      const key = String(k).trim().toLowerCase()
+        .replace(/[áàãâ]/g,'a').replace(/[éê]/g,'e').replace(/[í]/g,'i')
+        .replace(/[óôõ]/g,'o').replace(/[ú]/g,'u').replace(/[ç]/g,'c')
+        .replace(/\s+/g,'_');
+      norm[key] = String(v ?? '').trim();
+    });
+    return {
+      data:        norm['data'] || norm['dt'] || '',
+      veiculo:     norm['veiculo'] || norm['vei_culo'] || norm['frota'] || '',
+      motivo:      norm['motivo'] || '',
+      situacao:    norm['situacao'] || norm['situa_ao'] || '',
+      funcionario: norm['funcionario'] || norm['funciona_rio'] || norm['cracha'] || '',
+      motorista:   norm['motorista'] || '',
+      descricao:   norm['descricao'] || norm['observacao'] || norm['observa_ao'] || norm['obs'] || '',
+    };
+  });
+  processSolImportRows(mapped);
+}
+
+// ── Parser dedicado ao relatório de Solicitação de Reparo (blocos "DD/MM/AAAA",
+//    cabeçalho de colunas "Emp.;Veículo;Reclamação;Horário;Motivo;Situação;O.S;
+//    Emp.;Crachá;Desc. Serviço;Funcionario;Obs. Reclamação;", metadados no topo
+//    e totais no rodapé). Mapeamento: col. B → veículo, col. E (Motivo) → Motivo,
+//    col. F (Situação) → Situação, col. I (Crachá) → Funcionário, col. K
+//    (Funcionario) → Motorista, col. L (Obs. Reclamação) → Descrição. ──
+function parseRelatorioSR(text){
+  const table = parseDelimitedText(text, ';');
+  const rows = [];
+  let currentDate = null;
+
+  for(const r of table){
+    const col0 = (r[0] || '').trim();
+    if(!col0 && r.length <= 1) continue; // linha vazia
+
+    // Linha de data isolada, ex.: "03/09/2026" — início de um bloco do dia
+    if(r.length === 1 && /^\d{2}\/\d{2}\/\d{4}$/.test(col0)){
+      currentDate = col0;
+      continue;
+    }
+
+    if(/:$/.test(col0)) continue;               // metadados do cabeçalho ("Empresa:", "Veículo:", ...)
+    if(col0 === 'Emp.') continue;                // cabeçalho de colunas repetido
+    if(/^Total/i.test(col0)) continue;           // linhas de total/rodapé
+    if(/^Ocorrência:/i.test(col0)) continue;      // resumo de ocorrências/veículos
+
+    const col2 = (r[2] || '').trim();
+    // Linha de dado válido: col. A = código de empresa numérico, col. C (Reclamação) numérica
+    if(/^\d+$/.test(col0) && /^\d+$/.test(col2) && r.length >= 12){
+      rows.push({
+        data: currentDate,
+        veiculo: (r[1] || '').trim(),
+        motivo: (r[4] || '').trim(),
+        situacao: (r[5] || '').trim(),
+        funcionario: (r[8] || '').trim(),               // col. I (Crachá) → Funcionário
+        motorista: (r[10] || '').trim(),                 // col. K (Funcionario) → Motorista
+        descricao: smartCaseText((r[11] || '').trim().replace(/[ \t]+\n/g,'\n').replace(/\n{2,}/g,'\n')), // col. L (Obs. Reclamação) → Descrição
+        origem_reclamacao: col2,
+      });
+    }
+  }
+  return rows;
+}
+
+// ── CSV parser (SR) ───────────────────────────────────────────
+function parseSolCSVFile(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+
+    // Tenta primeiro o formato do relatório de SR (blocos por data, delimitador ;)
+    const srRows = parseRelatorioSR(text);
+    if(srRows.length){
+      processSolImportRows(srRows);
+      return;
+    }
+
+    // Fallback: CSV genérico simples (uma linha de cabeçalho, uma SR por linha)
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    if(lines.length < 2){ alert('CSV sem dados.'); return; }
+
+    const headers = lines[0].split(/[;,]/).map(h => h.trim());
+    const rawRows = [];
+    for(let i = 1; i < lines.length; i++){
+      const vals = lines[i].split(/[;,]/);
+      const row  = {};
+      headers.forEach((h, idx) => { row[h] = (vals[idx] || '').trim(); });
+      rawRows.push(row);
+    }
+    processSolImportRowsGeneric(rawRows);
+  };
+  // O relatório de SR exportado por esse sistema costuma vir em ISO-8859-1
+  // (Latin-1), não UTF-8 — lendo como UTF-8 os acentos ficariam corrompidos.
+  reader.readAsText(file, 'ISO-8859-1');
+}
+
+// ── XLSX parser (SR) — layout genérico (cabeçalho na 1ª linha) ──
+function parseSolXLSXFile(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    if(typeof XLSX === 'undefined'){
+      alert('Biblioteca XLSX não carregada. Verifique sua conexão e recarregue a página.');
+      return;
+    }
+    try{
+      const wb   = XLSX.read(e.target.result, { type: 'array', cellDates: false });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '', raw: true });
+      if(!rows.length){ alert('Planilha sem dados.'); return; }
+      processSolImportRowsGeneric(rows);
+    } catch(err){
+      alert('Erro ao ler arquivo XLSX: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
 
 // ════════════════════════════════════════════════════════
 // GNS — Garantia de Nível de Serviço
