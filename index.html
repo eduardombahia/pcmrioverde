@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PCM - Rio Verde</title>
+<script>
+  // Aplica o tema salvo o mais cedo possível, antes do CSS pintar a página,
+  // para evitar "flash" do tema errado ao carregar.
+  try{
+    const t = localStorage.getItem('pcm_theme');
+    if(t === 'light') document.documentElement.setAttribute('data-theme','light');
+  }catch(e){}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -20,12 +28,34 @@
     --yellow:#FFC93C;
     --red:#E5544B;
     --red1:#c80d00;
+    --input-bg:#1e1f22;
+    --input-fg:#e8e6e3;
+    --btn-text:#1a1207;
     --font-display:'Oswald', sans-serif;
     --font-body:'Inter', sans-serif;
     --font-mono:'IBM Plex Mono', monospace;
+    color-scheme: dark;
+  }
+  html[data-theme="light"]{
+    --asphalt:#F2F1ED;
+    --panel:#FFFFFF;
+    --panel-2:#F7F6F3;
+    --line:#DEDCD4;
+    --chalk:#22252A;
+    --dim:#6B6F77;
+    --amber:#2563A8;
+    --orange:#1D4ED8;
+    --green:#2F8F5B;
+    --yellow:#9C7A05;
+    --red:#C93B32;
+    --red1:#c80d00;
+    --input-bg:#FFFFFF;
+    --input-fg:#22252A;
+    --btn-text:#FFFFFF;
+    color-scheme: light;
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--asphalt);color:var(--chalk);font-family:var(--font-body);}
+  body{margin:0;background:var(--asphalt);color:var(--chalk);font-family:var(--font-body);transition:background .2s,color .2s;}
 
   /* Hazard stripe divider */
   .stripe{
@@ -344,7 +374,7 @@
   .add-btn{
     display:flex; align-items:center; gap:8px;
     background:var(--orange);
-    color:#1a1207;
+    color:var(--btn-text);
     border:none;
     font-family:var(--font-display);
     font-weight:600;
@@ -364,7 +394,7 @@
   .add-btn-split{border-radius:3px 0 0 3px;}
   .add-btn-caret{
     display:flex;align-items:center;justify-content:center;
-    background:var(--orange);color:#1a1207;border:none;border-left:1px solid rgba(26,18,7,.35);
+    background:var(--orange);color:var(--btn-text);border:none;border-left:1px solid rgba(26,18,7,.35);
     border-radius:0 3px 3px 0;width:30px;cursor:pointer;font-size:10px;opacity:.75;
   }
   .add-btn-caret:hover{background:var(--amber);opacity:1;}
@@ -445,7 +475,7 @@
   }
   .btn-cancel:hover{border-color:var(--red); color:var(--red);}
   .btn-submit{
-    background:var(--orange); border:none; color:#1a1207;
+    background:var(--orange); border:none; color:var(--btn-text);
     font-family:var(--font-display); font-weight:600; text-transform:uppercase; letter-spacing:.02em;
     font-size:13px; padding:10px 18px; border-radius:3px; cursor:pointer;
   }
@@ -676,7 +706,7 @@
   .import-preview .warn{color:var(--yellow);font-family:var(--font-mono);font-size:10px;}
   .import-preview .ok{color:var(--green);font-family:var(--font-mono);font-size:10px;}
   .btn-primary{
-    background:var(--orange);border:none;color:#1a1207;font-family:var(--font-display);
+    background:var(--orange);border:none;color:var(--btn-text);font-family:var(--font-display);
     font-weight:600;text-transform:uppercase;letter-spacing:.02em;
     font-size:13px;padding:9px 18px;border-radius:3px;cursor:pointer;
   }
@@ -969,18 +999,17 @@
     display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;
   }
   .pairs-builder .pair-row select{
-    background:#1e1f22;border:1px solid var(--line);color:var(--chalk);
+    background:var(--input-bg);border:1px solid var(--line);color:var(--chalk);
     font-family:var(--font-body);font-size:13px;padding:7px 9px;border-radius:3px;
     outline:none;flex:1;min-width:120px;
-    color-scheme:dark;
   }
   .pairs-builder .pair-row select:focus{border-color:var(--amber);}
   .pairs-builder .pair-row select option{
-    background:#1e1f22;color:#e8e6e3;
+    background:var(--input-bg);color:var(--input-fg);
   }
   .pairs-builder .pair-row select.pair-tipo-select{flex:none;min-width:118px;}
   .pairs-builder .pair-add-btn{
-    background:var(--orange);border:none;color:#1a1207;
+    background:var(--orange);border:none;color:var(--btn-text);
     font-family:var(--font-display);font-weight:700;font-size:16px;
     padding:5px 12px;border-radius:3px;cursor:pointer;line-height:1;
   }
@@ -1058,7 +1087,7 @@
   }
   .cat-add-row input:focus{border-color:var(--amber);}
   .cat-add-row button{
-    background:var(--orange);border:none;color:#1a1207;font-family:var(--font-display);
+    background:var(--orange);border:none;color:var(--btn-text);font-family:var(--font-display);
     font-weight:700;font-size:13px;padding:6px 14px;border-radius:3px;cursor:pointer;
   }
   .cat-add-row button:hover{background:var(--amber);}
@@ -1076,7 +1105,7 @@
   }
   .sug-exemplo-input:focus{border-color:var(--amber);}
   .sug-exemplo-btn{
-    flex:none;background:var(--orange);border:none;color:#1a1207;
+    flex:none;background:var(--orange);border:none;color:var(--btn-text);
     font-family:var(--font-display);font-weight:700;font-size:11.5px;
     padding:5px 10px;border-radius:3px;cursor:pointer;white-space:nowrap;
   }
@@ -1845,10 +1874,16 @@
   .pcm-login-field input:focus, .pcm-login-field select:focus{ outline:none; border-color:var(--amber); }
   .pcm-login-btn{
     width:100%; margin-top:22px; padding:12px; border:none; border-radius:6px;
-    background:var(--amber); color:#15171B; font-weight:700; font-family:var(--font-display);
+    background:var(--amber); color:var(--btn-text); font-weight:700; font-family:var(--font-display);
     letter-spacing:.03em; text-transform:uppercase; cursor:pointer; font-size:14px;
   }
   .pcm-login-btn:hover{ background:var(--orange); }
+  .pcm-login-theme-toggle{
+    position:absolute; top:18px; right:20px; z-index:1;
+    background:none; border:1px solid var(--line); color:var(--dim);
+    width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:15px;
+  }
+  .pcm-login-theme-toggle:hover{ border-color:var(--amber); color:var(--amber); }
   .pcm-login-erro{
     margin-top:14px; padding:8px 10px; border-radius:6px; background:rgba(229,84,75,.12);
     border:1px solid rgba(229,84,75,.4); color:var(--red); font-size:12.5px;
@@ -1867,10 +1902,12 @@
     font-size:10.5px; text-transform:uppercase; letter-spacing:.05em;
   }
   .pcm-session-bar button{
-    margin-left:auto; background:none; border:1px solid var(--line); color:var(--dim);
+    background:none; border:1px solid var(--line); color:var(--dim);
     padding:5px 12px; border-radius:5px; cursor:pointer; font-family:var(--font-mono); font-size:11.5px;
   }
   .pcm-session-bar button:hover{ border-color:var(--red); color:var(--red); }
+  #pcm-theme-toggle-btn{ margin-left:auto; }
+  #pcm-theme-toggle-btn:hover{ border-color:var(--amber); color:var(--amber); }
   .pcm-session-bar select{
     background:var(--panel); border:1px solid var(--line); color:var(--chalk);
     padding:4px 8px; border-radius:5px; font-family:var(--font-mono); font-size:11.5px;
@@ -1888,7 +1925,7 @@
     padding:8px 14px; border-radius:6px; cursor:pointer; font-family:var(--font-body); font-size:13px;
   }
   .pcm-admin-btn:hover{ border-color:var(--amber); color:var(--amber); }
-  .pcm-admin-btn.primary{ background:var(--amber); border-color:var(--amber); color:#15171B; font-weight:600; }
+  .pcm-admin-btn.primary{ background:var(--amber); border-color:var(--amber); color:var(--btn-text); font-weight:600; }
   .pcm-admin-btn.primary:hover{ background:var(--orange); border-color:var(--orange); color:#fff; }
   .pcm-admin-btn.danger{ border-color:var(--red); color:var(--red); }
   .pcm-admin-list{ display:flex; flex-direction:column; gap:8px; }
@@ -1949,6 +1986,7 @@
 
 <!-- ═══ TELA DE LOGIN ═══ -->
 <div id="pcm-login-screen" class="pcm-login-screen" style="display:none;">
+  <button type="button" id="pcm-theme-toggle-btn-login" class="pcm-login-theme-toggle" title="Alternar modo claro/escuro">🌙</button>
   <div class="pcm-login-card" id="pcm-login-card-normal">
     <p class="eyebrow" style="text-align:center;">Central de Login · Grupo</p>
     <h1 style="text-align:center; font-size:clamp(24px,3vw,32px);">PCM <span style="color:var(--orange);">Frota</span></h1>
@@ -1996,12 +2034,15 @@
   <span id="pcm-unidade-troca-wrap" style="display:none;">Unidade: <select id="pcm-unidade-troca-select"></select></span>
   <span>Usuário: <strong id="pcm-usuario-atual-label">—</strong></span>
   <span id="pcm-role-badge-wrap" style="display:none;"><span class="pcm-badge-role" id="pcm-role-badge">Admin</span></span>
+  <button id="pcm-theme-toggle-btn" title="Alternar modo claro/escuro">🌙 Escuro</button>
   <button id="pcm-logout-btn" title="Sair">Sair</button>
 </div>
 
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.17</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.20</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
+  <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
+</header>
 
 <div class="backup-bar">
   <span class="backup-label">💾 Dados</span>
@@ -3681,6 +3722,32 @@ document.getElementById('pcm-admin-modal-overlay').addEventListener('click', (e)
 document.getElementById('pcm-logout-btn').addEventListener('click', () => {
   if(confirm('Deseja sair da sua conta?')) pcmLogout();
 });
+
+// ── Alternância de tema claro/escuro ──
+function pcmAplicarTema(tema){
+  if(tema === 'light'){
+    document.documentElement.setAttribute('data-theme','light');
+  }else{
+    document.documentElement.removeAttribute('data-theme');
+  }
+  const label = tema === 'light' ? '☀️ Claro' : '🌙 Escuro';
+  const iconOnly = tema === 'light' ? '☀️' : '🌙';
+  const btn = document.getElementById('pcm-theme-toggle-btn');
+  if(btn) btn.textContent = label;
+  const btnLogin = document.getElementById('pcm-theme-toggle-btn-login');
+  if(btnLogin) btnLogin.textContent = iconOnly;
+  try{ localStorage.setItem('pcm_theme', tema); }catch(e){}
+}
+document.getElementById('pcm-theme-toggle-btn').addEventListener('click', () => {
+  const atual = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  pcmAplicarTema(atual === 'light' ? 'dark' : 'light');
+});
+document.getElementById('pcm-theme-toggle-btn-login').addEventListener('click', () => {
+  const atual = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  pcmAplicarTema(atual === 'light' ? 'dark' : 'light');
+});
+// Sincroniza o rótulo do botão com o tema já aplicado no <head> (evita flash)
+pcmAplicarTema(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
 
 // ── UNIDADES ──
 function pcmRenderAdminUnidades(){
@@ -6908,7 +6975,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v10.17 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v10.20 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
