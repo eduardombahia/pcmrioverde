@@ -1797,6 +1797,124 @@
     font-family:var(--font-mono);
   }
   .btn-reabrir:hover{border-color:var(--orange);color:var(--orange);}
+
+  /* ── Login ── */
+  .pcm-login-screen{
+    position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, rgba(255,106,43,.10), transparent 60%),
+      var(--asphalt);
+  }
+  .pcm-login-card{
+    width:min(360px, 90vw); background:var(--panel); border:1px solid var(--line);
+    border-radius:10px; padding:32px 28px; box-shadow:0 20px 60px rgba(0,0,0,.4);
+  }
+  .pcm-login-field{ margin-top:16px; }
+  .pcm-login-field label{
+    display:block; font-family:var(--font-mono); font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--dim); margin-bottom:6px;
+  }
+  .pcm-login-field input, .pcm-login-field select{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--chalk);
+    padding:10px 12px; border-radius:6px; font-family:var(--font-body); font-size:14px;
+  }
+  .pcm-login-field input:focus, .pcm-login-field select:focus{ outline:none; border-color:var(--amber); }
+  .pcm-login-btn{
+    width:100%; margin-top:22px; padding:12px; border:none; border-radius:6px;
+    background:var(--amber); color:#15171B; font-weight:700; font-family:var(--font-display);
+    letter-spacing:.03em; text-transform:uppercase; cursor:pointer; font-size:14px;
+  }
+  .pcm-login-btn:hover{ background:var(--orange); }
+  .pcm-login-erro{
+    margin-top:14px; padding:8px 10px; border-radius:6px; background:rgba(229,84,75,.12);
+    border:1px solid rgba(229,84,75,.4); color:var(--red); font-size:12.5px;
+  }
+  .pcm-login-hint{ margin-top:16px; text-align:center; font-size:11.5px; color:var(--dim); }
+
+  /* ── Topbar de sessão (unidade/usuário/sair) ── */
+  .pcm-session-bar{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:8px 5vw; background:var(--panel-2); border-bottom:1px solid var(--line);
+    font-family:var(--font-mono); font-size:12px; color:var(--dim);
+  }
+  .pcm-session-bar strong{ color:var(--chalk); }
+  .pcm-session-bar .pcm-badge-role{
+    padding:2px 8px; border-radius:3px; border:1px solid var(--amber); color:var(--amber);
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.05em;
+  }
+  .pcm-session-bar button{
+    margin-left:auto; background:none; border:1px solid var(--line); color:var(--dim);
+    padding:5px 12px; border-radius:5px; cursor:pointer; font-family:var(--font-mono); font-size:11.5px;
+  }
+  .pcm-session-bar button:hover{ border-color:var(--red); color:var(--red); }
+  .pcm-session-bar select{
+    background:var(--panel); border:1px solid var(--line); color:var(--chalk);
+    padding:4px 8px; border-radius:5px; font-family:var(--font-mono); font-size:11.5px;
+  }
+
+  /* ── Painel de Administração ── */
+  .pcm-admin-section{ margin-bottom:32px; }
+  .pcm-admin-section h3{
+    font-family:var(--font-display); text-transform:uppercase; letter-spacing:.03em;
+    color:var(--amber); font-size:16px; margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid var(--line);
+  }
+  .pcm-admin-toolbar{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .pcm-admin-btn{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--chalk);
+    padding:8px 14px; border-radius:6px; cursor:pointer; font-family:var(--font-body); font-size:13px;
+  }
+  .pcm-admin-btn:hover{ border-color:var(--amber); color:var(--amber); }
+  .pcm-admin-btn.primary{ background:var(--amber); border-color:var(--amber); color:#15171B; font-weight:600; }
+  .pcm-admin-btn.primary:hover{ background:var(--orange); border-color:var(--orange); color:#fff; }
+  .pcm-admin-btn.danger{ border-color:var(--red); color:var(--red); }
+  .pcm-admin-list{ display:flex; flex-direction:column; gap:8px; }
+  .pcm-admin-row{
+    display:flex; align-items:center; gap:12px; background:var(--panel-2); border:1px solid var(--line);
+    border-radius:8px; padding:10px 14px; flex-wrap:wrap;
+  }
+  .pcm-admin-row .info{ flex:1; min-width:180px; }
+  .pcm-admin-row .info strong{ display:block; color:var(--chalk); font-size:14px; }
+  .pcm-admin-row .info span{ display:block; color:var(--dim); font-size:11.5px; font-family:var(--font-mono); margin-top:2px; }
+  .pcm-admin-row .actions{ display:flex; gap:8px; }
+  .pcm-admin-row .actions button{
+    background:none; border:1px solid var(--line); color:var(--dim); padding:5px 10px;
+    border-radius:5px; cursor:pointer; font-size:11.5px; font-family:var(--font-mono);
+  }
+  .pcm-admin-row .actions button:hover{ border-color:var(--amber); color:var(--amber); }
+  .pcm-admin-row .actions button.del:hover{ border-color:var(--red); color:var(--red); }
+
+  /* Matriz de permissões */
+  .pcm-perm-table{ width:100%; border-collapse:collapse; font-size:12.5px; margin-top:10px; }
+  .pcm-perm-table th, .pcm-perm-table td{
+    border:1px solid var(--line); padding:7px 9px; text-align:center;
+  }
+  .pcm-perm-table th{ background:var(--panel-2); color:var(--dim); font-family:var(--font-mono); font-weight:500; font-size:11px; text-transform:uppercase; }
+  .pcm-perm-table td:first-child, .pcm-perm-table th:first-child{ text-align:left; white-space:nowrap; }
+  .pcm-perm-table input[type="checkbox"]{ width:16px; height:16px; cursor:pointer; accent-color:var(--amber); }
+  .pcm-perm-actions-row{ display:flex; gap:8px; margin-top:6px; }
+  .pcm-perm-actions-row button{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--dim); padding:4px 10px;
+    border-radius:5px; cursor:pointer; font-size:11px; font-family:var(--font-mono);
+  }
+  .pcm-perm-actions-row button:hover{ border-color:var(--amber); color:var(--amber); }
+
+  .pcm-form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+  .pcm-form-grid.full{ grid-template-columns:1fr; }
+  .pcm-form-field label{
+    display:block; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--dim); margin-bottom:5px;
+  }
+  .pcm-form-field input, .pcm-form-field select{
+    width:100%; background:var(--panel); border:1px solid var(--line); color:var(--chalk);
+    padding:8px 10px; border-radius:6px; font-size:13.5px;
+  }
+  .pcm-form-field input:focus, .pcm-form-field select:focus{ outline:none; border-color:var(--amber); }
+  .pcm-form-checkbox-group{ display:flex; flex-wrap:wrap; gap:10px; margin-top:6px; }
+  .pcm-form-checkbox-group label{
+    display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--chalk);
+    background:var(--panel); border:1px solid var(--line); padding:6px 10px; border-radius:6px; cursor:pointer;
+  }
+  #pcm-admin-modal{ max-height:88vh; overflow-y:auto; }
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a1a1a'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' font-family='sans-serif'%3E%F0%9F%94%A7%3C/text%3E%3C/svg%3E">
@@ -1804,6 +1922,36 @@
 <body>
 
 <div class="sync-overlay" id="sync-overlay"><div class="sync-spinner"></div><div class="sync-msg">Conectando ao banco de dados…</div></div>
+
+<!-- ═══ TELA DE LOGIN ═══ -->
+<div id="pcm-login-screen" class="pcm-login-screen" style="display:none;">
+  <div class="pcm-login-card">
+    <p class="eyebrow" style="text-align:center;">Central de Login · Grupo</p>
+    <h1 style="text-align:center; font-size:clamp(24px,3vw,32px);">PCM <span style="color:var(--orange);">Frota</span></h1>
+    <div class="pcm-login-field">
+      <label>Usuário</label>
+      <input type="text" id="pcm-login-usuario" autocomplete="username" placeholder="Seu usuário">
+    </div>
+    <div class="pcm-login-field">
+      <label>Senha</label>
+      <input type="password" id="pcm-login-senha" autocomplete="current-password" placeholder="Sua senha">
+    </div>
+    <div id="pcm-login-erro" class="pcm-login-erro" style="display:none;"></div>
+    <button class="pcm-login-btn" id="pcm-login-btn">Entrar</button>
+    <p class="pcm-login-hint">Acesso fornecido pelo administrador da sua unidade.</p>
+  </div>
+</div>
+
+<div id="pcm-app-shell-wrap" style="display:none;">
+
+<div class="pcm-session-bar">
+  <span id="pcm-unidade-atual-wrap">Unidade: <strong id="pcm-unidade-atual-label">—</strong></span>
+  <span id="pcm-unidade-troca-wrap" style="display:none;">Unidade: <select id="pcm-unidade-troca-select"></select></span>
+  <span>Usuário: <strong id="pcm-usuario-atual-label">—</strong></span>
+  <span id="pcm-role-badge-wrap" style="display:none;"><span class="pcm-badge-role" id="pcm-role-badge">Admin</span></span>
+  <button id="pcm-logout-btn" title="Sair">Sair</button>
+</div>
+
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
   <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.08</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
@@ -1839,6 +1987,7 @@
     <button class="tab-btn" data-tab="categorias"><span class="tab-icon">🏷️</span><span class="tab-label">Chaves de Erro</span></button>
     <button class="tab-btn" data-tab="sugestoes"><span class="tab-icon">💡</span><span class="tab-label">Sugestões de Categoria</span><span class="tab-badge" id="sugestoes-badge" style="display:none;">0</span></button>
     <button class="tab-btn" data-tab="log"><span class="tab-icon">📋</span><span class="tab-label">Log</span></button>
+    <button class="tab-btn" data-tab="admin" id="pcm-admin-tab-btn" style="display:none;"><span class="tab-icon">🔐</span><span class="tab-label">Administração</span></button>
   </nav>
 </aside>
 
@@ -2392,6 +2541,43 @@
   </div>
 </div>
 
+<!-- ═══════════════ ADMINISTRAÇÃO TAB ═══════════════ -->
+<div id="tab-admin" class="tab-panel">
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Central de administração do grupo: gerencie unidades, perfis de acesso e usuários, e defina exatamente o que cada pessoa pode ver e fazer em cada aba do sistema.</p>
+
+  <div class="pcm-admin-section">
+    <h3>🏢 Unidades</h3>
+    <div class="pcm-admin-toolbar">
+      <button class="pcm-admin-btn primary" id="pcm-admin-nova-unidade-btn">+ Nova Unidade</button>
+    </div>
+    <div class="pcm-admin-list" id="pcm-admin-unidades-list"></div>
+  </div>
+
+  <div class="pcm-admin-section">
+    <h3>🧩 Perfis de Acesso</h3>
+    <p class="sub" style="margin-top:-6px;margin-bottom:12px;font-size:12.5px;">Um perfil define um conjunto de permissões que pode ser aplicado a vários usuários de uma vez (ex: Mecânico, Supervisor, Encarregado).</p>
+    <div class="pcm-admin-toolbar">
+      <button class="pcm-admin-btn primary" id="pcm-admin-novo-perfil-btn">+ Novo Perfil</button>
+    </div>
+    <div class="pcm-admin-list" id="pcm-admin-perfis-list"></div>
+  </div>
+
+  <div class="pcm-admin-section">
+    <h3>👤 Usuários</h3>
+    <div class="pcm-admin-toolbar">
+      <button class="pcm-admin-btn primary" id="pcm-admin-novo-usuario-btn">+ Novo Usuário</button>
+    </div>
+    <div class="pcm-admin-list" id="pcm-admin-usuarios-list"></div>
+  </div>
+</div>
+
+<!-- Modal genérico de administração (unidade / perfil / usuário / permissões) -->
+<div class="modal-overlay" id="pcm-admin-modal-overlay">
+  <div class="modal" id="pcm-admin-modal" style="max-width:720px;">
+    <button class="modal-close" id="pcm-admin-modal-close">&times;</button>
+    <div id="pcm-admin-modal-body"></div>
+  </div>
+</div>
 
 <!-- ═══════════════ GNS TAB ═══════════════ -->
 <div id="tab-gns" class="tab-panel">
@@ -2902,6 +3088,8 @@
 
 <footer>PCM · Controle 2026 — Rio Verde</footer>
 
+</div><!-- /pcm-app-shell-wrap -->
+
   <!-- Firebase SDKs — loaded synchronously before main script -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -2936,6 +3124,7 @@ function updateBackupLabel(isoStr){
 }
 
 function exportBackup(){
+  if(!pcmEhAdmin()){ alert('Apenas administradores podem exportar o backup completo do sistema.'); return; }
   const payload = {
     version:      '2.5',
     exportedAt:   new Date().toISOString(),
@@ -2957,7 +3146,7 @@ function exportBackup(){
   localStorage.setItem(BACKUP_DATE_KEY, exportTs);
   addLog('backup', 'Backup exportado', `${manualRecords.length} OS · ${Object.keys(frota).length} veículos`);
   if(window._db){
-    window._db.collection('pcm').doc('meta')
+    window._db.collection('pcm').doc(pcmDocId('meta'))
       .set({ lastBackup: exportTs }, { merge: true })
       .catch(e => console.warn('Firestore meta:', e));
   }
@@ -3042,7 +3231,7 @@ function importBackup(file){
       const importTs = new Date().toISOString();
       localStorage.setItem(BACKUP_DATE_KEY, importTs);
       if(window._db){
-        window._db.collection('pcm').doc('meta')
+        window._db.collection('pcm').doc(pcmDocId('meta'))
           .set({ lastBackup: importTs }, { merge: true })
           .catch(e => console.warn('Firestore meta:', e));
       }
@@ -3053,12 +3242,12 @@ function importBackup(file){
       if(window._db){
         const db = window._db;
         Promise.all([
-          db.collection('pcm').doc('manualRecords').set({ records: manualRecords, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
-          db.collection('pcm').doc('frota').set({ data: frota, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
-          db.collection('pcm').doc('overrides').set({ data: overrides, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
-          db.collection('pcm').doc('deletedKeys').set({ data: deletedKeys, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
-          db.collection('pcm').doc('meta').set({ lastBackup: importTs }, { merge: true }),
-          db.collection('pcm').doc('hodometro').set({ data: hodoData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
+          db.collection('pcm').doc(pcmDocId('manualRecords')).set({ records: manualRecords, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
+          db.collection('pcm').doc(pcmDocId('frota')).set({ data: frota, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
+          db.collection('pcm').doc(pcmDocId('overrides')).set({ data: overrides, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
+          db.collection('pcm').doc(pcmDocId('deletedKeys')).set({ data: deletedKeys, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
+          db.collection('pcm').doc(pcmDocId('meta')).set({ lastBackup: importTs }, { merge: true }),
+          db.collection('pcm').doc(pcmDocId('hodometro')).set({ data: hodoData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
         ]).then(() => {
           showSyncStatus('✅ Backup restaurado e sincronizado', 'var(--green)');
           setTimeout(() => updateBackupLabel(importTs), 2000);
@@ -3232,7 +3421,7 @@ function ensureChave(tipo, setor, categoria){
 // Persiste setores/categorias/códigos personalizados no Firestore
 function saveCategorias(){
   if(!window._db) return;
-  window._db.collection('pcm').doc('categorias')
+  window._db.collection('pcm').doc(pcmDocId('categorias'))
     .set({
       setores: SETOR_CATEGORIAS,
       chaveMap: CHAVE_MAP,
@@ -3258,6 +3447,533 @@ function refreshSetorSelectOptions(){
 
 const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 const STORAGE_KEY = 'pcm_controle_manual_records_v1'; // kept for migration only
+
+// ════════════════════════════════════════════════════════
+// AUTENTICAÇÃO, UNIDADES E PERMISSÕES
+// ════════════════════════════════════════════════════════
+// Documentos GLOBAIS (não levam sufixo de unidade): pcm/unidades, pcm/usuarios, pcm/perfis
+// Todos os demais documentos (manualRecords, frota, hodometro, gns, solicitacoes, log,
+// overrides, deletedKeys, categorias, fechamentos, meta) ganham sufixo "_<UNIDADE_ID>".
+
+const PCM_GLOBAL_DOCS = ['unidades','usuarios','perfis'];
+
+// Lista de abas do sistema — usada para montar a matriz de permissões.
+// value = data-tab do botão da sidebar; label = nome amigável.
+const PCM_ABAS = [
+  { id:'painel',       label:'Painel' },
+  { id:'ordens',       label:'Ordens de Serviço' },
+  { id:'duplicadas',   label:'Duplicadas' },
+  { id:'solicitacoes', label:'Solicitações de Reparo' },
+  { id:'gns',          label:'GNS' },
+  { id:'hodometro',    label:'Hodômetro' },
+  { id:'frota',        label:'Frota' },
+  { id:'importar',     label:'Importar OS' },
+  { id:'categorias',   label:'Chaves de Erro' },
+  { id:'sugestoes',    label:'Sugestões de Categoria' },
+  { id:'log',          label:'Log' },
+];
+// Ações possíveis dentro de uma aba. Nem toda aba usa todas — a UI de permissões
+// mostra todas, mas cada aba só aplica as que fazem sentido para ela no runtime.
+const PCM_ACOES = [
+  { id:'ver',      label:'Ver' },
+  { id:'criar',    label:'Criar' },
+  { id:'editar',   label:'Editar' },
+  { id:'excluir',  label:'Excluir' },
+  { id:'fechar',   label:'Fechar OS' },
+  { id:'exportar', label:'Exportar' },
+];
+
+function pcmPermissoesVazias(){
+  const p = {};
+  PCM_ABAS.forEach(a => { p[a.id] = { ver:false, criar:false, editar:false, excluir:false, fechar:false, exportar:false }; });
+  return p;
+}
+function pcmPermissoesTotais(){
+  const p = {};
+  PCM_ABAS.forEach(a => { p[a.id] = { ver:true, criar:true, editar:true, excluir:true, fechar:true, exportar:true }; });
+  return p;
+}
+
+// ── Estado de sessão (em memória + localStorage para persistir login) ──
+const PCM_SESSION_KEY = 'pcm_session_v1';
+let pcmSession = null; // { usuarioId, usuario, nome, role, unidadeAtual, unidadeIds, perfilId, permissoesEfetivas }
+
+// ── Dados globais carregados do Firestore ──
+let pcmUnidades = [];   // [{id, nome}]
+let pcmUsuarios = [];   // [{id, usuario, senha, nome, role, unidadeIds, perfilId, overrides}]
+let pcmPerfis   = [];   // [{id, nome, permissoes}]
+
+const UNIDADE_PADRAO = { id: 'RIOVERDE', nome: 'Rio Verde - GO' };
+
+function pcmDocId(nomeBase){
+  // Documentos globais nunca levam sufixo de unidade.
+  if(PCM_GLOBAL_DOCS.includes(nomeBase)) return nomeBase;
+  const uid = (pcmSession && pcmSession.unidadeAtual) ? pcmSession.unidadeAtual : UNIDADE_PADRAO.id;
+  return `${nomeBase}_${uid}`;
+}
+
+function pcmSalvarSessao(){
+  try{ localStorage.setItem(PCM_SESSION_KEY, JSON.stringify(pcmSession)); }catch(e){}
+}
+function pcmCarregarSessao(){
+  try{
+    const raw = localStorage.getItem(PCM_SESSION_KEY);
+    if(raw) pcmSession = JSON.parse(raw);
+  }catch(e){ pcmSession = null; }
+}
+function pcmLogout(){
+  pcmSession = null;
+  try{ localStorage.removeItem(PCM_SESSION_KEY); }catch(e){}
+  location.reload();
+}
+
+// Calcula as permissões efetivas de um usuário: perfil como base, com
+// ajuste fino por usuário (overrides) sobrepondo o que for definido.
+function pcmCalcularPermissoes(usuario){
+  if(!usuario) return pcmPermissoesVazias();
+  if(usuario.role === 'super_admin' || usuario.role === 'admin_unidade') return pcmPermissoesTotais();
+  const base = pcmPermissoesVazias();
+  const perfil = pcmPerfis.find(p => p.id === usuario.perfilId);
+  if(perfil && perfil.permissoes){
+    Object.keys(perfil.permissoes).forEach(aba => {
+      if(base[aba]) Object.assign(base[aba], perfil.permissoes[aba]);
+    });
+  }
+  if(usuario.overrides){
+    Object.keys(usuario.overrides).forEach(aba => {
+      if(base[aba]) Object.assign(base[aba], usuario.overrides[aba]);
+    });
+  }
+  return base;
+}
+
+function pcmPodeVerAba(abaId){
+  if(!pcmSession) return false;
+  if(pcmSession.role === 'super_admin' || pcmSession.role === 'admin_unidade') return true;
+  return !!(pcmSession.permissoesEfetivas && pcmSession.permissoesEfetivas[abaId] && pcmSession.permissoesEfetivas[abaId].ver);
+}
+function pcmPodeFazer(abaId, acaoId){
+  if(!pcmSession) return false;
+  if(pcmSession.role === 'super_admin' || pcmSession.role === 'admin_unidade') return true;
+  return !!(pcmSession.permissoesEfetivas && pcmSession.permissoesEfetivas[abaId] && pcmSession.permissoesEfetivas[abaId][acaoId]);
+}
+function pcmEhAdmin(){
+  return !!pcmSession && (pcmSession.role === 'super_admin' || pcmSession.role === 'admin_unidade');
+}
+
+// Guard central: bloqueia a execução de uma ação se o usuário não tiver permissão.
+// Retorna true se BLOQUEOU (chamador deve interromper); false se pode prosseguir.
+function pcmBloquear(abaId, acaoId){
+  if(pcmPodeFazer(abaId, acaoId)) return false;
+  alert('Você não tem permissão para realizar esta ação. Fale com o administrador da sua unidade.');
+  return true;
+}
+
+// Aplica visibilidade de abas na sidebar/topbar conforme as permissões do usuário logado.
+function pcmAplicarPermissoesNaUI(){
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+    const aba = btn.getAttribute('data-tab');
+    if(aba === 'admin') return; // aba de administração tratada à parte
+    btn.style.display = pcmPodeVerAba(aba) ? '' : 'none';
+  });
+  // Se a aba ativa não é mais permitida, muda para a primeira permitida.
+  const activeBtn = document.querySelector('.tab-btn.active[data-tab]');
+  if(activeBtn && activeBtn.style.display === 'none'){
+    const primeiraPermitida = Array.from(document.querySelectorAll('.tab-btn[data-tab]')).find(b => b.style.display !== 'none');
+    if(primeiraPermitida) primeiraPermitida.click();
+  }
+  // Botão/aba de Administração só aparece para admins.
+  const adminBtn = document.getElementById('pcm-admin-tab-btn');
+  if(adminBtn) adminBtn.style.display = pcmEhAdmin() ? '' : 'none';
+  // Botões de ação (criar/editar/excluir/fechar/exportar) ficam ocultos via atributo data-pcm-acao.
+  document.querySelectorAll('[data-pcm-acao]').forEach(el => {
+    const [aba, acao] = el.getAttribute('data-pcm-acao').split(':');
+    el.style.display = pcmPodeFazer(aba, acao) ? '' : 'none';
+  });
+  // Label da unidade atual no topo.
+  const labelUnidade = document.getElementById('pcm-unidade-atual-label');
+  if(labelUnidade && pcmSession){
+    const u = pcmUnidades.find(u => u.id === pcmSession.unidadeAtual);
+    labelUnidade.textContent = u ? u.nome : pcmSession.unidadeAtual;
+  }
+  const labelUsuario = document.getElementById('pcm-usuario-atual-label');
+  if(labelUsuario && pcmSession) labelUsuario.textContent = pcmSession.nome || pcmSession.usuario;
+  const roleBadge = document.getElementById('pcm-role-badge');
+  const roleBadgeWrap = document.getElementById('pcm-role-badge-wrap');
+  if(roleBadge && roleBadgeWrap && pcmSession){
+    const labels = { super_admin:'Super Admin', admin_unidade:'Admin da Unidade' };
+    if(labels[pcmSession.role]){ roleBadge.textContent = labels[pcmSession.role]; roleBadgeWrap.style.display=''; }
+    else roleBadgeWrap.style.display = 'none';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// PAINEL DE ADMINISTRAÇÃO — UI (unidades, perfis, usuários, permissões)
+// ════════════════════════════════════════════════════════
+function pcmMontarAdminSeNecessario(){
+  if(!pcmEhAdmin()) return;
+  pcmRenderAdminUnidades();
+  pcmRenderAdminPerfis();
+  pcmRenderAdminUsuarios();
+}
+
+function pcmAbrirAdminModal(html){
+  document.getElementById('pcm-admin-modal-body').innerHTML = html;
+  document.getElementById('pcm-admin-modal-overlay').classList.add('open');
+}
+function pcmFecharAdminModal(){
+  document.getElementById('pcm-admin-modal-overlay').classList.remove('open');
+  document.getElementById('pcm-admin-modal-body').innerHTML = '';
+}
+document.getElementById('pcm-admin-modal-close').addEventListener('click', pcmFecharAdminModal);
+document.getElementById('pcm-admin-modal-overlay').addEventListener('click', (e) => {
+  if(e.target.id === 'pcm-admin-modal-overlay') pcmFecharAdminModal();
+});
+document.getElementById('pcm-logout-btn').addEventListener('click', () => {
+  if(confirm('Deseja sair da sua conta?')) pcmLogout();
+});
+
+// ── UNIDADES ──
+function pcmRenderAdminUnidades(){
+  const el = document.getElementById('pcm-admin-unidades-list');
+  if(!el) return;
+  if(!pcmUnidades.length){ el.innerHTML = '<p class="sub">Nenhuma unidade cadastrada.</p>'; return; }
+  el.innerHTML = pcmUnidades.map(u => `
+    <div class="pcm-admin-row">
+      <div class="info"><strong>${u.nome}</strong><span>ID: ${u.id}</span></div>
+      <div class="actions">
+        <button onclick="pcmEditarUnidade('${u.id}')">Editar</button>
+        <button class="del" onclick="pcmExcluirUnidade('${u.id}')">Excluir</button>
+      </div>
+    </div>
+  `).join('');
+}
+function pcmNovaUnidadeForm(unidadeExistente){
+  const editando = !!unidadeExistente;
+  pcmAbrirAdminModal(`
+    <h2 style="margin-top:0;">${editando ? 'Editar' : 'Nova'} Unidade</h2>
+    <div class="pcm-form-grid full">
+      <div class="pcm-form-field">
+        <label>Nome da unidade</label>
+        <input type="text" id="pcm-form-unidade-nome" value="${editando ? unidadeExistente.nome : ''}" placeholder="Ex: Goiânia - GO">
+      </div>
+    </div>
+    <div class="pcm-admin-toolbar">
+      <button class="pcm-admin-btn primary" id="pcm-form-unidade-salvar">Salvar</button>
+      <button class="pcm-admin-btn" onclick="pcmFecharAdminModal()">Cancelar</button>
+    </div>
+  `);
+  document.getElementById('pcm-form-unidade-salvar').addEventListener('click', async () => {
+    const nome = document.getElementById('pcm-form-unidade-nome').value.trim();
+    if(!nome){ alert('Informe o nome da unidade.'); return; }
+    let idNovo = null;
+    if(editando){
+      unidadeExistente.nome = nome;
+    } else {
+      idNovo = 'U_' + nome.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,24) + '_' + Date.now().toString(36).slice(-4);
+      pcmUnidades.push({ id: idNovo, nome });
+    }
+    try{
+      await pcmSalvarUnidades();
+    }catch(e){
+      if(idNovo) pcmUnidades = pcmUnidades.filter(u => u.id !== idNovo);
+      return;
+    }
+    pcmRenderAdminUnidades();
+    pcmFecharAdminModal();
+  });
+}
+document.getElementById('pcm-admin-nova-unidade-btn').addEventListener('click', () => pcmNovaUnidadeForm(null));
+function pcmEditarUnidade(id){
+  const u = pcmUnidades.find(u => u.id === id);
+  if(u) pcmNovaUnidadeForm(u);
+}
+async function pcmExcluirUnidade(id){
+  if(pcmUnidades.length <= 1){ alert('É preciso manter ao menos uma unidade.'); return; }
+  if(!confirm('Excluir esta unidade? Os dados operacionais dela permanecem no banco, mas ela some da lista de login.')) return;
+  const removida = pcmUnidades.find(u => u.id === id);
+  pcmUnidades = pcmUnidades.filter(u => u.id !== id);
+  try{
+    await pcmSalvarUnidades();
+  }catch(e){
+    if(removida) pcmUnidades.push(removida);
+    return;
+  }
+  pcmRenderAdminUnidades();
+}
+
+// ── MATRIZ DE PERMISSÕES (compartilhada entre Perfil e Usuário) ──
+function pcmRenderMatrizPermissoes(permissoesAtuais, containerId){
+  const perms = permissoesAtuais || pcmPermissoesVazias();
+  const linhas = PCM_ABAS.map(aba => `
+    <tr>
+      <td>${aba.label}</td>
+      ${PCM_ACOES.map(acao => `
+        <td><input type="checkbox" data-aba="${aba.id}" data-acao="${acao.id}" ${perms[aba.id] && perms[aba.id][acao.id] ? 'checked' : ''}></td>
+      `).join('')}
+    </tr>
+  `).join('');
+  return `
+    <div class="pcm-perm-actions-row">
+      <button type="button" onclick="pcmMarcarTodasPermissoes('${containerId}', true)">Marcar tudo</button>
+      <button type="button" onclick="pcmMarcarTodasPermissoes('${containerId}', false)">Desmarcar tudo</button>
+      <button type="button" onclick="pcmMarcarColuna('${containerId}', 'ver', true)">Marcar só "Ver" em tudo</button>
+    </div>
+    <table class="pcm-perm-table" id="${containerId}">
+      <thead><tr><th>Aba</th>${PCM_ACOES.map(a => `<th>${a.label}</th>`).join('')}</tr></thead>
+      <tbody>${linhas}</tbody>
+    </table>
+  `;
+}
+function pcmMarcarTodasPermissoes(containerId, valor){
+  document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach(cb => cb.checked = valor);
+}
+function pcmMarcarColuna(containerId, acaoId, valor){
+  document.querySelectorAll(`#${containerId} input[data-acao="${acaoId}"]`).forEach(cb => cb.checked = valor);
+}
+function pcmLerMatrizPermissoes(containerId){
+  const perms = pcmPermissoesVazias();
+  document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach(cb => {
+    const aba = cb.getAttribute('data-aba'), acao = cb.getAttribute('data-acao');
+    if(perms[aba]) perms[aba][acao] = cb.checked;
+  });
+  return perms;
+}
+
+// ── PERFIS ──
+function pcmRenderAdminPerfis(){
+  const el = document.getElementById('pcm-admin-perfis-list');
+  if(!el) return;
+  if(!pcmPerfis.length){ el.innerHTML = '<p class="sub">Nenhum perfil cadastrado ainda.</p>'; return; }
+  el.innerHTML = pcmPerfis.map(p => `
+    <div class="pcm-admin-row">
+      <div class="info"><strong>${p.nome}</strong><span>Perfil reutilizável de permissões</span></div>
+      <div class="actions">
+        <button onclick="pcmEditarPerfil('${p.id}')">Editar permissões</button>
+        <button class="del" onclick="pcmExcluirPerfil('${p.id}')">Excluir</button>
+      </div>
+    </div>
+  `).join('');
+}
+function pcmFormPerfil(perfilExistente){
+  const editando = !!perfilExistente;
+  pcmAbrirAdminModal(`
+    <h2 style="margin-top:0;">${editando ? 'Editar' : 'Novo'} Perfil</h2>
+    <div class="pcm-form-grid full">
+      <div class="pcm-form-field">
+        <label>Nome do perfil</label>
+        <input type="text" id="pcm-form-perfil-nome" value="${editando ? perfilExistente.nome : ''}" placeholder="Ex: Mecânico, Supervisor…">
+      </div>
+    </div>
+    <h3 style="font-size:14px;color:var(--dim);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.05em;margin:18px 0 4px;">Permissões deste perfil</h3>
+    ${pcmRenderMatrizPermissoes(editando ? perfilExistente.permissoes : null, 'pcm-matriz-perfil')}
+    <div class="pcm-admin-toolbar" style="margin-top:16px;">
+      <button class="pcm-admin-btn primary" id="pcm-form-perfil-salvar">Salvar</button>
+      <button class="pcm-admin-btn" onclick="pcmFecharAdminModal()">Cancelar</button>
+    </div>
+  `);
+  document.getElementById('pcm-form-perfil-salvar').addEventListener('click', async () => {
+    const nome = document.getElementById('pcm-form-perfil-nome').value.trim();
+    if(!nome){ alert('Informe o nome do perfil.'); return; }
+    const permissoes = pcmLerMatrizPermissoes('pcm-matriz-perfil');
+    let novoObj = null;
+    let nomeAnterior = null, permissoesAnteriores = null;
+    if(editando){
+      nomeAnterior = perfilExistente.nome; permissoesAnteriores = perfilExistente.permissoes;
+      perfilExistente.nome = nome;
+      perfilExistente.permissoes = permissoes;
+    } else {
+      novoObj = { id: 'p_' + Date.now(), nome, permissoes };
+      pcmPerfis.push(novoObj);
+    }
+    try{
+      await pcmSalvarPerfis();
+    }catch(e){
+      if(novoObj) pcmPerfis = pcmPerfis.filter(p => p.id !== novoObj.id);
+      else if(editando){ perfilExistente.nome = nomeAnterior; perfilExistente.permissoes = permissoesAnteriores; }
+      return;
+    }
+    pcmRenderAdminPerfis();
+    pcmFecharAdminModal();
+    // Recalcula permissões de todos os usuários que usam este perfil (efeito imediato na próxima ação deles)
+  });
+}
+document.getElementById('pcm-admin-novo-perfil-btn').addEventListener('click', () => pcmFormPerfil(null));
+function pcmEditarPerfil(id){
+  const p = pcmPerfis.find(p => p.id === id);
+  if(p) pcmFormPerfil(p);
+}
+async function pcmExcluirPerfil(id){
+  const emUso = pcmUsuarios.some(u => u.perfilId === id);
+  if(emUso && !confirm('Este perfil está em uso por um ou mais usuários, que ficarão sem permissões até receberem outro perfil. Deseja continuar?')) return;
+  else if(!emUso && !confirm('Excluir este perfil?')) return;
+  const removido = pcmPerfis.find(p => p.id === id);
+  pcmPerfis = pcmPerfis.filter(p => p.id !== id);
+  try{
+    await pcmSalvarPerfis();
+  }catch(e){
+    if(removido) pcmPerfis.push(removido);
+    return;
+  }
+  pcmRenderAdminPerfis();
+}
+
+// ── USUÁRIOS ──
+function pcmRenderAdminUsuarios(){
+  const el = document.getElementById('pcm-admin-usuarios-list');
+  if(!el) return;
+  if(!pcmUsuarios.length){ el.innerHTML = '<p class="sub">Nenhum usuário cadastrado.</p>'; return; }
+  const roleLabels = { super_admin:'Super Admin (todas as unidades)', admin_unidade:'Admin da unidade', perfil:'Usuário com perfil' };
+  el.innerHTML = pcmUsuarios.map(u => {
+    const perfil = pcmPerfis.find(p => p.id === u.perfilId);
+    const unidadesTxt = (u.unidadeIds && u.unidadeIds.length)
+      ? u.unidadeIds.map(id => (pcmUnidades.find(un => un.id === id) || {}).nome || id).join(', ')
+      : 'Todas';
+    const unidadePadraoTxt = (pcmUnidades.find(un => un.id === u.unidadePadrao) || {}).nome || '—';
+    return `
+    <div class="pcm-admin-row">
+      <div class="info">
+        <strong>${u.nome || u.usuario} (@${u.usuario})</strong>
+        <span>${roleLabels[u.role] || u.role}${perfil ? ' · Perfil: ' + perfil.nome : ''} · Unidades: ${unidadesTxt} · Padrão no login: ${unidadePadraoTxt}</span>
+      </div>
+      <div class="actions">
+        <button onclick="pcmEditarUsuario('${u.id}')">Editar</button>
+        <button class="del" onclick="pcmExcluirUsuario('${u.id}')">Excluir</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function pcmFormUsuario(usuarioExistente){
+  const editando = !!usuarioExistente;
+  const unidadesCheckboxes = pcmUnidades.map(u => `
+    <label><input type="checkbox" value="${u.id}" class="pcm-form-usuario-unidade" ${editando && usuarioExistente.unidadeIds && usuarioExistente.unidadeIds.includes(u.id) ? 'checked' : ''}> ${u.nome}</label>
+  `).join('');
+  const unidadePadraoAtual = editando ? usuarioExistente.unidadePadrao : null;
+  const unidadePadraoOptions = pcmUnidades.map(u => `<option value="${u.id}" ${unidadePadraoAtual === u.id ? 'selected' : ''}>${u.nome}</option>`).join('');
+  const perfilOptions = `<option value="">— Sem perfil (ajuste 100% manual) —</option>` + pcmPerfis.map(p => `<option value="${p.id}" ${editando && usuarioExistente.perfilId === p.id ? 'selected' : ''}>${p.nome}</option>`).join('');
+  pcmAbrirAdminModal(`
+    <h2 style="margin-top:0;">${editando ? 'Editar' : 'Novo'} Usuário</h2>
+    <div class="pcm-form-grid">
+      <div class="pcm-form-field">
+        <label>Nome</label>
+        <input type="text" id="pcm-form-usuario-nomecompleto" value="${editando ? (usuarioExistente.nome||'') : ''}" placeholder="Nome de exibição">
+      </div>
+      <div class="pcm-form-field">
+        <label>Usuário (login)</label>
+        <input type="text" id="pcm-form-usuario-usuario" value="${editando ? usuarioExistente.usuario : ''}" placeholder="ex: joao.silva">
+      </div>
+      <div class="pcm-form-field">
+        <label>Senha</label>
+        <input type="text" id="pcm-form-usuario-senha" value="${editando ? usuarioExistente.senha : ''}" placeholder="Senha de acesso">
+      </div>
+      <div class="pcm-form-field">
+        <label>Papel</label>
+        <select id="pcm-form-usuario-role">
+          <option value="perfil" ${editando && usuarioExistente.role==='perfil' ? 'selected' : ''}>Usuário comum (permissões por perfil/ajuste fino)</option>
+          <option value="admin_unidade" ${editando && usuarioExistente.role==='admin_unidade' ? 'selected' : ''}>Admin da unidade (acesso total, só na(s) unidade(s) marcada(s))</option>
+          <option value="super_admin" ${editando && usuarioExistente.role==='super_admin' ? 'selected' : ''}>Super Admin (acesso total a todas as unidades)</option>
+        </select>
+      </div>
+    </div>
+    <div class="pcm-form-field" id="pcm-form-usuario-unidades-wrap">
+      <label>Unidades com acesso (para Super Admin, marque todas ou deixe todas selecionadas)</label>
+      <div class="pcm-form-checkbox-group">${unidadesCheckboxes}</div>
+    </div>
+    <div class="pcm-form-field" id="pcm-form-usuario-unidadepadrao-wrap" style="margin-top:12px;">
+      <label>Unidade padrão (entra automaticamente nela ao fazer login)</label>
+      <select id="pcm-form-usuario-unidadepadrao">${unidadePadraoOptions}</select>
+    </div>
+    <div class="pcm-form-field" id="pcm-form-usuario-perfil-wrap" style="margin-top:12px;">
+      <label>Perfil de permissões (aplica-se apenas a "Usuário comum")</label>
+      <select id="pcm-form-usuario-perfil">${perfilOptions}</select>
+    </div>
+    <h3 style="font-size:14px;color:var(--dim);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.05em;margin:18px 0 4px;" id="pcm-form-usuario-ajuste-titulo">Ajuste fino (sobrepõe o perfil escolhido acima para este usuário)</h3>
+    <div id="pcm-form-usuario-ajuste-wrap">${pcmRenderMatrizPermissoes(editando ? usuarioExistente.overrides : null, 'pcm-matriz-usuario')}</div>
+    <div class="pcm-admin-toolbar" style="margin-top:16px;">
+      <button class="pcm-admin-btn primary" id="pcm-form-usuario-salvar">Salvar</button>
+      <button class="pcm-admin-btn" onclick="pcmFecharAdminModal()">Cancelar</button>
+    </div>
+  `);
+
+  // A unidade padrão só pode ser uma das unidades marcadas como "com acesso"
+  // (super_admin tem acesso a todas, então pode escolher qualquer uma).
+  function atualizarOpcoesUnidadePadrao(){
+    const role = document.getElementById('pcm-form-usuario-role').value;
+    const selectPadrao = document.getElementById('pcm-form-usuario-unidadepadrao');
+    const valorAtual = selectPadrao.value;
+    let opcoes = role === 'super_admin'
+      ? pcmUnidades
+      : pcmUnidades.filter(u => document.querySelector(`.pcm-form-usuario-unidade[value="${u.id}"]`).checked);
+    if(!opcoes.length) opcoes = pcmUnidades; // evita select vazio antes de marcar alguma unidade
+    selectPadrao.innerHTML = opcoes.map(u => `<option value="${u.id}" ${u.id === valorAtual ? 'selected' : ''}>${u.nome}</option>`).join('');
+    if(!opcoes.some(u => u.id === valorAtual) && opcoes.length) selectPadrao.value = opcoes[0].id;
+  }
+
+  function atualizarVisibilidadeCamposPorRole(){
+    const role = document.getElementById('pcm-form-usuario-role').value;
+    const ehAdminTotal = role === 'super_admin' || role === 'admin_unidade';
+    document.getElementById('pcm-form-usuario-perfil-wrap').style.display = ehAdminTotal ? 'none' : '';
+    document.getElementById('pcm-form-usuario-ajuste-wrap').style.display = ehAdminTotal ? 'none' : '';
+    document.getElementById('pcm-form-usuario-ajuste-titulo').style.display = ehAdminTotal ? 'none' : '';
+    document.getElementById('pcm-form-usuario-unidades-wrap').style.display = role === 'super_admin' ? 'none' : '';
+    atualizarOpcoesUnidadePadrao();
+  }
+  document.getElementById('pcm-form-usuario-role').addEventListener('change', atualizarVisibilidadeCamposPorRole);
+  document.querySelectorAll('.pcm-form-usuario-unidade').forEach(cb => cb.addEventListener('change', atualizarOpcoesUnidadePadrao));
+  atualizarVisibilidadeCamposPorRole();
+
+  document.getElementById('pcm-form-usuario-salvar').addEventListener('click', async () => {
+    const usuario = document.getElementById('pcm-form-usuario-usuario').value.trim();
+    const senha = document.getElementById('pcm-form-usuario-senha').value;
+    const nome = document.getElementById('pcm-form-usuario-nomecompleto').value.trim();
+    const role = document.getElementById('pcm-form-usuario-role').value;
+    if(!usuario || !senha){ alert('Informe usuário e senha.'); return; }
+    const usuarioDuplicado = pcmUsuarios.find(u => u.usuario.toLowerCase() === usuario.toLowerCase() && (!editando || u.id !== usuarioExistente.id));
+    if(usuarioDuplicado){ alert('Já existe um usuário com esse nome de login.'); return; }
+    const unidadeIds = Array.from(document.querySelectorAll('.pcm-form-usuario-unidade:checked')).map(cb => cb.value);
+    const unidadePadrao = document.getElementById('pcm-form-usuario-unidadepadrao').value;
+    if(role !== 'super_admin' && !unidadeIds.includes(unidadePadrao)){ alert('A unidade padrão precisa estar entre as unidades com acesso marcadas.'); return; }
+    const perfilId = document.getElementById('pcm-form-usuario-perfil').value || null;
+    const overrides = pcmLerMatrizPermissoes('pcm-matriz-usuario');
+
+    const dados = { usuario, senha, nome, role, unidadeIds, unidadePadrao, perfilId, overrides };
+    let novoObj = null, dadosAnteriores = null;
+    if(editando){
+      dadosAnteriores = { ...usuarioExistente };
+      Object.assign(usuarioExistente, dados);
+    } else {
+      novoObj = { id: 'u_' + Date.now(), ...dados };
+      pcmUsuarios.push(novoObj);
+    }
+    try{
+      await pcmSalvarUsuarios();
+    }catch(e){
+      if(novoObj) pcmUsuarios = pcmUsuarios.filter(u => u.id !== novoObj.id);
+      else if(editando) Object.assign(usuarioExistente, dadosAnteriores);
+      return;
+    }
+    pcmRenderAdminUsuarios();
+    pcmFecharAdminModal();
+  });
+}
+document.getElementById('pcm-admin-novo-usuario-btn').addEventListener('click', () => pcmFormUsuario(null));
+function pcmEditarUsuario(id){
+  const u = pcmUsuarios.find(u => u.id === id);
+  if(u) pcmFormUsuario(u);
+}
+async function pcmExcluirUsuario(id){
+  if(pcmSession && pcmSession.usuarioId === id){ alert('Você não pode excluir o próprio usuário logado.'); return; }
+  if(!confirm('Excluir este usuário?')) return;
+  const removido = pcmUsuarios.find(u => u.id === id);
+  pcmUsuarios = pcmUsuarios.filter(u => u.id !== id);
+  try{
+    await pcmSalvarUsuarios();
+  }catch(e){
+    if(removido) pcmUsuarios.push(removido);
+    return;
+  }
+  pcmRenderAdminUsuarios();
+}
 
 // ════════════════════════════════════════════════════════
 // FIREBASE — init + sync
@@ -3328,7 +4044,7 @@ async function initFirestore(){
     // outra pessoa em qualquer aba/dispositivo aparece automaticamente aqui, sem precisar recarregar.
 
     // ── manualRecords — tempo real ──
-    db.collection('pcm').doc('manualRecords').onSnapshot(snap => {
+    db.collection('pcm').doc(pcmDocId('manualRecords')).onSnapshot(snap => {
       if(snap.exists && snap.data().records){
         manualRecords = snap.data().records;
         manualRecords.forEach(r => { r.origin = 'manual'; });
@@ -3341,7 +4057,7 @@ async function initFirestore(){
     }, err => { console.warn('Firestore manualRecords:', err); pcmRecebeuMR = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── frota — tempo real ──
-    db.collection('pcm').doc('frota').onSnapshot(snap => {
+    db.collection('pcm').doc(pcmDocId('frota')).onSnapshot(snap => {
       if(snap.exists && snap.data().data){
         frota = snap.data().data;
         const firestoreVersion = Number(snap.data().seedVersion||0);
@@ -3351,14 +4067,14 @@ async function initFirestore(){
             if(!frota[v]) frota[v] = d;
             else { frota[v].placa = d.placa; frota[v].operacao = d.operacao; }
           });
-          db.collection('pcm').doc('frota')
+          db.collection('pcm').doc(pcmDocId('frota'))
             .set({ data: frota, seedVersion: FROTA_SEED_VERSION, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
             .catch(e => console.warn('Firestore frota merge:', e));
         }
         try{ localStorage.setItem(FROTA_STORAGE_KEY, JSON.stringify(frota)); }catch(e){}
       } else {
         // Documento ainda não existe: envia a base semente
-        db.collection('pcm').doc('frota')
+        db.collection('pcm').doc(pcmDocId('frota'))
           .set({ data: frota, seedVersion: FROTA_SEED_VERSION, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
           .catch(e => console.warn('Firestore frota seed:', e));
       }
@@ -3368,7 +4084,7 @@ async function initFirestore(){
     }, err => { console.warn('Firestore frota:', err); pcmRecebeuFrota = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── overrides — tempo real ──
-    db.collection('pcm').doc('overrides').onSnapshot(snap => {
+    db.collection('pcm').doc(pcmDocId('overrides')).onSnapshot(snap => {
       if(snap.exists && snap.data().data){
         overrides = snap.data().data;
         try{ localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides)); }catch(e){}
@@ -3380,7 +4096,7 @@ async function initFirestore(){
     }, err => { console.warn('Firestore overrides:', err); pcmRecebeuOv = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── deletedKeys (OS excluídas da planilha) — tempo real ──
-    db.collection('pcm').doc('deletedKeys').onSnapshot(snap => {
+    db.collection('pcm').doc(pcmDocId('deletedKeys')).onSnapshot(snap => {
       if(snap.exists && snap.data().data){
         deletedKeys = snap.data().data;
         try{ localStorage.setItem(DELETED_KEYS_KEY, JSON.stringify(deletedKeys)); }catch(e){}
@@ -3391,7 +4107,7 @@ async function initFirestore(){
     }, err => { console.warn('Firestore deletedKeys:', err); pcmRecebeuDel = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── hodômetro — tempo real ──
-    db.collection('pcm').doc('hodometro').onSnapshot(snap => {
+    db.collection('pcm').doc(pcmDocId('hodometro')).onSnapshot(snap => {
       if(snap.exists && snap.data().data){
         let hd = snap.data().data;
         // Migrate old array-of-all-vehicles format
@@ -3419,7 +4135,7 @@ async function initFirestore(){
     }, err => { console.warn('Firestore hodometro:', err); pcmRecebeuHodo = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── log — tempo real ──
-    db.collection('pcm').doc('log').onSnapshot(snap => {
+    db.collection('pcm').doc(pcmDocId('log')).onSnapshot(snap => {
       if(snap.exists && snap.data().entries){
         const cloudEntries = snap.data().entries;
         // Merge: keep local + cloud, deduplicate by id, sort newest first
@@ -3436,7 +4152,7 @@ async function initFirestore(){
     }, err => { console.warn('Firestore log:', err); pcmRecebeuLog = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── gns — tempo real ──
-    db.collection('pcm').doc('gns').onSnapshot(snap => {
+    db.collection('pcm').doc(pcmDocId('gns')).onSnapshot(snap => {
       if(snap.exists && snap.data().records){
         gnsRecords = snap.data().records;
         gnsNextId  = gnsRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
@@ -3448,7 +4164,7 @@ async function initFirestore(){
     }, err => { console.warn('Firestore gns:', err); pcmRecebeuGns = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── solicitações de reparo — tempo real ──
-    db.collection('pcm').doc('solicitacoes').onSnapshot(snap => {
+    db.collection('pcm').doc(pcmDocId('solicitacoes')).onSnapshot(snap => {
       if(snap.exists && snap.data().records){
         solRecords = snap.data().records;
         solNextId  = solRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
@@ -3461,7 +4177,7 @@ async function initFirestore(){
     }, err => { console.warn('Firestore solicitacoes:', err); pcmRecebeuSol = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── meta (último backup) — tempo real ──
-    db.collection('pcm').doc('meta').onSnapshot(snap => {
+    db.collection('pcm').doc(pcmDocId('meta')).onSnapshot(snap => {
       pcmLastBackup = snap.exists ? snap.data().lastBackup : null;
       if(pcmLastBackup) localStorage.setItem(BACKUP_DATE_KEY, pcmLastBackup);
       pcmRecebeuMeta = true;
@@ -3470,7 +4186,7 @@ async function initFirestore(){
     }, err => { console.warn('Firestore meta:', err); pcmRecebeuMeta = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── fechamentos de OS — tempo real ──
-    db.collection('pcm').doc('fechamentos').onSnapshot(snap => {
+    db.collection('pcm').doc(pcmDocId('fechamentos')).onSnapshot(snap => {
       if(snap.exists && snap.data().data){
         fechamentos = snap.data().data;
         try{ localStorage.setItem(FECHAMENTO_KEY, JSON.stringify(fechamentos)); }catch(e){}
@@ -3485,7 +4201,7 @@ async function initFirestore(){
     }, err => { console.warn('Firestore fechamentos:', err); pcmRecebeuFech = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── categorias (setores/categorias/chaves personalizados) — tempo real ──
-    db.collection('pcm').doc('categorias').onSnapshot(snap => {
+    db.collection('pcm').doc(pcmDocId('categorias')).onSnapshot(snap => {
       if(snap.exists){
         const d = snap.data() || {};
         if(d.setores)        SETOR_CATEGORIAS = d.setores;
@@ -3528,7 +4244,7 @@ function saveManualRecords(list){
   // Write to Firestore (async, fire-and-forget)
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }catch(e){} // local cache
   if(window._db){
-    window._db.collection('pcm').doc('manualRecords')
+    window._db.collection('pcm').doc(pcmDocId('manualRecords'))
       .set({ records: list, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
       .catch(e => console.warn('Firestore saveManualRecords:', e));
   }
@@ -3728,6 +4444,7 @@ document.getElementById('dup-clear-sel-btn')?.addEventListener('click', ()=>{
 });
 
 document.getElementById('dup-bulk-del-btn')?.addEventListener('click', ()=>{
+  if(pcmBloquear('duplicadas','excluir')) return;
   const checked = [...document.querySelectorAll('#dup-groups .dup-check:checked')];
   if(checked.length === 0) return;
   if(!confirm(`Tem certeza que deseja excluir ${checked.length} OS selecionada(s)? Essa ação não pode ser desfeita.`)) return;
@@ -4116,6 +4833,10 @@ function renderTable(rows){
 // tabela principal e pela aba de Duplicadas. Pede confirmação, registra no
 // Log e re-renderiza a tela.
 function deleteOSRecordConfirm(id, origin){
+  const abaAtivaEl = document.querySelector('.tab-btn.active[data-tab]');
+  const abaAtiva = abaAtivaEl ? abaAtivaEl.getAttribute('data-tab') : 'ordens';
+  const abaPermissao = (abaAtiva === 'duplicadas') ? 'duplicadas' : 'ordens';
+  if(pcmBloquear(abaPermissao,'excluir')) return;
   if(!confirm('Tem certeza que deseja excluir esta OS? Essa ação não pode ser desfeita.')) return;
 
   if(origin === 'manual'){
@@ -4151,7 +4872,7 @@ function loadFechamentos(){
 function saveFechamentos(){
   try{ localStorage.setItem(FECHAMENTO_KEY, JSON.stringify(fechamentos)); }catch(e){}
   if(window._db){
-    window._db.collection('pcm').doc('fechamentos')
+    window._db.collection('pcm').doc(pcmDocId('fechamentos'))
       .set({ data: fechamentos, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
       .catch(e => console.warn('Firestore saveFechamentos:', e));
   }
@@ -4170,6 +4891,7 @@ function getFechamento(r){
 
 // Fechar uma lista de registros com data+responsavel+obs
 function fecharOS(records, dataFechamento, responsavelFechamento, obsFechamento){
+  if(pcmBloquear('ordens','fechar')) return;
   records.forEach(r => {
     const uid = fechamentoUid(r);
     fechamentos[uid] = {
@@ -4194,6 +4916,7 @@ function fecharOS(records, dataFechamento, responsavelFechamento, obsFechamento)
 
 // Reabrir uma OS
 function reabrirOS(uid){
+  if(pcmBloquear('ordens','fechar')) return;
   if(!confirm('Reabrir esta OS?')) return;
   const f = fechamentos[uid];
   if(f) addLog('os-fechamento', `OS reaberta: ${f.osNum} — Veículo ${f.veiculo}`, '');
@@ -4446,6 +5169,7 @@ const overlay = document.getElementById('overlay');
 const drawer = document.getElementById('drawer');
 
 function openDrawer(){
+  if(pcmBloquear('ordens','criar')) return;
   refreshDatalists();
   // Pre-fill date with today
   const today = new Date().toISOString().slice(0,10);
@@ -4578,7 +5302,7 @@ function loadFrota(){
 function saveFrota(f){
   try{ localStorage.setItem(FROTA_STORAGE_KEY, JSON.stringify(f)); }catch(e){}
   if(window._db){
-    window._db.collection('pcm').doc('frota')
+    window._db.collection('pcm').doc(pcmDocId('frota'))
       .set({ data: f, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
       .catch(e => console.warn('Firestore saveFrota:', e));
   }
@@ -4668,6 +5392,7 @@ document.getElementById('frota-search').addEventListener('input', renderFrota);
 document.getElementById('frota-add-btn').addEventListener('click', () => openFrotaModal(null));
 
 function openFrotaModal(veiculoId){
+  if(pcmBloquear('frota', veiculoId ? 'editar' : 'criar')) return;
   frotaEditId = veiculoId;
   document.getElementById('frota-modal-title').textContent = veiculoId ? 'Editar veículo' : 'Adicionar veículo';
   document.getElementById('fm-veiculo').value = veiculoId || '';
@@ -4684,6 +5409,7 @@ function closeFrotaModal(){
 }
 
 function deleteFrota(v){
+  if(pcmBloquear('frota','excluir')) return;
   if(confirm(`Remover veículo ${v} da frota?`)){
     delete frota[v];
     saveFrota(frota);
@@ -4749,7 +5475,7 @@ function loadOverrides(){
 function saveOverrides(){
   try{ localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides)); }catch(e){}
   if(window._db){
-    window._db.collection('pcm').doc('overrides')
+    window._db.collection('pcm').doc(pcmDocId('overrides'))
       .set({ data: overrides, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
       .catch(e => console.warn('Firestore saveOverrides:', e));
   }
@@ -4773,7 +5499,7 @@ function loadDeletedKeys(){
 function saveDeletedKeys(){
   try{ localStorage.setItem(DELETED_KEYS_KEY, JSON.stringify(deletedKeys)); }catch(e){}
   if(window._db){
-    window._db.collection('pcm').doc('deletedKeys')
+    window._db.collection('pcm').doc(pcmDocId('deletedKeys'))
       .set({ data: deletedKeys, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
       .catch(e => console.warn('Firestore saveDeletedKeys:', e));
   }
@@ -4809,6 +5535,10 @@ function findRecord(id, origin){
 }
 
 function openEditDrawer(id, origin){
+  const abaAtivaEl = document.querySelector('.tab-btn.active[data-tab]');
+  const abaAtiva = abaAtivaEl ? abaAtivaEl.getAttribute('data-tab') : 'ordens';
+  const abaPermissao = (abaAtiva === 'duplicadas') ? 'duplicadas' : 'ordens';
+  if(pcmBloquear(abaPermissao,'editar')) return;
   let record;
   if(origin === 'manual'){
     record = manualRecords.find(r => String(r._id) === String(id));
@@ -5125,6 +5855,7 @@ function dupWarningMsg(existing){
 // distintas. Os registros originais são excluídos.
 // ════════════════════════════════════════════════════════
 function mesclarGrupoOS(group, groupEl){
+  if(pcmBloquear('duplicadas','excluir')) return;
   const marcados = [...groupEl.querySelectorAll('.dup-check:checked')]
     .map(cb => ({ id: cb.dataset.id, origin: cb.dataset.origin }));
 
@@ -5371,6 +6102,7 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
   if(!item) return;
 
   if(e.target.closest('.sug-dismiss-btn')){
+    if(pcmBloquear('sugestoes','excluir')) return;
     if(!confirm(`Descartar a sugestão de categoria para "${item.setor}"? Isso não afeta nenhuma OS já lançada.`)) return;
     sugestoesCategoria = sugestoesCategoria.filter(s => s.id !== id);
     saveSugestoesCategoria();
@@ -5379,6 +6111,7 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
   }
 
   if(e.target.closest('.sug-exemplo-btn')){
+    if(pcmBloquear('sugestoes','criar')) return;
     const row = e.target.closest('.sug-exemplo-row');
     if(!row) return;
     const input = row.querySelector('.sug-exemplo-input');
@@ -5507,7 +6240,7 @@ function loadHodoData(){
 function saveHodoData(){
   try{ localStorage.setItem(HODO_KEY, JSON.stringify(hodoData)); }catch(e){}
   if(window._db){
-    window._db.collection('pcm').doc('hodometro')
+    window._db.collection('pcm').doc(pcmDocId('hodometro'))
       .set({ data: hodoData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
       .catch(e => console.warn('Firestore saveHodoData:', e));
   }
@@ -5857,19 +6590,25 @@ function handleHodoFile(file){
 // Wire drop zone
 const hodoDrop  = document.getElementById('hodo-drop');
 const hodoInput = document.getElementById('hodo-input');
-hodoDrop.addEventListener('click', () => hodoInput.click());
+hodoDrop.addEventListener('click', () => {
+  if(pcmBloquear('hodometro','criar')) return;
+  hodoInput.click();
+});
 hodoDrop.addEventListener('dragover', e => { e.preventDefault(); hodoDrop.classList.add('drag-over'); });
 hodoDrop.addEventListener('dragleave', () => hodoDrop.classList.remove('drag-over'));
 hodoDrop.addEventListener('drop', e => {
   e.preventDefault(); hodoDrop.classList.remove('drag-over');
+  if(pcmBloquear('hodometro','criar')) return;
   if(e.dataTransfer.files[0]) handleHodoFile(e.dataTransfer.files[0]);
 });
 hodoInput.addEventListener('change', e => {
+  if(pcmBloquear('hodometro','criar')) return;
   if(e.target.files[0]) handleHodoFile(e.target.files[0]);
   hodoInput.value = '';
 });
 document.getElementById('hodo-search').addEventListener('input', renderHodoTab);
 document.getElementById('hodo-clear-btn').addEventListener('click', () => {
+  if(pcmBloquear('hodometro','excluir')) return;
   if(confirm('Limpar todos os dados de hodômetro? Os veículos permanecem, apenas os dados são removidos.')){
     hodoData = {};
     saveHodoData();
@@ -5881,6 +6620,7 @@ document.getElementById('hodo-clear-btn').addEventListener('click', () => {
 
 // ── Manual hodo entry ────────────────────────────────────
 document.getElementById('hm-save-btn').addEventListener('click', () => {
+  if(pcmBloquear('hodometro','criar')) return;
   const veiculo   = document.getElementById('hm-veiculo').value.trim();
   const hodometro = Number(document.getElementById('hm-hodometro').value);
   const litros    = Number(document.getElementById('hm-litros').value) || 0;
@@ -5960,7 +6700,7 @@ function persistLog(){
     // de writes pendentes (resource-exhausted).
     clearTimeout(_persistLogTimer);
     _persistLogTimer = setTimeout(()=>{
-      window._db.collection('pcm').doc('log')
+      window._db.collection('pcm').doc(pcmDocId('log'))
         .set({ entries: logEntries, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
         .catch(e => console.warn('Firestore log:', e));
     }, 600);
@@ -6037,6 +6777,7 @@ function renderLogTab(){
 document.getElementById('log-search').addEventListener('input', renderLogTab);
 document.getElementById('log-filter-cat').addEventListener('change', renderLogTab);
 document.getElementById('log-clear-btn').addEventListener('click', () => {
+  if(pcmBloquear('log','excluir')) return;
   if(confirm('Apagar todo o histórico de log?')){
     logEntries = [];
     persistLog();
@@ -6046,6 +6787,7 @@ document.getElementById('log-clear-btn').addEventListener('click', () => {
 });
 
 document.getElementById('log-export-btn').addEventListener('click', () => {
+  if(pcmBloquear('log','exportar')) return;
   const rows = [['Data/Hora','Categoria','Título','Detalhe']];
   logEntries.forEach(e => rows.push([fmtTs(e.ts), catLabel(e.cat), e.title, e.detail]));
   const csv  = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
@@ -6087,7 +6829,7 @@ function loadSol(){
 function saveSol(){
   try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
   if(window._db){
-    window._db.collection('pcm').doc('solicitacoes')
+    window._db.collection('pcm').doc(pcmDocId('solicitacoes'))
       .set({ records: solRecords, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
       .catch(e => console.warn('Firestore Solicitações save:', e));
   }
@@ -6309,6 +7051,7 @@ document.getElementById('sol-check-all')?.addEventListener('change', function(){
 });
 
 document.getElementById('sol-bulk-del-btn')?.addEventListener('click', ()=>{
+  if(pcmBloquear('solicitacoes','excluir')) return;
   if(solSelIds.size === 0) return;
   const selecionadas = solRecords.filter(r => solSelIds.has(r.id));
   if(!selecionadas.length) return;
@@ -6354,7 +7097,10 @@ function closeSolDrawer(){
   document.getElementById('sol-overlay').classList.remove('open');
   document.getElementById('sol-drawer').classList.remove('open');
 }
-document.getElementById('sol-add-btn').addEventListener('click', () => { solResetForm(); openSolDrawer(); });
+document.getElementById('sol-add-btn').addEventListener('click', () => {
+  if(pcmBloquear('solicitacoes','criar')) return;
+  solResetForm(); openSolDrawer();
+});
 document.getElementById('sol-drawer-close').addEventListener('click', closeSolDrawer);
 document.getElementById('sol-overlay').addEventListener('click', closeSolDrawer);
 
@@ -6379,6 +7125,7 @@ function solResetForm(){
 
 // ── Edit open ─────────────────────────────────────────────
 function solEditOpen(id){
+  if(pcmBloquear('solicitacoes','editar')) return;
   const r = solRecords.find(x => x.id === id);
   if(!r) return;
   solEditId = id;
@@ -6401,6 +7148,7 @@ function solEditOpen(id){
 
 // ── Delete ────────────────────────────────────────────────
 function solDelete(id){
+  if(pcmBloquear('solicitacoes','excluir')) return;
   const r = solRecords.find(x => x.id === id);
   if(!r) return;
   if(!confirm(`Excluir a solicitação ${r.num||'#'+id}? Esta ação não pode ser desfeita.`)) return;
@@ -6413,6 +7161,7 @@ function solDelete(id){
 
 // ── Submit ────────────────────────────────────────────────
 document.getElementById('sol-submit-btn').addEventListener('click', () => {
+  if(pcmBloquear('solicitacoes', solEditId ? 'editar' : 'criar')) return;
   const errEl = document.getElementById('sol-form-error');
   errEl.style.display = 'none';
 
@@ -6528,6 +7277,7 @@ document.getElementById('sol-imp-clear-queue-btn').addEventListener('click', () 
 });
 
 document.getElementById('sol-imp-commit-btn').addEventListener('click', () => {
+  if(pcmBloquear('solicitacoes','criar')) return;
   if(!solImportQueue.length) return;
   let count = 0;
   solImportQueue.forEach(r => {
@@ -6548,15 +7298,17 @@ document.getElementById('sol-imp-commit-btn').addEventListener('click', () => {
 const solCsvDrop  = document.getElementById('sol-csv-drop');
 const solCsvInput = document.getElementById('sol-csv-input');
 
-solCsvDrop.addEventListener('click',    ()=> solCsvInput.click());
+solCsvDrop.addEventListener('click',    ()=> { if(pcmBloquear('solicitacoes','criar')) return; solCsvInput.click(); });
 solCsvDrop.addEventListener('dragover', e => { e.preventDefault(); solCsvDrop.classList.add('drag-over'); });
 solCsvDrop.addEventListener('dragleave',  () => solCsvDrop.classList.remove('drag-over'));
 solCsvDrop.addEventListener('drop', e => {
   e.preventDefault(); solCsvDrop.classList.remove('drag-over');
+  if(pcmBloquear('solicitacoes','criar')) return;
   const file = e.dataTransfer.files[0];
   if(file) handleSolImportFile(file);
 });
 solCsvInput.addEventListener('change', e => {
+  if(pcmBloquear('solicitacoes','criar')) return;
   const file = e.target.files[0];
   if(file) handleSolImportFile(file);
   solCsvInput.value = '';
@@ -6768,7 +7520,7 @@ function loadGns(){
 function saveGns(){
   try{ localStorage.setItem(GNS_KEY, JSON.stringify(gnsRecords)); }catch(e){}
   if(window._db){
-    window._db.collection('pcm').doc('gns')
+    window._db.collection('pcm').doc(pcmDocId('gns'))
       .set({ records: gnsRecords, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
       .catch(e => console.warn('Firestore GNS save:', e));
   }
@@ -6957,7 +7709,10 @@ function closeGnsDrawer(){
   document.getElementById('gns-overlay').classList.remove('open');
   document.getElementById('gns-drawer').classList.remove('open');
 }
-document.getElementById('gns-add-btn').addEventListener('click', () => { gnsResetForm(); openGnsDrawer(); });
+document.getElementById('gns-add-btn').addEventListener('click', () => {
+  if(pcmBloquear('gns','criar')) return;
+  gnsResetForm(); openGnsDrawer();
+});
 document.getElementById('gns-drawer-close').addEventListener('click', closeGnsDrawer);
 document.getElementById('gns-overlay').addEventListener('click', closeGnsDrawer);
 
@@ -6980,6 +7735,7 @@ function gnsResetForm(){
 
 // ── Edit open ─────────────────────────────────────────────
 function gnsEditOpen(id){
+  if(pcmBloquear('gns','editar')) return;
   const r = gnsRecords.find(x => x.id === id);
   if(!r) return;
   gnsEditId = id;
@@ -6999,6 +7755,7 @@ function gnsEditOpen(id){
 
 // ── Delete ────────────────────────────────────────────────
 function gnsDelete(id){
+  if(pcmBloquear('gns','excluir')) return;
   const r = gnsRecords.find(x => x.id === id);
   if(!r) return;
   if(!confirm(`Excluir GNS ${r.num||'#'+id}? Esta ação não pode ser desfeita.`)) return;
@@ -7032,6 +7789,7 @@ document.getElementById('gns-status').addEventListener('change', e => {
 
 // ── Submit ────────────────────────────────────────────────
 document.getElementById('gns-submit-btn').addEventListener('click', () => {
+  if(pcmBloquear('gns', gnsEditId ? 'editar' : 'criar')) return;
   const errEl = document.getElementById('gns-form-error');
   errEl.style.display = 'none';
 
@@ -8164,6 +8922,7 @@ function removeFromQueue(i){
 }
 
 document.getElementById('imp-add-queue-btn').addEventListener('click', ()=>{
+  if(pcmBloquear('importar','criar')) return;
   const data = document.getElementById('imp-data').value;
   const veiculo = document.getElementById('imp-veiculo').value.trim();
   const os = document.getElementById('imp-os').value.trim();
@@ -8210,6 +8969,7 @@ document.getElementById('imp-clear-queue-btn').addEventListener('click', ()=>{
 });
 
 document.getElementById('imp-commit-btn').addEventListener('click', ()=>{
+  if(pcmBloquear('importar','criar')) return;
   if(importQueue.length===0) return;
   importQueue.forEach(r=>{ r._id=nextManualId++; });
   manualRecords.push(...importQueue);
@@ -8227,15 +8987,17 @@ document.getElementById('imp-commit-btn').addEventListener('click', ()=>{
 const csvDrop  = document.getElementById('csv-drop');
 const csvInput = document.getElementById('csv-input');
 
-csvDrop.addEventListener('click',    ()=> csvInput.click());
+csvDrop.addEventListener('click',    ()=> { if(pcmBloquear('importar','criar')) return; csvInput.click(); });
 csvDrop.addEventListener('dragover', e => { e.preventDefault(); csvDrop.classList.add('drag-over'); });
 csvDrop.addEventListener('dragleave',  () => csvDrop.classList.remove('drag-over'));
 csvDrop.addEventListener('drop', e => {
   e.preventDefault(); csvDrop.classList.remove('drag-over');
+  if(pcmBloquear('importar','criar')) return;
   const file = e.dataTransfer.files[0];
   if(file) handleImportFile(file);
 });
 csvInput.addEventListener('change', e => {
+  if(pcmBloquear('importar','criar')) return;
   const file = e.target.files[0];
   if(file) handleImportFile(file);
   csvInput.value = '';
@@ -8642,6 +9404,7 @@ function escAttr(s){
 
 // Cria um novo setor
 document.getElementById('new-setor-btn').addEventListener('click', ()=>{
+  if(pcmBloquear('categorias','criar')) return;
   const input = document.getElementById('new-setor-nome');
   const nome = input.value.trim();
   if(!nome){ alert('Digite o nome do setor.'); return; }
@@ -8666,6 +9429,7 @@ document.getElementById('cat-setores-list').addEventListener('click', e=>{
 
   // Excluir setor
   if(e.target.closest('.cat-setor-remove')){
+    if(pcmBloquear('categorias','excluir')) return;
     const uso = countUsoSetor(setorAtual);
     const catCount = (SETOR_CATEGORIAS[setorAtual]||[]).length;
     const aviso = uso > 0
@@ -8684,6 +9448,7 @@ document.getElementById('cat-setores-list').addEventListener('click', e=>{
 
   // Adicionar categoria
   if(e.target.closest('.cat-new-cat-btn')){
+    if(pcmBloquear('categorias','criar')) return;
     const input = card.querySelector('.cat-new-cat-input');
     const nome = input.value.trim();
     if(!nome) return;
@@ -8699,6 +9464,7 @@ document.getElementById('cat-setores-list').addEventListener('click', e=>{
   // Excluir categoria
   const removeBtn = e.target.closest('.cat-chip-remove');
   if(removeBtn){
+    if(pcmBloquear('categorias','excluir')) return;
     const chip = removeBtn.closest('.cat-chip');
     const cat = chip.dataset.cat;
     const uso = countUsoCategoria(setorAtual, cat);
@@ -8726,6 +9492,7 @@ document.getElementById('cat-setores-list').addEventListener('keydown', e=>{
 document.getElementById('cat-setores-list').addEventListener('change', e=>{
   const card = e.target.closest('.cat-setor-card');
   if(!card) return;
+  if(pcmBloquear('categorias','editar')) { renderCategoriasTab(); return; }
   const setorAtual = card.dataset.setor;
 
   // Alterar Tipo do setor
@@ -8839,8 +9606,237 @@ document.getElementById('update-banner').addEventListener('click', ()=>{
 checarNovaVersao();
 setInterval(checarNovaVersao, CHECK_VERSAO_INTERVALO_MS);
 
-// Firestore loads data and calls renderAll() after sync
-initFirestore();
+// ════════════════════════════════════════════════════════
+// CARREGAMENTO DE DADOS GLOBAIS (unidades / usuários / perfis)
+// ════════════════════════════════════════════════════════
+async function pcmCarregarDadosGlobais(){
+  const db = window._db;
+  if(!db){
+    // Firebase indisponível (offline, bloqueado, ou SDK não carregou): garante ao menos
+    // a unidade padrão para que o login funcione mesmo sem dados carregados do banco.
+    if(!pcmUnidades.length) pcmUnidades = [UNIDADE_PADRAO];
+    if(!pcmUsuarios.length){
+      pcmUsuarios = [{
+        id: 'u_offline',
+        usuario: 'admin',
+        senha: 'admin123',
+        nome: 'Administrador',
+        role: 'super_admin',
+        unidadeIds: pcmUnidades.map(u => u.id),
+        unidadePadrao: (pcmUnidades[0] || UNIDADE_PADRAO).id,
+        perfilId: null,
+        overrides: {}
+      }];
+    }
+    return;
+  }
+  try{
+    const [uniSnap, usrSnap, perfSnap] = await Promise.all([
+      db.collection('pcm').doc('unidades').get(),
+      db.collection('pcm').doc('usuarios').get(),
+      db.collection('pcm').doc('perfis').get(),
+    ]);
+
+    // Unidades — semeia com Rio Verde se ainda não existir
+    if(uniSnap.exists && Array.isArray(uniSnap.data().list)){
+      pcmUnidades = uniSnap.data().list;
+    } else {
+      pcmUnidades = [UNIDADE_PADRAO];
+      await db.collection('pcm').doc('unidades').set({ list: pcmUnidades, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+
+    // Perfis — começa vazio (admin cria conforme a necessidade)
+    if(perfSnap.exists && Array.isArray(perfSnap.data().list)){
+      pcmPerfis = perfSnap.data().list;
+    } else {
+      pcmPerfis = [];
+      await db.collection('pcm').doc('perfis').set({ list: pcmPerfis, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+
+    // Usuários — semeia com um super_admin padrão se ainda não existir nenhum usuário
+    if(usrSnap.exists && Array.isArray(usrSnap.data().list) && usrSnap.data().list.length){
+      pcmUsuarios = usrSnap.data().list;
+    } else {
+      pcmUsuarios = [{
+        id: 'u_' + Date.now(),
+        usuario: 'admin',
+        senha: 'admin123',
+        nome: 'Administrador',
+        role: 'super_admin',
+        unidadeIds: pcmUnidades.map(u => u.id),
+        unidadePadrao: (pcmUnidades[0] || UNIDADE_PADRAO).id,
+        perfilId: null,
+        overrides: {}
+      }];
+      await db.collection('pcm').doc('usuarios').set({ list: pcmUsuarios, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      console.info('PCM: usuário admin padrão criado — usuário "admin", senha "admin123". Troque a senha assim que possível.');
+    }
+  }catch(e){
+    console.error('PCM: falha ao carregar dados globais (unidades/usuarios/perfis)', e);
+    if(!pcmUnidades.length) pcmUnidades = [UNIDADE_PADRAO];
+    if(!pcmUsuarios.length){
+      pcmUsuarios = [{
+        id: 'u_offline',
+        usuario: 'admin',
+        senha: 'admin123',
+        nome: 'Administrador',
+        role: 'super_admin',
+        unidadeIds: pcmUnidades.map(u => u.id),
+        unidadePadrao: (pcmUnidades[0] || UNIDADE_PADRAO).id,
+        perfilId: null,
+        overrides: {}
+      }];
+    }
+  }
+}
+
+async function pcmSalvarUsuarios(){
+  if(!window._db){ alert('Sem conexão com o banco de dados. A alteração não foi salva — verifique sua internet e tente novamente.'); throw new Error('sem conexão'); }
+  try{
+    await window._db.collection('pcm').doc('usuarios').set({ list: pcmUsuarios, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  }catch(e){
+    console.error('PCM: falha ao salvar usuários', e);
+    alert('Não foi possível salvar. Verifique sua conexão e tente novamente.');
+    throw e;
+  }
+}
+async function pcmSalvarPerfis(){
+  if(!window._db){ alert('Sem conexão com o banco de dados. A alteração não foi salva — verifique sua internet e tente novamente.'); throw new Error('sem conexão'); }
+  try{
+    await window._db.collection('pcm').doc('perfis').set({ list: pcmPerfis, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  }catch(e){
+    console.error('PCM: falha ao salvar perfis', e);
+    alert('Não foi possível salvar. Verifique sua conexão e tente novamente.');
+    throw e;
+  }
+}
+async function pcmSalvarUnidades(){
+  if(!window._db){ alert('Sem conexão com o banco de dados. A alteração não foi salva — verifique sua internet e tente novamente.'); throw new Error('sem conexão'); }
+  try{
+    await window._db.collection('pcm').doc('unidades').set({ list: pcmUnidades, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  }catch(e){
+    console.error('PCM: falha ao salvar unidades', e);
+    alert('Não foi possível salvar. Verifique sua conexão e tente novamente.');
+    throw e;
+  }
+}
+
+function pcmMostrarLogin(){
+  hideOverlay();
+  document.getElementById('pcm-login-screen').style.display = 'flex';
+  document.getElementById('pcm-app-shell-wrap').style.display = 'none';
+}
+
+function pcmMostrarApp(){
+  document.getElementById('pcm-login-screen').style.display = 'none';
+  document.getElementById('pcm-app-shell-wrap').style.display = '';
+  pcmAplicarPermissoesNaUI();
+  pcmMontarAdminSeNecessario();
+  pcmMontarSeletorUnidade();
+  initFirestore();
+}
+
+// Determina a unidade que deve abrir automaticamente para um usuário: a unidade
+// padrão pré-estabelecida no cadastro, com fallback para a 1ª unidade com acesso
+// (ou, no caso de super_admin sem unidade padrão definida, a 1ª unidade cadastrada).
+function pcmUnidadeInicialDoUsuario(u){
+  if(u.unidadePadrao && pcmUnidades.some(un => un.id === u.unidadePadrao)) return u.unidadePadrao;
+  if(Array.isArray(u.unidadeIds) && u.unidadeIds.length) return u.unidadeIds[0];
+  return (pcmUnidades[0] || UNIDADE_PADRAO).id;
+}
+
+function pcmTentarLogin(){
+  const usuarioInput = document.getElementById('pcm-login-usuario').value.trim();
+  const senhaInput = document.getElementById('pcm-login-senha').value;
+  const erroEl = document.getElementById('pcm-login-erro');
+  erroEl.style.display = 'none';
+
+  const u = pcmUsuarios.find(u => u.usuario.toLowerCase() === usuarioInput.toLowerCase() && u.senha === senhaInput);
+  if(!u){
+    erroEl.textContent = 'Usuário ou senha inválidos.';
+    erroEl.style.display = 'block';
+    return;
+  }
+
+  pcmSession = {
+    usuarioId: u.id,
+    usuario: u.usuario,
+    nome: u.nome || u.usuario,
+    role: u.role,
+    unidadeAtual: pcmUnidadeInicialDoUsuario(u),
+    unidadeIds: u.unidadeIds || [],
+    perfilId: u.perfilId || null,
+    permissoesEfetivas: pcmCalcularPermissoes(u)
+  };
+  pcmSalvarSessao();
+  pcmMostrarApp();
+}
+
+function pcmTrocarUnidade(novaUnidadeId){
+  if(!pcmSession) return;
+  pcmSession.unidadeAtual = novaUnidadeId;
+  pcmSalvarSessao();
+  location.reload(); // recarrega para os onSnapshot apontarem para os novos documentos
+}
+
+// Monta o seletor de troca de unidade na barra de sessão — só aparece para quem
+// tem acesso a mais de uma unidade (super_admin, ou usuário com várias marcadas).
+function pcmMontarSeletorUnidade(){
+  const wrapFixo = document.getElementById('pcm-unidade-atual-wrap');
+  const wrapSelect = document.getElementById('pcm-unidade-troca-wrap');
+  const select = document.getElementById('pcm-unidade-troca-select');
+  if(!pcmSession || !wrapFixo || !wrapSelect || !select) return;
+
+  const unidadesAcessiveis = pcmSession.role === 'super_admin'
+    ? pcmUnidades
+    : pcmUnidades.filter(un => (pcmSession.unidadeIds || []).includes(un.id));
+
+  if(unidadesAcessiveis.length > 1){
+    select.innerHTML = unidadesAcessiveis.map(un => `<option value="${un.id}" ${un.id === pcmSession.unidadeAtual ? 'selected' : ''}>${un.nome}</option>`).join('');
+    wrapFixo.style.display = 'none';
+    wrapSelect.style.display = '';
+  } else {
+    wrapFixo.style.display = '';
+    wrapSelect.style.display = 'none';
+  }
+}
+document.getElementById('pcm-unidade-troca-select').addEventListener('change', (e) => pcmTrocarUnidade(e.target.value));
+
+document.getElementById('pcm-login-btn').addEventListener('click', pcmTentarLogin);
+['pcm-login-usuario','pcm-login-senha'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', (e) => { if(e.key === 'Enter') pcmTentarLogin(); });
+});
+
+// ════════════════════════════════════════════════════════
+// BOOT — autenticação antes de carregar dados da unidade
+// ════════════════════════════════════════════════════════
+async function pcmBoot(){
+  try{
+    if(typeof firebase === 'undefined') throw new Error('Firebase SDK não carregou');
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    window._db = firebase.firestore();
+  }catch(e){
+    console.error('PCM: falha ao inicializar Firebase no boot', e);
+  }
+
+  await pcmCarregarDadosGlobais(); // unidades, usuários, perfis (com seed se vazio)
+
+  pcmCarregarSessao();
+  if(pcmSession && pcmSession.usuarioId){
+    // Revalida que o usuário ainda existe e recalcula permissões (podem ter mudado)
+    const u = pcmUsuarios.find(u => u.id === pcmSession.usuarioId);
+    if(u){
+      pcmSession.permissoesEfetivas = pcmCalcularPermissoes(u);
+      pcmSession.role = u.role;
+      pcmSalvarSessao();
+      pcmMostrarApp();
+      return;
+    }
+  }
+  pcmMostrarLogin();
+}
+
+pcmBoot();
 
 </script>
 </body>
