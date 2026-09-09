@@ -2067,7 +2067,7 @@
 
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.08</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.27</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -2429,7 +2429,7 @@
 
 <!-- ═══════════════ DUPLICADAS TAB ═══════════════ -->
 <div id="tab-duplicadas" class="tab-panel">
-  <p class="sub" style="margin-top:0;margin-bottom:16px;">Números de OS que aparecem <b>mais de 2 vezes</b> no histórico (3 ou mais lançamentos com o mesmo número). Marque as caixas de seleção das cópias indevidas e exclua em lote, ou marque 2 ou mais registros de um mesmo grupo e clique em <b>"Mesclar marcadas"</b> para juntá-los em um único registro.</p>
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Números de OS que aparecem <b>mais de uma vez</b> no histórico (2 ou mais lançamentos com o mesmo número, mesmo que com categorias diferentes). Marque as caixas de seleção das cópias indevidas e exclua em lote, ou marque 2 ou mais registros de um mesmo grupo e clique em <b>"Mesclar marcadas"</b> para juntá-los em um único registro.</p>
 
   <div id="dup-summary" style="margin-bottom:12px;color:var(--dim);font-size:13px;"></div>
   <div class="dup-toolbar" id="dup-toolbar" style="display:none;">
@@ -4564,7 +4564,7 @@ function renderDuplicatas(){
   });
 
   const dupGroups = Object.values(groupsMap)
-    .filter(g => g.length > 2)
+    .filter(g => g.length > 1)
     .sort((a,b) => b.length - a.length || String(a[0].os).localeCompare(String(b[0].os)));
 
   if(dupGroups.length === 0){
@@ -4576,7 +4576,7 @@ function renderDuplicatas(){
 
   toolbar.style.display = '';
   const totalExtras = dupGroups.reduce((s,g)=>s+(g.length-1),0);
-  wrapSummary.innerHTML = `<b style="color:var(--red);">${dupGroups.length}</b> número(s) de OS com mais de 2 lançamentos — <b style="color:var(--red);">${totalExtras}</b> registro(s) a mais que poderiam ser removidos.`;
+  wrapSummary.innerHTML = `<b style="color:var(--red);">${dupGroups.length}</b> número(s) de OS com mais de 1 lançamento — <b style="color:var(--red);">${totalExtras}</b> registro(s) a mais que poderiam ser removidos.`;
 
   wrapGroups.innerHTML = dupGroups.map(group=>{
     const first = group[0];
@@ -7089,10 +7089,10 @@ loadHodoData();
 
 
 // ════════════════════════════════════════════════════════
-// SISTEMA DE LOG — captura tudo, expira em 30 dias
+// SISTEMA DE LOG — captura tudo, expira em 7 dias
 // ════════════════════════════════════════════════════════
 const LOG_KEY          = 'pcm_log_v1';
-const LOG_EXPIRY_DAYS  = 30;
+const LOG_EXPIRY_DAYS  = 7;
 
 let logEntries = []; // { id, ts, cat, title, detail }
 
@@ -7221,7 +7221,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v7.6 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v10.27 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
