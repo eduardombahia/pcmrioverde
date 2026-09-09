@@ -2067,7 +2067,7 @@
 
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.27</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.30</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -4395,6 +4395,17 @@ async function initFirestore(){
         solNextId  = solRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
         try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
         if(typeof renderSolLinkList === 'function' && drawer && drawer.classList.contains('open')) renderSolLinkList();
+        // Se outro usuário adicionou/editou/excluiu uma SR, redesenha a aba
+        // "Painel SR" e/ou "Solicitações" caso estejam abertas neste momento,
+        // para que a mudança apareça na hora, sem precisar trocar de aba.
+        const painelSrAberto = document.getElementById('tab-painel-sr');
+        if(!pcmPrimeiraCarga && painelSrAberto && painelSrAberto.classList.contains('active') && typeof renderPainelSr === 'function'){
+          renderPainelSr();
+        }
+        const solicitacoesAberto = document.getElementById('tab-solicitacoes');
+        if(!pcmPrimeiraCarga && solicitacoesAberto && solicitacoesAberto.classList.contains('active') && typeof renderSolTab === 'function'){
+          renderSolTab();
+        }
       }
       pcmRecebeuSol = true;
       if(!pcmPrimeiraCarga) renderAll();
@@ -7221,7 +7232,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v10.27 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v10.30 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -8510,6 +8521,11 @@ async function sugerirClassificacaoIA(prefixo){
         if(data.error) throw new Error(data.error);
       } catch(errLinha){
         falhas.push(`"${linha.slice(0,40)}" (${errLinha.message})`);
+        // A chamada à IA nem chegou a responder (ex.: "Failed to fetch" = proxy
+        // fora do ar ou sem conexão) — sem setor nenhum identificado. Mesmo
+        // assim registra a linha em Sugestões de Categoria, agrupada à parte,
+        // para não perder o caso: fica disponível para classificação manual.
+        pushSugestaoCategoria('', '⚠️ Falha ao classificar (revisar manualmente)', '', linha);
         continue;
       }
 
@@ -8712,6 +8728,7 @@ async function classificarEmMassaIA(){
       } catch(err){
         massaLog(`❌ [${i+1}/${pendentes.length}] ${veicLabel} OS ${osLabel} L${j+1}: ${err.message}`, 'fail');
         linhaFalhou = true;
+        pushSugestaoCategoria('', '⚠️ Falha ao classificar (revisar manualmente)', '', linha);
         continue;
       }
 
@@ -9667,11 +9684,18 @@ function parseRelatorioOS(text){
       .filter(Boolean);
 
     if(planosClassificados.length){
-      planosClassificados.forEach(({ tipo, descricao }) => {
+      // A Observação real do relatório (coluna D) é o texto substantivo do
+      // problema (ex.: "Verificar: - Farol queimado") e deve virar a
+      // Descrição da O.S. O texto derivado do Plano (coluna H, ex.: "CRT001 -
+      // Corretivo") é apenas a classificação/código do plano e vai para
+      // Observações — antes estava invertido.
+      planosClassificados.forEach(({ tipo, descricao: descricaoPlano }) => {
         rows.push({
           data: aberturaData, veiculo, os, tipo,
           setor: 'Não classificado', categoria: '',
-          responsavel: '', descricao, observacoes: observacaoGeral
+          responsavel: '',
+          descricao: observacaoGeral || descricaoPlano,
+          observacoes: descricaoPlano
         });
       });
     } else {
@@ -9680,7 +9704,7 @@ function parseRelatorioOS(text){
       rows.push({
         data: aberturaData, veiculo, os, tipo: tipoOS,
         setor: 'Não classificado', categoria: '',
-        responsavel: '', descricao: observacaoGeral || tipoOS, observacoes: observacaoGeral
+        responsavel: '', descricao: observacaoGeral || tipoOS, observacoes: ''
       });
     }
     bloco = null;
