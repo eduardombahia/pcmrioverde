@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCM - Rio Verde</title>
+<title>PCM - Grupo CSC</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -2066,8 +2066,8 @@
 </div>
 
 <header>
-  <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.30</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
+  <p class="eyebrow">Planejamento e Controle de Manutenção · Grupo CSC</p>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.27</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -2488,6 +2488,12 @@
   <!-- ── Listagem ── -->
   <div class="slim-toolbar">
     <input type="text" id="sol-search" placeholder="Buscar por nº, veículo, motorista, líder…">
+    <select id="sol-filter-situacao" style="background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;">
+      <option value="">Todas as situações</option>
+      <option value="Atendida">Atendida</option>
+      <option value="Não atendida">Não atendida</option>
+      <option value="Improcedente">Improcedente</option>
+    </select>
     <div class="slim-toolbar-actions">
       <button type="button" class="bulk-del-btn" id="sol-bulk-del-btn" title="Excluir todas as solicitações marcadas">🗑 Excluir selecionadas (<span id="sol-sel-count">0</span>)</button>
       <button class="clear-btn" id="sol-export-btn" title="Exportar como CSV">⬇ Exportar</button>
@@ -2516,6 +2522,23 @@
       </thead>
       <tbody id="sol-tbody"></tbody>
     </table>
+  </div>
+
+  <div class="pager" id="sol-pager" style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;font-family:var(--font-mono);font-size:12.5px;color:var(--dim);">
+    <button class="clear-btn" id="sol-page-prev">‹ Anterior</button>
+    <span>Página</span>
+    <input type="number" id="sol-page-input" min="1" value="1" style="width:56px;text-align:center;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);font-family:var(--font-mono);font-size:12.5px;border-radius:3px;padding:6px 4px;">
+    <span id="sol-page-total">de 1</span>
+    <button class="clear-btn" id="sol-page-next">Próxima ›</button>
+    <span style="margin-left:8px;color:var(--dim);">|</span>
+    <label for="sol-per-page" style="color:var(--dim);">por página</label>
+    <select id="sol-per-page" style="background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);font-family:var(--font-mono);font-size:12.5px;border-radius:3px;padding:5px 7px;outline:none;cursor:pointer;">
+      <option value="25">25</option>
+      <option value="50" selected>50</option>
+      <option value="100">100</option>
+      <option value="200">200</option>
+      <option value="9999">Todos</option>
+    </select>
   </div>
 </div>
 <!-- /tab-solicitacoes -->
@@ -3243,7 +3266,7 @@
   </div>
 </aside>
 
-<footer>PCM · Controle 2026 — Rio Verde</footer>
+<footer>PCM · Grupo CSC</footer>
 
 </div><!-- /pcm-app-shell-wrap -->
 
@@ -4389,15 +4412,29 @@ async function initFirestore(){
     }, err => { console.warn('Firestore gns:', err); pcmRecebeuGns = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── solicitações de reparo — tempo real ──
-    db.collection('pcm').doc(pcmDocId('solicitacoes')).onSnapshot(snap => {
-      if(snap.exists && snap.data().records){
-        solRecords = snap.data().records;
-        solNextId  = solRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
+    // ── Solicitações de Reparo — subcoleção (sem limite de 1 MiB) ──
+    // Cada SR é um documento separado em pcm/solicitacoes_<unidade>/registros/<id>.
+    // O listener recebe a coleção inteira na primeira entrega e só os documentos
+    // alterados nas entregas seguintes — montamos/atualizamos solRecords por docChanges.
+    db.collection('pcm').doc(pcmDocId('solicitacoes'))
+      .collection('registros')
+      .onSnapshot(snap => {
+        snap.docChanges().forEach(change => {
+          const sr = change.doc.data();
+          if(change.type === 'removed'){
+            solRecords = solRecords.filter(r => String(r.id) !== change.doc.id);
+          } else {
+            // 'added' ou 'modified'
+            const idx = solRecords.findIndex(r => String(r.id) === change.doc.id);
+            if(idx >= 0) solRecords[idx] = sr;
+            else         solRecords.push(sr);
+          }
+        });
+        solNextId = solRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
         try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
         if(typeof renderSolLinkList === 'function' && drawer && drawer.classList.contains('open')) renderSolLinkList();
         // Se outro usuário adicionou/editou/excluiu uma SR, redesenha a aba
-        // "Painel SR" e/ou "Solicitações" caso estejam abertas neste momento,
-        // para que a mudança apareça na hora, sem precisar trocar de aba.
+        // "Painel SR" e/ou "Solicitações" caso estejam abertas neste momento.
         const painelSrAberto = document.getElementById('tab-painel-sr');
         if(!pcmPrimeiraCarga && painelSrAberto && painelSrAberto.classList.contains('active') && typeof renderPainelSr === 'function'){
           renderPainelSr();
@@ -4406,11 +4443,10 @@ async function initFirestore(){
         if(!pcmPrimeiraCarga && solicitacoesAberto && solicitacoesAberto.classList.contains('active') && typeof renderSolTab === 'function'){
           renderSolTab();
         }
-      }
-      pcmRecebeuSol = true;
-      if(!pcmPrimeiraCarga) renderAll();
-      pcmTentaRenderInicial(timeoutId);
-    }, err => { console.warn('Firestore solicitacoes:', err); pcmRecebeuSol = true; pcmTentaRenderInicial(timeoutId); });
+        pcmRecebeuSol = true;
+        if(!pcmPrimeiraCarga) renderAll();
+        pcmTentaRenderInicial(timeoutId);
+      }, err => { console.warn('Firestore solicitacoes:', err); pcmRecebeuSol = true; pcmTentaRenderInicial(timeoutId); });
 
     // ── meta (último backup) — tempo real ──
     db.collection('pcm').doc(pcmDocId('meta')).onSnapshot(snap => {
@@ -7232,7 +7268,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v10.30 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v10.27 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -7257,16 +7293,90 @@ function loadSol(){
   return solRecords;
 }
 
-function saveSol(){
+function saveSol(srModificada){
+  // Atualiza o cache local completo
   try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
-  if(window._db){
-    window._db.collection('pcm').doc(pcmDocId('solicitacoes'))
-      .set({ records: solRecords, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(e => console.warn('Firestore Solicitações save:', e));
+  if(!window._db) return;
+
+  if(srModificada){
+    // Caminho novo: grava só o documento que mudou na subcoleção
+    const docId = String(srModificada.id);
+    window._db
+      .collection('pcm').doc(pcmDocId('solicitacoes'))
+      .collection('registros').doc(docId)
+      .set({ ...srModificada, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e => console.warn('Firestore Solicitações save (doc):', e));
+  } else {
+    // Fallback de compatibilidade: sem SR específica, grava tudo em lote
+    // (usado apenas pela migração inicial e pelo import em massa)
+    const db   = window._db;
+    const colRef = db.collection('pcm').doc(pcmDocId('solicitacoes')).collection('registros');
+    const MAX_BATCH = 500;
+    const chunks = [];
+    for(let i = 0; i < solRecords.length; i += MAX_BATCH){
+      chunks.push(solRecords.slice(i, i + MAX_BATCH));
+    }
+    chunks.reduce((p, chunk) => p.then(() => {
+      const batch = db.batch();
+      chunk.forEach(sr => {
+        batch.set(
+          colRef.doc(String(sr.id)),
+          { ...sr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }
+        );
+      });
+      return batch.commit();
+    }), Promise.resolve())
+    .catch(e => console.warn('Firestore Solicitações save (batch):', e));
   }
 }
 
 loadSol();
+
+// ════════════════════════════════════════════════════════
+// MIGRAÇÃO — copia os registros do documento antigo
+// (pcm/solicitacoes_<unidade> com campo "records": [...])
+// para os novos documentos individuais na subcoleção
+// (pcm/solicitacoes_<unidade>/registros/<id>).
+//
+// Execute UMA VEZ APENAS pelo console do navegador:
+//   await pcmMigrarSolicitacoesParaSubcolecao()
+//
+// Depois de confirmar que a subcoleção está populada,
+// você pode limpar o campo records do documento raiz:
+//   await pcmLimparDocRaizSolicitacoes()
+// ════════════════════════════════════════════════════════
+async function pcmMigrarSolicitacoesParaSubcolecao(){
+  if(!window._db){ console.error('Firestore não inicializado.'); return; }
+  const docRaiz = window._db.collection('pcm').doc(pcmDocId('solicitacoes'));
+  const snap = await docRaiz.get();
+  if(!snap.exists || !snap.data().records || !snap.data().records.length){
+    console.log('PCM Migração: nada a migrar (documento raiz sem campo records).');
+    return;
+  }
+  const lista = snap.data().records;
+  console.log(`PCM Migração: ${lista.length} registro(s) encontrado(s) no documento raiz. Iniciando…`);
+  const colRef = docRaiz.collection('registros');
+  const MAX_BATCH = 500;
+  let gravados = 0;
+  for(let i = 0; i < lista.length; i += MAX_BATCH){
+    const batch = window._db.batch();
+    lista.slice(i, i + MAX_BATCH).forEach(sr => {
+      batch.set(colRef.doc(String(sr.id)), { ...sr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    });
+    await batch.commit();
+    gravados += Math.min(MAX_BATCH, lista.length - i);
+    console.log(`  ${gravados}/${lista.length} gravados…`);
+  }
+  console.log(`PCM Migração: concluída — ${gravados} documento(s) criado(s) na subcoleção.`);
+  console.log('Quando confirmar que tudo está certo, chame: await pcmLimparDocRaizSolicitacoes()');
+}
+
+async function pcmLimparDocRaizSolicitacoes(){
+  if(!window._db){ console.error('Firestore não inicializado.'); return; }
+  await window._db.collection('pcm').doc(pcmDocId('solicitacoes'))
+    .set({ records: firebase.firestore.FieldValue.delete(), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+  console.log('PCM Migração: campo records removido do documento raiz.');
+}
 
 // ── Vínculo: Solicitações de Reparo dentro do cadastro de OS ──
 function esc(str){
@@ -7367,15 +7477,22 @@ function updateSolOperacao(){
 }
 document.getElementById('sol-veiculo').addEventListener('input', updateSolOperacao);
 
-// ── Render table ──────────────────────────────────────────
-function renderSolTab(){
+// ── Paginação SR ──────────────────────────────────────────
+let SOL_POR_PAGINA   = 50;
+let solPageAtual     = 1;
+let solRowsAtuais    = []; // resultado filtrado+ordenado, antes de paginar
+
+function solApplyFilters(){
   renderSolKpis();
 
-  const search = (document.getElementById('sol-search')?.value||'').toLowerCase();
+  const search   = (document.getElementById('sol-search')?.value||'').toLowerCase();
+  const situacao = (document.getElementById('sol-filter-situacao')?.value||'');
 
   let rows = solRecords.filter(r => {
+    if(situacao && r.situacao !== situacao) return false;
     if(search){
-      const hay = [r.num, r.veiculo, r.operacao, r.descricao, r.motivo, r.situacao, r.funcionario, r.motorista, r.lider, r.observacao].join(' ').toLowerCase();
+      const hay = [r.num, r.veiculo, r.operacao, r.descricao, r.motivo, r.situacao,
+                   r.funcionario, r.motorista, r.lider, r.observacao].join(' ').toLowerCase();
       if(!hay.includes(search)) return false;
     }
     return true;
@@ -7390,28 +7507,57 @@ function renderSolTab(){
     return 0;
   });
 
-  document.getElementById('sol-count').innerHTML = `<b>${rows.length}</b> reg.`;
-
-  // Mantém marcadas apenas as seleções que ainda existem na listagem filtrada atual
+  solRowsAtuais = rows;
+  solPageAtual  = 1; // qualquer novo filtro/busca volta pra página 1
   solSelIds = new Set([...solSelIds].filter(id => rows.some(r => r.id === id)));
   updateSolBulkBtn();
+  solRenderPagina();
+  refreshMotivoSRDatalist();
+}
 
+function solRenderPagina(){
+  const total     = solRowsAtuais.length;
+  const totalPags = Math.max(1, Math.ceil(total / SOL_POR_PAGINA));
+  if(solPageAtual > totalPags) solPageAtual = totalPags;
+  if(solPageAtual < 1)         solPageAtual = 1;
+
+  const inicio  = (solPageAtual - 1) * SOL_POR_PAGINA;
+  const pagina  = solRowsAtuais.slice(inicio, inicio + SOL_POR_PAGINA);
+
+  document.getElementById('sol-count').innerHTML = `<b>${total}</b> reg.`;
+
+  const pageInput = document.getElementById('sol-page-input');
+  if(pageInput){ pageInput.value = solPageAtual; pageInput.max = totalPags; }
+  const pageTotal = document.getElementById('sol-page-total');
+  if(pageTotal) pageTotal.textContent = `de ${totalPags}`;
+  const prevBtn = document.getElementById('sol-page-prev');
+  const nextBtn = document.getElementById('sol-page-next');
+  if(prevBtn) prevBtn.disabled = solPageAtual <= 1;
+  if(nextBtn) nextBtn.disabled = solPageAtual >= totalPags;
+
+  // Oculta o pager quando há só 1 página
+  const pager = document.getElementById('sol-pager');
+  if(pager) pager.style.display = totalPags <= 1 ? 'none' : 'flex';
+
+  solRenderTabela(pagina);
+}
+
+function solRenderTabela(rows){
   const tbody = document.getElementById('sol-tbody');
   if(!rows.length){
-    tbody.innerHTML=`<tr><td colspan="12" class="gns-empty">Nenhuma solicitação registrada ainda.</td></tr>`;
-    syncSolCheckAll(rows);
-    refreshMotivoSRDatalist();
+    tbody.innerHTML=`<tr><td colspan="12" class="gns-empty">Nenhuma solicitação encontrada.</td></tr>`;
+    syncSolCheckAll([]);
     return;
   }
 
-  const situacaoClass = s => s==='Atendida' ? 'ok' : (s==='Improcedente' ? 'warn' : (s==='Não atendida' ? '' : ''));
+  const situacaoClass = s => s==='Atendida' ? 'ok' : (s==='Improcedente' ? 'warn' : '');
   tbody.innerHTML = rows.map(r => `<tr>
       <td class="td-check"><input type="checkbox" class="sol-row-check" data-id="${r.id}" ${solSelIds.has(r.id)?'checked':''}></td>
       <td><span class="gns-num">${r.num||'—'}</span></td>
       <td style="font-family:var(--font-mono);font-size:11.5px;">${fmtDateBR(r.data)}</td>
       <td>${r.veiculo||'—'}</td>
       <td>${r.operacao||'—'}</td>
-      <td title="${esc(r.descricao||'')}">${(()=>{ const palavras=(r.descricao||'').trim().split(/\s+/).filter(Boolean); return palavras.length ? (palavras.length > 10 ? esc(palavras.slice(0,10).join(' '))+'+' : esc(palavras.join(' '))) : '—'; })()}</td>
+      <td title="${esc(r.descricao||'')}">${(()=>{ const p=(r.descricao||'').trim().split(/\s+/).filter(Boolean); return p.length ? (p.length>10 ? esc(p.slice(0,10).join(' '))+'+' : esc(p.join(' '))) : '—'; })()}</td>
       <td>${esc(r.motivo)||'—'}</td>
       <td>${r.situacao ? `<span class="${situacaoClass(r.situacao)}">${esc(r.situacao)}</span>` : '—'}</td>
       <td>${esc(r.funcionario)||'—'}</td>
@@ -7438,9 +7584,10 @@ function renderSolTab(){
     th.classList.remove('sort-asc','sort-desc');
     if(th.dataset.sort === solSortCol) th.classList.add('sort-'+solSortDir);
   });
-
-  refreshMotivoSRDatalist();
 }
+
+// Alias: qualquer código que chame renderSolTab() continua funcionando
+function renderSolTab(){ solApplyFilters(); }
 
 // ── Seleção em massa: sincroniza checkbox "selecionar todas" ─
 function syncSolCheckAll(rows){
@@ -7462,23 +7609,17 @@ function updateSolBulkBtn(){
   btn.style.display = n > 0 ? 'inline-flex' : 'none';
 }
 
-// Filtra as solicitações visíveis com base na busca atual (mesma lógica de renderSolTab)
+// Filtra as solicitações visíveis com base na busca atual (para bulk select)
 function solFilteredRows(){
-  const search = (document.getElementById('sol-search')?.value||'').toLowerCase();
-  return solRecords.filter(r => {
-    if(search){
-      const hay = [r.num, r.veiculo, r.operacao, r.descricao, r.motivo, r.situacao, r.funcionario, r.motorista, r.lider, r.observacao].join(' ').toLowerCase();
-      if(!hay.includes(search)) return false;
-    }
-    return true;
-  });
+  return solRowsAtuais;
 }
 
 document.getElementById('sol-check-all')?.addEventListener('change', function(){
-  const rows = solFilteredRows();
-  if(this.checked) rows.forEach(r => solSelIds.add(r.id));
+  // seleciona/desmarca todas as linhas do filtro atual (não só as da página visível)
+  if(this.checked) solRowsAtuais.forEach(r => solSelIds.add(r.id));
   else solSelIds.clear();
-  renderSolTab();
+  updateSolBulkBtn();
+  solRenderPagina();
 });
 
 document.getElementById('sol-bulk-del-btn')?.addEventListener('click', ()=>{
@@ -7490,7 +7631,15 @@ document.getElementById('sol-bulk-del-btn')?.addEventListener('click', ()=>{
   if(!confirm(`Excluir ${selecionadas.length} solicitação(ões) selecionada(s)? Esta ação não pode ser desfeita.\n\n${nomes}`)) return;
   const idsParaExcluir = new Set(selecionadas.map(r => r.id));
   solRecords = solRecords.filter(r => !idsParaExcluir.has(r.id));
-  saveSol();
+  // Atualiza cache local
+  try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
+  // Apaga cada documento individual da subcoleção via batch
+  if(window._db){
+    const colRef = window._db.collection('pcm').doc(pcmDocId('solicitacoes')).collection('registros');
+    const batch  = window._db.batch();
+    idsParaExcluir.forEach(id => batch.delete(colRef.doc(String(id))));
+    batch.commit().catch(e => console.warn('Firestore Solicitações bulk delete:', e));
+  }
   addLog('sistema', `${selecionadas.length} solicitação(ões) de reparo excluída(s) em lote`, nomes);
   if(solEditId !== null && idsParaExcluir.has(solEditId)) solResetForm();
   solSelIds.clear();
@@ -7512,12 +7661,47 @@ document.querySelectorAll('#tab-solicitacoes .gns-list-card thead th[data-sort]'
     const col = th.dataset.sort;
     if(solSortCol === col) solSortDir = solSortDir==='asc'?'desc':'asc';
     else { solSortCol = col; solSortDir = 'asc'; }
-    renderSolTab();
+    solApplyFilters();
   });
 });
 
-// ── Filter/search live ────────────────────────────────────
-document.getElementById('sol-search').addEventListener('input', renderSolTab);
+// ── Filter/search — debounced (300 ms) ───────────────────
+let _solSearchTimer = null;
+document.getElementById('sol-search').addEventListener('input', () => {
+  clearTimeout(_solSearchTimer);
+  _solSearchTimer = setTimeout(solApplyFilters, 300);
+});
+document.getElementById('sol-search').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ clearTimeout(_solSearchTimer); solApplyFilters(); }
+});
+
+// ── Filtro de situação ────────────────────────────────────
+document.getElementById('sol-filter-situacao').addEventListener('change', solApplyFilters);
+
+// ── Paginação SR ──────────────────────────────────────────
+document.getElementById('sol-page-prev').addEventListener('click', () => {
+  solPageAtual--;
+  solRenderPagina();
+});
+document.getElementById('sol-page-next').addEventListener('click', () => {
+  solPageAtual++;
+  solRenderPagina();
+});
+(function(){
+  const input = document.getElementById('sol-page-input');
+  function irParaPagSol(){
+    const n = parseInt(input.value, 10);
+    if(!Number.isNaN(n)){ solPageAtual = n; solRenderPagina(); }
+    else input.value = solPageAtual;
+  }
+  input.addEventListener('keydown', e => { if(e.key === 'Enter') irParaPagSol(); });
+  input.addEventListener('change', irParaPagSol);
+})();
+document.getElementById('sol-per-page').addEventListener('change', function(){
+  SOL_POR_PAGINA = parseInt(this.value, 10) || 50;
+  solPageAtual   = 1;
+  solRenderPagina();
+});
 
 // ── Drawer open/close ────────────────────────────────────
 function openSolDrawer(){
@@ -7594,7 +7778,16 @@ function solDelete(id){
   if(!r) return;
   if(!confirm(`Excluir a solicitação ${r.num||'#'+id}? Esta ação não pode ser desfeita.`)) return;
   solRecords = solRecords.filter(x => x.id !== id);
-  saveSol();
+  // Atualiza cache local
+  try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
+  // Apaga o documento individual da subcoleção
+  if(window._db){
+    window._db
+      .collection('pcm').doc(pcmDocId('solicitacoes'))
+      .collection('registros').doc(String(id))
+      .delete()
+      .catch(e => console.warn('Firestore Solicitações delete:', e));
+  }
   addLog('sistema', `Solicitação de reparo excluída: ${r.num||'#'+id}`, `Veículo ${r.veiculo||'—'}`);
   if(solEditId === id) solResetForm();
   renderSolTab();
@@ -7621,19 +7814,22 @@ document.getElementById('sol-submit-btn').addEventListener('click', () => {
   if(!data)    { errEl.textContent='Informe a data.'; errEl.style.display=''; return; }
   if(!veiculo) { errEl.textContent='Informe o veículo.'; errEl.style.display=''; return; }
 
+  let srSalva;
   if(solEditId !== null){
     const idx = solRecords.findIndex(r => r.id === solEditId);
     if(idx >= 0){
       solRecords[idx] = { ...solRecords[idx], num, data, veiculo, operacao, descricao, motivo, situacao, funcionario, motorista, lider, observacao };
+      srSalva = solRecords[idx];
       addLog('os-edit', `Solicitação de reparo editada: ${num}`, `Veículo ${veiculo} · ${fmtDateBR(data)}`);
     }
   } else {
     const rec = { id:solNextId++, num, data, veiculo, operacao, descricao, motivo, situacao, funcionario, motorista, lider, observacao, createdAt:new Date().toISOString() };
     solRecords.push(rec);
+    srSalva = rec;
     addLog('os-nova', `Solicitação de reparo criada: ${num}`, `Veículo ${veiculo} · ${fmtDateBR(data)}`);
   }
 
-  saveSol();
+  saveSol(srSalva);
   solResetForm();
   closeSolDrawer();
   renderSolTab();
@@ -7717,18 +7913,38 @@ document.getElementById('sol-imp-clear-queue-btn').addEventListener('click', () 
   renderSolQueue();
 });
 
-document.getElementById('sol-imp-commit-btn').addEventListener('click', () => {
+document.getElementById('sol-imp-commit-btn').addEventListener('click', async () => {
   if(pcmBloquear('solicitacoes','criar')) return;
   if(!solImportQueue.length) return;
-  let count = 0;
+
+  const novasRecs = [];
   solImportQueue.forEach(r => {
     const num = solNextNum();
     const rec = { id:solNextId++, num, ...r, createdAt:new Date().toISOString() };
     solRecords.push(rec);
-    count++;
+    novasRecs.push(rec);
   });
+  const count = novasRecs.length;
   solImportQueue = [];
-  saveSol();
+
+  // Atualiza cache local
+  try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
+
+  // Grava cada nova SR como documento individual na subcoleção, em lotes de ≤500
+  if(window._db){
+    const colRef = window._db.collection('pcm').doc(pcmDocId('solicitacoes')).collection('registros');
+    const MAX_BATCH = 500;
+    try{
+      for(let i = 0; i < novasRecs.length; i += MAX_BATCH){
+        const batch = window._db.batch();
+        novasRecs.slice(i, i + MAX_BATCH).forEach(sr => {
+          batch.set(colRef.doc(String(sr.id)), { ...sr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        });
+        await batch.commit();
+      }
+    }catch(e){ console.warn('Firestore Solicitações import batch:', e); }
+  }
+
   addLog('sr-import', `Importação de SR: ${count} solicitação(ões)`, '');
   renderSolQueue();
   renderSolTab();
