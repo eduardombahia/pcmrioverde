@@ -4,14 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PCM - Rio Verde</title>
-<script>
-  // Aplica o tema salvo o mais cedo possível, antes do CSS pintar a página,
-  // para evitar "flash" do tema errado ao carregar.
-  try{
-    const t = localStorage.getItem('pcm_theme');
-    if(t === 'light') document.documentElement.setAttribute('data-theme','light');
-  }catch(e){}
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -30,28 +22,58 @@
     --red1:#c80d00;
     --input-bg:#1e1f22;
     --input-fg:#e8e6e3;
-    --btn-text:#1a1207;
+    --stripe-dark:#1a1a1a;
+    --orange-rgb:255,106,43;
+    --amber-rgb:245,166,35;
+    --green-rgb:79,180,119;
+    --yellow-rgb:255,201,60;
+    --red-rgb:229,84,75;
+    /* Cor de marca/ação — laranja no escuro, azul no claro. Independente
+       de --orange/--amber, que permanecem sempre laranja/âmbar por serem
+       usados como código de cor semântico (ex: "Corretiva"). */
+    --brand:#FF6A2B;
+    --brand-2:#F5A623;
+    --brand-rgb:255,106,43;
+    --brand-2-rgb:245,166,35;
+    --brand-text:#1a1207;
+    --shadow-color:0,0,0;
+    --shadow-drawer:-20px 0 50px rgba(0,0,0,.4);
+    --shadow-modal:0 20px 60px rgba(0,0,0,.4);
+    --shadow-card:0 1px 2px rgba(0,0,0,.3);
     --font-display:'Oswald', sans-serif;
     --font-body:'Inter', sans-serif;
     --font-mono:'IBM Plex Mono', monospace;
     color-scheme: dark;
   }
   html[data-theme="light"]{
-    --asphalt:#F2F1ED;
+    --asphalt:#E9EDF1;
     --panel:#FFFFFF;
-    --panel-2:#F7F6F3;
-    --line:#DEDCD4;
-    --chalk:#22252A;
-    --dim:#6B6F77;
-    --amber:#2563A8;
-    --orange:#1D4ED8;
-    --green:#2F8F5B;
-    --yellow:#9C7A05;
-    --red:#C93B32;
+    --panel-2:#EEF2F6;
+    --line:#B9C4CE;
+    --chalk:#151C24;
+    --dim:#5B6B79;
+    --amber:#C9821A;
+    --orange:#D9631E;
+    --stripe-dark:#0E2A44;
+    --green:#1C7A50;
+    --yellow:#8A6800;
+    --red:#B7332A;
     --red1:#c80d00;
     --input-bg:#FFFFFF;
-    --input-fg:#22252A;
-    --btn-text:#FFFFFF;
+    --input-fg:#151C24;
+    --orange-rgb:217,99,30;
+    --amber-rgb:201,130,26;
+    --green-rgb:28,122,80;
+    --yellow-rgb:138,104,0;
+    --red-rgb:183,51,42;
+    --brand:#0B5FBF;
+    --brand-2:#0A4C99;
+    --brand-rgb:11,95,191;
+    --brand-2-rgb:10,76,153;
+    --brand-text:#FFFFFF;
+    --shadow-drawer:-8px 0 30px rgba(21,28,36,.10), -1px 0 0 rgba(21,28,36,.06);
+    --shadow-modal:0 12px 32px rgba(21,28,36,.12), 0 2px 8px rgba(21,28,36,.06);
+    --shadow-card:0 1px 3px rgba(21,28,36,.06);
     color-scheme: light;
   }
   *{box-sizing:border-box;}
@@ -60,14 +82,14 @@
   /* Hazard stripe divider */
   .stripe{
     height:8px;
-    background:repeating-linear-gradient(135deg, var(--amber) 0 14px, #1a1a1a 14px 28px);
+    background:repeating-linear-gradient(135deg, var(--brand-2) 0 14px, var(--stripe-dark) 14px 28px);
     opacity:.9;
   }
 
   header{
     padding:38px 5vw 26px;
     background:
-      radial-gradient(1200px 300px at 10% -20%, rgba(255,106,43,.10), transparent 60%),
+      radial-gradient(1200px 300px at 10% -20%, rgba(var(--brand-rgb),.10), transparent 60%),
       var(--panel);
     border-bottom:1px solid var(--line);
   }
@@ -75,7 +97,7 @@
     font-family:var(--font-mono);
     font-size:12px;
     letter-spacing:.18em;
-    color:var(--amber);
+    color:var(--brand-2);
     text-transform:uppercase;
     margin:0 0 10px;
   }
@@ -87,7 +109,7 @@
     margin:0 0 6px;
     text-transform:uppercase;
   }
-  h1 span{color:var(--orange);}
+  h1 span{color:var(--brand);}
   .sub{
     color:var(--dim);
     font-size:14.5px;
@@ -117,7 +139,7 @@
   .kpi::before{
     content:'';
     position:absolute; left:0; top:0; bottom:0; width:3px;
-    background:var(--accent, var(--orange));
+    background:var(--accent, var(--brand));
   }
   .kpi .n{
     font-family:var(--font-display);
@@ -136,7 +158,11 @@
   .kpi.prev{--accent:var(--green);}
   .kpi.socorro{--accent:var(--red1);}
   .kpi.reinc{--accent:var(--red);}
-  .kpi.veic{--accent:var(--amber);}
+  .kpi.veic{--accent:var(--brand-2);}
+  .kpi.atendida{--accent:var(--green);}
+  .kpi.naoatendida{--accent:var(--red);}
+  .kpi.improcedente{--accent:var(--yellow);}
+  .kpi.taxa{--accent:var(--amber);}
 
   /* Charts row */
   .charts{
@@ -179,23 +205,34 @@
     outline:none;
     flex:none;
   }
-  .card-h-select:focus{border-color:var(--amber);}
+  .card-h-select:focus{border-color:var(--brand-2);}
   .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:12.5px;}
   .bar-label{width:150px;flex:none;color:var(--chalk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .bar-track{flex:1;height:14px;background:var(--panel-2);border-radius:2px;overflow:hidden;}
-  .bar-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--amber));border-radius:2px;}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-2));border-radius:2px;}
   .bar-val{width:34px;flex:none;text-align:right;font-family:var(--font-mono);color:var(--dim);}
 
   .months{display:flex;align-items:flex-end;gap:8px;height:150px;padding-top:10px;}
   .month-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
   .month-bars{display:flex;align-items:flex-end;gap:2px;height:100%;width:100%;justify-content:center;}
   .month-bars .seg{width:9px;border-radius:1px 1px 0 0;}
-  .seg.c{background:var(--orange);}
+  .seg.c{background:var(--brand);}
   .seg.p{background:var(--green);}
   .month-name{font-family:var(--font-mono);font-size:10.5px;color:var(--dim);margin-top:6px;text-transform:uppercase;}
   .legend{display:flex;gap:16px;margin-top:14px;font-size:11.5px;color:var(--dim);}
   .legend span{display:inline-flex;align-items:center;gap:6px;}
   .dot{width:9px;height:9px;border-radius:2px;display:inline-block;}
+
+  /* Donut chart (Painel SR — Situação das solicitações) */
+  .donut-wrap{display:flex;align-items:center;gap:20px;padding-top:6px;flex-wrap:wrap;}
+  .donut-svg{flex:none;}
+  .donut-center-n{font-family:var(--font-display);font-size:26px;font-weight:600;fill:var(--chalk);}
+  .donut-center-l{font-family:var(--font-mono);font-size:9.5px;fill:var(--dim);text-transform:uppercase;letter-spacing:.06em;}
+  .donut-legend{display:flex;flex-direction:column;gap:10px;flex:1;min-width:140px;}
+  .donut-legend-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--chalk);}
+  .donut-legend-dot{width:10px;height:10px;border-radius:3px;flex:none;}
+  .donut-legend-val{margin-left:auto;font-family:var(--font-mono);color:var(--dim);white-space:nowrap;padding-left:8px;}
+  .donut-legend-val b{color:var(--chalk);}
 
   /* Filters */
   .filters{
@@ -227,7 +264,7 @@
   .filters .date-range input[type=date]{
     background:none; border:none; padding:8px 4px; font-size:13px; color:var(--chalk);
   }
-  .filters select:focus, .filters input:focus{border-color:var(--amber);}
+  .filters select:focus, .filters input:focus{border-color:var(--brand-2);}
   .filters input[type=text]{flex:1;min-width:180px;}
   .toggle{
     display:flex;align-items:center;gap:7px;
@@ -242,12 +279,12 @@
     font-size:12.5px;
     color:var(--dim);
   }
-  .filters .count b{color:var(--amber);}
+  .filters .count b{color:var(--brand-2);}
   .clear-btn{
     background:transparent;border:1px solid var(--line);color:var(--dim);
     font-size:12px;padding:8px 12px;border-radius:3px;cursor:pointer;font-family:var(--font-body);
   }
-  .clear-btn:hover{border-color:var(--orange);color:var(--orange);}
+  .clear-btn:hover{border-color:var(--brand);color:var(--brand);}
 
   /* Solicitações de Reparo — vínculo no cadastro de OS */
   .sol-link-list{
@@ -291,7 +328,7 @@
     font-size:10.5px;
     color:var(--dim);
   }
-  .sol-link-item-num{ color:var(--amber); font-weight:600; }
+  .sol-link-item-num{ color:var(--brand-2); font-weight:600; }
   .sol-link-item-desc{
     font-size:12.5px;
     color:var(--chalk);
@@ -315,7 +352,7 @@
     align-items:center;
     justify-content:center;
   }
-  .sol-link-add-btn:hover{ border-color:var(--green); background:rgba(79,180,119,.12); }
+  .sol-link-add-btn:hover{ border-color:var(--green); background:rgba(var(--green-rgb),.12); }
   .sol-link-add-btn.added{ color:var(--dim); border-color:var(--line); cursor:default; }
 
   /* Table */
@@ -341,7 +378,7 @@
     cursor:pointer;
     white-space:nowrap;
   }
-  thead th:hover{color:var(--amber);}
+  thead th:hover{color:var(--brand-2);}
   tbody td{
     padding:9px 12px;
     border-bottom:1px solid var(--line);
@@ -358,8 +395,8 @@
     font-family:var(--font-mono);
     border:1px solid transparent;
   }
-  .pill.Corretiva{background:rgba(255,106,43,.14);color:var(--orange);border-color:rgba(255,106,43,.3);}
-  .pill.Preventiva{background:rgba(79,180,119,.14);color:var(--green);border-color:rgba(79,180,119,.3);}
+  .pill.Corretiva{background:rgba(var(--orange-rgb),.14);color:var(--orange);border-color:rgba(var(--orange-rgb),.3);}
+  .pill.Preventiva{background:rgba(var(--green-rgb),.14);color:var(--green);border-color:rgba(var(--green-rgb),.3);}
   .pill.Socorro{background:rgba(200,13,0,.14);color:var(--red1);border-color:rgba(200,13,0,.3);}
   .flag-reinc{color:var(--red);font-family:var(--font-mono);font-size:11.5px;}
   .flag-ok{color:var(--dim);font-family:var(--font-mono);font-size:11.5px;}
@@ -373,8 +410,8 @@
   /* Add record button */
   .add-btn{
     display:flex; align-items:center; gap:8px;
-    background:var(--orange);
-    color:var(--btn-text);
+    background:var(--brand);
+    color:var(--brand-text);
     border:none;
     font-family:var(--font-display);
     font-weight:600;
@@ -386,7 +423,7 @@
     cursor:pointer;
     white-space:nowrap;
   }
-  .add-btn:hover{background:var(--amber);}
+  .add-btn:hover{background:var(--brand-2);}
   .add-btn .plus{font-family:var(--font-mono);font-size:15px;line-height:1;}
 
   /* Add button + discreet import caret, grouped */
@@ -394,10 +431,10 @@
   .add-btn-split{border-radius:3px 0 0 3px;}
   .add-btn-caret{
     display:flex;align-items:center;justify-content:center;
-    background:var(--orange);color:var(--btn-text);border:none;border-left:1px solid rgba(26,18,7,.35);
+    background:var(--brand);color:var(--brand-text);border:none;border-left:1px solid rgba(26,18,7,.35);
     border-radius:0 3px 3px 0;width:30px;cursor:pointer;font-size:10px;opacity:.75;
   }
-  .add-btn-caret:hover{background:var(--amber);opacity:1;}
+  .add-btn-caret:hover{background:var(--brand-2);opacity:1;}
   .add-btn-caret.active{opacity:1;}
 
   /* Drawer / overlay */
@@ -410,7 +447,7 @@
     position:fixed; top:0; right:0; height:100%; width:min(440px,92vw);
     background:var(--panel);
     border-left:1px solid var(--line);
-    box-shadow:-20px 0 50px rgba(0,0,0,.4);
+    box-shadow:var(--shadow-drawer);
     transform:translateX(100%);
     transition:transform .25s ease;
     z-index:51;
@@ -423,7 +460,7 @@
     position:relative;
   }
   .drawer-head::before{
-    content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--orange);
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brand);
   }
   .drawer-head .eyebrow{margin-bottom:6px;}
   .drawer-head h2{
@@ -444,7 +481,7 @@
     font-size:11px; cursor:pointer; opacity:.7; letter-spacing:.02em; padding:2px 0;
     white-space:nowrap;
   }
-  .drawer-import-link:hover{opacity:1;color:var(--amber);}
+  .drawer-import-link:hover{opacity:1;color:var(--brand-2);}
   .drawer-body{padding:20px 22px; overflow-y:auto; flex:1;}
   .field{margin-bottom:14px;}
   .field label{
@@ -455,7 +492,7 @@
     width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--chalk);
     font-family:var(--font-body); font-size:13.5px; padding:9px 10px; border-radius:3px; outline:none;
   }
-  .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--amber);}
+  .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--brand-2);}
   .field textarea{resize:vertical; min-height:56px;}
   .field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
   .field-hint{font-size:11px; color:#6b6f77; margin-top:4px;}
@@ -475,18 +512,18 @@
   }
   .btn-cancel:hover{border-color:var(--red); color:var(--red);}
   .btn-submit{
-    background:var(--orange); border:none; color:var(--btn-text);
+    background:var(--brand); border:none; color:var(--brand-text);
     font-family:var(--font-display); font-weight:600; text-transform:uppercase; letter-spacing:.02em;
     font-size:13px; padding:10px 18px; border-radius:3px; cursor:pointer;
   }
-  .btn-submit:hover{background:var(--amber);}
+  .btn-submit:hover{background:var(--brand-2);}
   .form-error{
     color:var(--red); font-size:12px; font-family:var(--font-mono); margin-bottom:12px; display:none;
   }
   .form-error.show{display:block;}
   .origin-manual{
-    color:var(--amber); font-family:var(--font-mono); font-size:10px; margin-left:6px;
-    border:1px solid rgba(245,166,35,.4); padding:1px 5px; border-radius:2px;
+    color:var(--brand-2); font-family:var(--font-mono); font-size:10px; margin-left:6px;
+    border:1px solid rgba(var(--brand-2-rgb),.4); padding:1px 5px; border-radius:2px;
   }
   .del-btn{
     background:none; border:none; color:var(--dim); cursor:pointer; font-size:13px; padding:2px 6px;
@@ -502,7 +539,7 @@
     display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;
     padding-bottom:10px; border-bottom:1px solid var(--line);
   }
-  .dup-group-head .dup-os{font-family:var(--font-mono); color:var(--amber); font-weight:700; font-size:14px;}
+  .dup-group-head .dup-os{font-family:var(--font-mono); color:var(--brand-2); font-weight:700; font-size:14px;}
   .dup-group-head .dup-meta{color:var(--dim); font-size:12.5px;}
   .dup-group-head .dup-count{
     margin-left:auto; font-size:11px; font-family:var(--font-mono); color:var(--red);
@@ -555,12 +592,12 @@
     transition:color .15s, border-color .15s, background .15s;
   }
   .tab-btn:hover{color:var(--chalk);}
-  .tab-btn.active{color:var(--amber); border-bottom-color:var(--amber);}
+  .tab-btn.active{color:var(--brand-2); border-bottom-color:var(--brand-2);}
   .tab-badge{
     display:inline-flex; align-items:center; justify-content:center;
     min-width:17px; height:17px; padding:0 4px; margin-left:4px;
     font-family:var(--font-mono); font-size:10.5px; font-weight:700;
-    background:var(--amber); color:#000; border-radius:9px;
+    background:var(--brand-2); color:#000; border-radius:9px;
   }
   .tab-panel{display:none;}
   .tab-panel.active{display:block; width:100%;}
@@ -591,7 +628,7 @@
     font-family:var(--font-mono);
     transition:color .15s, border-color .15s;
   }
-  .sidebar-toggle:hover{color:var(--amber); border-color:var(--amber);}
+  .sidebar-toggle:hover{color:var(--brand-2); border-color:var(--brand-2);}
   .sidebar-toggle .arrow{transition:transform .18s ease; flex:none;}
   .sidebar.collapsed .sidebar-toggle{justify-content:center; padding:0;}
   .sidebar.collapsed .sidebar-toggle .arrow{transform:rotate(180deg);}
@@ -609,8 +646,8 @@
   }
   .sidebar .tab-btn:hover{background:var(--panel-2); color:var(--chalk);}
   .sidebar .tab-btn.active{
-    background:var(--panel-2); color:var(--amber);
-    border-left-color:var(--amber); border-bottom-color:transparent;
+    background:var(--panel-2); color:var(--brand-2);
+    border-left-color:var(--brand-2); border-bottom-color:transparent;
   }
   .sidebar .tab-icon{font-size:16px; flex:none; width:18px; text-align:center; display:inline-flex; align-items:center; justify-content:center;}
   .sidebar .tab-label{overflow:hidden; text-overflow:ellipsis;}
@@ -638,7 +675,7 @@
     background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
     font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;flex:1;min-width:160px;
   }
-  .frota-toolbar input:focus{border-color:var(--amber);}
+  .frota-toolbar input:focus{border-color:var(--brand-2);}
   .frota-card{
     background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow:auto;
   }
@@ -653,7 +690,7 @@
   .frota-card tbody tr:hover{background:rgba(255,255,255,.02);}
   .frota-card .op-pill{
     font-family:var(--font-mono);font-size:11px;padding:2px 7px;border-radius:3px;
-    background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);
+    background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);border:1px solid rgba(var(--brand-2-rgb),.3);
   }
   .icon-btn{
     background:none;border:1px solid var(--line);color:var(--dim);
@@ -675,7 +712,7 @@
     text-align:center;color:var(--dim);font-size:13px;cursor:pointer;
     transition:border-color .2s;
   }
-  .import-drop:hover,.import-drop.drag-over{border-color:var(--amber);color:var(--chalk);}
+  .import-drop:hover,.import-drop.drag-over{border-color:var(--brand-2);color:var(--chalk);}
   .import-drop input[type=file]{display:none;}
   .import-drop .drop-icon{font-size:28px;margin-bottom:8px;}
   .import-grid{
@@ -690,7 +727,7 @@
     width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
     font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;
   }
-  .import-field input:focus,.import-field select:focus,.import-field textarea:focus{border-color:var(--amber);}
+  .import-field input:focus,.import-field select:focus,.import-field textarea:focus{border-color:var(--brand-2);}
   .import-field textarea{resize:vertical;min-height:52px;grid-column:1/-1;}
   .import-actions{display:flex;gap:10px;margin-top:14px;justify-content:flex-end;}
   .import-preview{
@@ -706,16 +743,16 @@
   .import-preview .warn{color:var(--yellow);font-family:var(--font-mono);font-size:10px;}
   .import-preview .ok{color:var(--green);font-family:var(--font-mono);font-size:10px;}
   .btn-primary{
-    background:var(--orange);border:none;color:var(--btn-text);font-family:var(--font-display);
+    background:var(--brand);border:none;color:var(--brand-text);font-family:var(--font-display);
     font-weight:600;text-transform:uppercase;letter-spacing:.02em;
     font-size:13px;padding:9px 18px;border-radius:3px;cursor:pointer;
   }
-  .btn-primary:hover{background:var(--amber);}
+  .btn-primary:hover{background:var(--brand-2);}
   .btn-secondary{
     background:transparent;border:1px solid var(--line);color:var(--dim);
     font-family:var(--font-body);font-size:13px;padding:9px 14px;border-radius:3px;cursor:pointer;
   }
-  .btn-secondary:hover{border-color:var(--orange);color:var(--orange);}
+  .btn-secondary:hover{border-color:var(--brand);color:var(--brand);}
 
   /* ── Frota mini modal ── */
   .modal-overlay{
@@ -736,7 +773,7 @@
     width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
     font-family:var(--font-body);font-size:13.5px;padding:8px 10px;border-radius:3px;outline:none;
   }
-  .modal .field input:focus,.modal .field select:focus{border-color:var(--amber);}
+  .modal .field input:focus,.modal .field select:focus{border-color:var(--brand-2);}
   .modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
   .modal.modal-lg{width:min(720px,94vw);}
 
@@ -745,19 +782,19 @@
   .massa-resumo{font-size:12.5px;color:var(--dim);margin-bottom:14px;line-height:1.5;}
   .massa-resumo strong{color:var(--chalk);}
   .massa-progress-bar-wrap{background:var(--panel-2);border:1px solid var(--line);border-radius:3px;height:10px;margin-bottom:10px;overflow:hidden;}
-  .massa-progress-bar{height:100%;width:0%;background:var(--amber);border-radius:3px;transition:width .25s;}
+  .massa-progress-bar{height:100%;width:0%;background:var(--brand-2);border-radius:3px;transition:width .25s;}
   .massa-progress-bar.done{background:var(--green);}
   .massa-progress-bar.error{background:var(--red);}
   .massa-stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;}
   .massa-stat{font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:3px;border:1px solid var(--line);}
   .massa-stat.ok{color:var(--green);border-color:var(--green);}
-  .massa-stat.pend{color:var(--amber);border-color:var(--amber);}
+  .massa-stat.pend{color:var(--brand-2);border-color:var(--brand-2);}
   .massa-stat.fail{color:var(--red);border-color:var(--red);}
   .massa-stat.skip{color:var(--dim);border-color:var(--line);}
   .massa-log{background:var(--panel-2);border:1px solid var(--line);border-radius:3px;padding:10px 12px;height:180px;overflow-y:auto;font-family:var(--font-mono);font-size:11px;line-height:1.6;}
   .massa-log-line{padding:1px 0;}
   .massa-log-line.ok{color:var(--green);}
-  .massa-log-line.pend{color:var(--amber);}
+  .massa-log-line.pend{color:var(--brand-2);}
   .massa-log-line.fail{color:var(--red);}
   .massa-log-line.info{color:var(--dim);}
   #btn-massa-ia{display:none;} /* ocultado até IA_PROXY_URL ser definida */
@@ -765,7 +802,7 @@
     cursor:pointer;text-decoration:underline;text-decoration-color:transparent;
     transition:color .15s, text-decoration-color .15s;
   }
-  .hodo-veiculo-link:hover{color:var(--amber);text-decoration-color:var(--amber);}
+  .hodo-veiculo-link:hover{color:var(--brand-2);text-decoration-color:var(--brand-2);}
   .hodo-hist-del{
     background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:2px 6px;
   }
@@ -779,25 +816,25 @@
     padding:3px 7px;border-radius:3px;cursor:pointer;font-size:11px;
     transition:border-color .15s, color .15s;
   }
-  .edit-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .edit-btn:hover{border-color:var(--brand-2);color:var(--brand-2);}
   .edit-drawer{
     position:fixed;top:0;right:0;height:100%;width:min(500px,96vw);
     background:var(--panel);border-left:1px solid var(--line);
-    box-shadow:-20px 0 50px rgba(0,0,0,.5);
+    box-shadow:var(--shadow-drawer);
     transform:translateX(100%);transition:transform .25s ease;
     z-index:55;display:flex;flex-direction:column;
   }
   .edit-drawer.open{transform:translateX(0);}
-  .edit-drawer .drawer-head::before{background:var(--amber);}
+  .edit-drawer .drawer-head::before{background:var(--brand-2);}
   .edit-origin-badge{
     display:inline-block;font-family:var(--font-mono);font-size:10px;
     padding:2px 7px;border-radius:2px;margin-left:8px;vertical-align:middle;
   }
   .edit-origin-badge.planilha{
-    background:rgba(79,180,119,.12);color:var(--green);border:1px solid rgba(79,180,119,.3);
+    background:rgba(var(--green-rgb),.12);color:var(--green);border:1px solid rgba(var(--green-rgb),.3);
   }
   .edit-origin-badge.manual{
-    background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);
+    background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);border:1px solid rgba(var(--brand-2-rgb),.3);
   }
   .edit-reinc-info{
     background:var(--panel-2);border:1px solid var(--line);border-radius:3px;
@@ -805,18 +842,18 @@
   }
   .edit-reinc-info .label{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:4px;}
   .edit-reinc-info .value{font-family:var(--font-mono);}
-  .edit-chave-auto{color:var(--amber);font-family:var(--font-mono);font-size:10px;margin-left:6px;}
+  .edit-chave-auto{color:var(--brand-2);font-family:var(--font-mono);font-size:10px;margin-left:6px;}
 
 
   /* ── Operação pills ── */
   .op-comigo{
     font-family:var(--font-mono);font-size:11px;padding:2px 8px;border-radius:3px;
-    background:rgba(79,180,119,.15);color:#4fb477;border:1px solid rgba(79,180,119,.35);
+    background:rgba(var(--green-rgb),.15);color:#4fb477;border:1px solid rgba(var(--green-rgb),.35);
     white-space:nowrap;
   }
   .op-urbano{
     font-family:var(--font-mono);font-size:11px;padding:2px 8px;border-radius:3px;
-    background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);
+    background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);border:1px solid rgba(var(--brand-2-rgb),.3);
     white-space:nowrap;
   }
   .op-other{
@@ -840,7 +877,7 @@
     align-items:center;
     gap:8px;
     background:var(--panel-2);
-    border:1px solid var(--amber);
+    border:1px solid var(--brand-2);
     color:var(--chalk);
     font-family:var(--font-mono);
     font-size:11.5px;
@@ -855,14 +892,14 @@
   .update-banner.show{display:inline-flex;}
   .update-banner .dot-pulse{
     width:7px;height:7px;border-radius:50%;
-    background:var(--amber);flex:none;
+    background:var(--brand-2);flex:none;
     animation:dot-pulse 1.4s ease-in-out infinite;
   }
   @keyframes dot-pulse{
     0%,100%{opacity:1;}
     50%{opacity:.35;}
   }
-  .update-banner:hover{border-color:var(--orange);color:var(--orange);}
+  .update-banner:hover{border-color:var(--brand);color:var(--brand);}
 
   /* ── Backup bar ── */
   .backup-bar{
@@ -886,7 +923,7 @@
     transition:border-color .15s,color .15s;
   }
   .btn-backup:hover{border-color:var(--green);color:var(--green);}
-  .btn-backup.import:hover{border-color:var(--amber);color:var(--amber);}
+  .btn-backup.import:hover{border-color:var(--brand-2);color:var(--brand-2);}
   .btn-backup.danger:hover{border-color:var(--red);color:var(--red);}
   #backup-file-input{display:none;}
 
@@ -900,7 +937,7 @@
   .sync-overlay.hidden{opacity:0;pointer-events:none;}
   .sync-spinner{
     width:36px;height:36px;border:3px solid var(--line);
-    border-top-color:var(--amber);border-radius:50%;
+    border-top-color:var(--brand-2);border-radius:50%;
     animation:spin .8s linear infinite;margin-bottom:16px;
   }
   @keyframes spin{to{transform:rotate(360deg);}}
@@ -913,7 +950,7 @@
     background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
     font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;flex:1;min-width:160px;
   }
-  .hodo-toolbar input:focus{border-color:var(--amber);}
+  .hodo-toolbar input:focus{border-color:var(--brand-2);}
   .hodo-drop{
     border:2px dashed var(--line);border-radius:4px;padding:20px;text-align:center;
     color:var(--dim);font-size:13px;cursor:pointer;transition:border-color .2s;margin-bottom:16px;
@@ -944,7 +981,7 @@
   .kml-good{color:var(--green);}
   .kml-warn{color:var(--yellow);}
   .kml-bad{color:var(--red);}
-  .hodo-val{font-family:var(--font-mono);color:var(--amber);}
+  .hodo-val{font-family:var(--font-mono);color:var(--brand-2);}
 
 
   /* ── Log tab ── */
@@ -954,7 +991,7 @@
     font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;
   }
   .log-toolbar input{flex:1;min-width:160px;}
-  .log-toolbar input:focus,.log-toolbar select:focus{border-color:var(--amber);}
+  .log-toolbar input:focus,.log-toolbar select:focus{border-color:var(--brand-2);}
   .log-card{
     background:var(--panel);border:1px solid var(--line);border-radius:4px;
     overflow:auto;max-height:620px;
@@ -975,13 +1012,13 @@
     font-family:var(--font-mono);font-size:10px;padding:2px 7px;border-radius:3px;
     white-space:nowrap;display:inline-block;
   }
-  .log-tag.os-nova     {background:rgba(79,180,119,.15);color:var(--green);border:1px solid rgba(79,180,119,.3);}
-  .log-tag.os-edit     {background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);}
+  .log-tag.os-nova     {background:rgba(var(--green-rgb),.15);color:var(--green);border:1px solid rgba(var(--green-rgb),.3);}
+  .log-tag.os-edit     {background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);border:1px solid rgba(var(--brand-2-rgb),.3);}
   .log-tag.os-delete   {background:rgba(220,60,60,.12);color:var(--red);border:1px solid rgba(220,60,60,.3);}
   .log-tag.os-import   {background:rgba(100,160,230,.12);color:#64a0e6;border:1px solid rgba(100,160,230,.3);}
   .log-tag.sr-import   {background:rgba(160,120,220,.12);color:#a078dc;border:1px solid rgba(160,120,220,.3);}
   .log-tag.frota       {background:rgba(180,130,255,.12);color:#b482ff;border:1px solid rgba(180,130,255,.3);}
-  .log-tag.hodo        {background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);}
+  .log-tag.hodo        {background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);border:1px solid rgba(var(--brand-2-rgb),.3);}
   .log-tag.backup      {background:rgba(255,255,255,.06);color:var(--dim);border:1px solid var(--line);}
   .log-tag.sistema     {background:rgba(255,255,255,.06);color:var(--dim);border:1px solid var(--line);}
   .log-detail{color:var(--chalk);font-size:12px;line-height:1.5;}
@@ -1003,17 +1040,17 @@
     font-family:var(--font-body);font-size:13px;padding:7px 9px;border-radius:3px;
     outline:none;flex:1;min-width:120px;
   }
-  .pairs-builder .pair-row select:focus{border-color:var(--amber);}
+  .pairs-builder .pair-row select:focus{border-color:var(--brand-2);}
   .pairs-builder .pair-row select option{
     background:var(--input-bg);color:var(--input-fg);
   }
   .pairs-builder .pair-row select.pair-tipo-select{flex:none;min-width:118px;}
   .pairs-builder .pair-add-btn{
-    background:var(--orange);border:none;color:var(--btn-text);
+    background:var(--brand);border:none;color:var(--brand-text);
     font-family:var(--font-display);font-weight:700;font-size:16px;
     padding:5px 12px;border-radius:3px;cursor:pointer;line-height:1;
   }
-  .pairs-builder .pair-add-btn:hover{background:var(--amber);}
+  .pairs-builder .pair-add-btn:hover{background:var(--brand-2);}
   .pairs-list{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
   .pair-tag{
     display:flex;align-items:center;gap:8px;
@@ -1025,12 +1062,12 @@
     font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;
     letter-spacing:.04em;padding:2px 6px;border-radius:2px;margin-right:8px;
   }
-  .pair-tag .pair-tipo-badge.Corretiva{background:rgba(255,106,43,.15);color:var(--orange);}
-  .pair-tag .pair-tipo-badge.Preventiva{background:rgba(79,180,119,.15);color:var(--green);}
+  .pair-tag .pair-tipo-badge.Corretiva{background:rgba(var(--orange-rgb),.15);color:var(--orange);}
+  .pair-tag .pair-tipo-badge.Preventiva{background:rgba(var(--green-rgb),.15);color:var(--green);}
   .pair-tag .pair-tipo-badge.Socorro{background:rgba(200,13,0,.15);color:var(--red1);}
   .pair-tag .pair-setor{color:var(--chalk);}
   .pair-tag .pair-cat{color:var(--dim);}
-  .pair-tag .pair-chave{color:var(--amber);margin-left:6px;font-weight:600;}
+  .pair-tag .pair-chave{color:var(--brand-2);margin-left:6px;font-weight:600;}
   .pair-tag .pair-remove{
     background:none;border:none;color:var(--dim);cursor:pointer;
     font-size:14px;line-height:1;padding:0 2px;
@@ -1049,20 +1086,20 @@
   .cat-setor-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
   .cat-setor-nome{
     font-family:var(--font-display);font-size:15px;letter-spacing:.03em;
-    color:var(--amber);flex:1;
+    color:var(--brand-2);flex:1;
   }
   .cat-setor-nome input{
     background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
     font-family:var(--font-display);font-size:14px;padding:5px 8px;border-radius:3px;
     outline:none;width:100%;
   }
-  .cat-setor-nome input:focus{border-color:var(--amber);}
+  .cat-setor-nome input:focus{border-color:var(--brand-2);}
   .cat-setor-count{font-family:var(--font-mono);font-size:10.5px;color:var(--dim);white-space:nowrap;}
   .cat-icon-btn{
     background:none;border:1px solid var(--line);color:var(--dim);cursor:pointer;
     font-size:12px;line-height:1;padding:5px 7px;border-radius:3px;
   }
-  .cat-icon-btn:hover{color:var(--amber);border-color:var(--amber);}
+  .cat-icon-btn:hover{color:var(--brand-2);border-color:var(--brand-2);}
   .cat-icon-btn.danger:hover{color:var(--red);border-color:var(--red);}
   .cat-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
   .cat-chip{
@@ -1085,12 +1122,12 @@
     flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
     font-family:var(--font-body);font-size:13px;padding:7px 9px;border-radius:3px;outline:none;
   }
-  .cat-add-row input:focus{border-color:var(--amber);}
+  .cat-add-row input:focus{border-color:var(--brand-2);}
   .cat-add-row button{
-    background:var(--orange);border:none;color:var(--btn-text);font-family:var(--font-display);
+    background:var(--brand);border:none;color:var(--brand-text);font-family:var(--font-display);
     font-weight:700;font-size:13px;padding:6px 14px;border-radius:3px;cursor:pointer;
   }
-  .cat-add-row button:hover{background:var(--amber);}
+  .cat-add-row button:hover{background:var(--brand-2);}
   .sug-exemplos{display:flex;flex-direction:column;gap:6px;margin-bottom:0;}
   .sug-exemplo-row{display:flex;align-items:center;gap:8px;}
   .sug-exemplo{
@@ -1103,13 +1140,13 @@
     color:var(--chalk);font-family:var(--font-body);font-size:12px;
     padding:5px 7px;border-radius:3px;outline:none;
   }
-  .sug-exemplo-input:focus{border-color:var(--amber);}
+  .sug-exemplo-input:focus{border-color:var(--brand-2);}
   .sug-exemplo-btn{
-    flex:none;background:var(--orange);border:none;color:var(--btn-text);
+    flex:none;background:var(--brand);border:none;color:var(--brand-text);
     font-family:var(--font-display);font-weight:700;font-size:11.5px;
     padding:5px 10px;border-radius:3px;cursor:pointer;white-space:nowrap;
   }
-  .sug-exemplo-btn:hover{background:var(--amber);}
+  .sug-exemplo-btn:hover{background:var(--brand-2);}
   .sug-exemplo-btn.aplicar{background:var(--green);color:#0d1f15;}
   .sug-exemplo-btn.aplicar:hover{background:#6de89a;}
   .sug-match-hint{
@@ -1117,24 +1154,24 @@
     display:none;
   }
   .sug-match-hint.existe{
-    color:var(--green);background:rgba(79,180,119,.08);border:1px solid rgba(79,180,119,.3);
+    color:var(--green);background:rgba(var(--green-rgb),.08);border:1px solid rgba(var(--green-rgb),.3);
     display:block;
   }
   .sug-match-hint.novo{
-    color:var(--amber);background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.25);
+    color:var(--brand-2);background:rgba(var(--brand-2-rgb),.06);border:1px solid rgba(var(--brand-2-rgb),.25);
     display:block;
   }
   .sug-criar-btn.aplicar{background:var(--green);color:#0d1f15;}
   .sug-criar-btn.aplicar:hover{background:#6de89a;}
   .sug-setor-select{
-    background:var(--panel-2);border:1px solid var(--amber);color:var(--amber);
+    background:var(--panel-2);border:1px solid var(--brand-2);color:var(--brand-2);
     font-family:var(--font-display);font-size:15px;letter-spacing:.03em;
     padding:2px 6px;border-radius:3px;outline:none;cursor:pointer;
     appearance:none;-webkit-appearance:none;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23F5A623'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 6px center;padding-right:20px;
   }
-  .sug-setor-select:focus{border-color:var(--amber);}
+  .sug-setor-select:focus{border-color:var(--brand-2);}
 
   /* Tipo (Corretiva/Preventiva) selectors */
   .cat-tipo-select{
@@ -1142,7 +1179,7 @@
     font-family:var(--font-body);font-size:11px;padding:4px 6px;border-radius:3px;
     outline:none;flex:none;cursor:pointer;
   }
-  .cat-tipo-select:focus{border-color:var(--amber);}
+  .cat-tipo-select:focus{border-color:var(--brand-2);}
   .cat-tipo-select[data-tipo="Corretiva"]{color:var(--orange);border-color:var(--orange);}
   .cat-tipo-select[data-tipo="Preventiva"]{color:var(--green);border-color:var(--green);}
   .cat-setor-head .cat-tipo-select{font-size:11.5px;padding:5px 7px;}
@@ -1159,7 +1196,7 @@
   }
   .gns-form-card h3{
     font-family:var(--font-display);font-size:15px;letter-spacing:.05em;
-    text-transform:uppercase;color:var(--amber);margin:0 0 14px;
+    text-transform:uppercase;color:var(--brand-2);margin:0 0 14px;
   }
   .gns-field{margin-bottom:12px;}
   .gns-field label{
@@ -1171,9 +1208,9 @@
     color:var(--chalk);font-family:var(--font-body);font-size:13px;
     padding:8px 10px;border-radius:3px;outline:none;
   }
-  .gns-field input:focus,.gns-field select:focus,.gns-field textarea:focus{border-color:var(--amber);}
+  .gns-field input:focus,.gns-field select:focus,.gns-field textarea:focus{border-color:var(--brand-2);}
   .gns-field textarea{resize:vertical;min-height:64px;}
-  .gns-field input[readonly]{color:var(--amber);cursor:default;}
+  .gns-field input[readonly]{color:var(--brand-2);cursor:default;}
   .gns-field .field-hint{font-size:10px;color:var(--dim);margin-top:3px;}
   .gns-field .os-preview{
     background:var(--panel-2);border:1px solid var(--line);border-radius:3px;
@@ -1181,7 +1218,7 @@
     color:var(--dim);
   }
   .gns-field .os-preview.found{color:var(--chalk);}
-  .gns-field .os-preview .os-veiculo{color:var(--amber);font-weight:600;}
+  .gns-field .os-preview .os-veiculo{color:var(--brand-2);font-weight:600;}
   .gns-field .os-preview .os-data{color:var(--dim);}
   .gns-actions{display:flex;gap:8px;margin-top:16px;}
   .gns-actions .btn-submit{flex:1;}
@@ -1198,7 +1235,7 @@
     font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;
   }
   .gns-toolbar input{flex:1;min-width:160px;}
-  .gns-toolbar input:focus,.gns-toolbar select:focus{border-color:var(--amber);}
+  .gns-toolbar input:focus,.gns-toolbar select:focus{border-color:var(--brand-2);}
   .gns-count{font-family:var(--font-mono);font-size:11px;color:var(--dim);margin-left:auto;}
 
   .gns-list-card table{width:100%;border-collapse:collapse;font-size:12.5px;}
@@ -1214,23 +1251,23 @@
   .gns-list-card tbody td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
   .gns-list-card tbody tr:hover{background:rgba(255,255,255,.02);}
 
-  .gns-num{font-family:var(--font-mono);color:var(--amber);font-weight:600;}
+  .gns-num{font-family:var(--font-mono);color:var(--brand-2);font-weight:600;}
   .gns-os{font-family:var(--font-mono);font-size:11.5px;}
   .gns-days{
     font-family:var(--font-mono);font-weight:600;font-size:13px;
     padding:2px 8px;border-radius:3px;display:inline-block;
   }
-  .gns-days.d1{color:var(--green);background:rgba(79,180,119,.12);border:1px solid rgba(79,180,119,.25);}
-  .gns-days.d2{color:var(--yellow);background:rgba(255,201,60,.10);border:1px solid rgba(255,201,60,.25);}
-  .gns-days.d3{color:var(--orange);background:rgba(255,106,43,.12);border:1px solid rgba(255,106,43,.3);}
-  .gns-days.d4{color:var(--red);background:rgba(229,84,75,.12);border:1px solid rgba(229,84,75,.3);}
+  .gns-days.d1{color:var(--green);background:rgba(var(--green-rgb),.12);border:1px solid rgba(var(--green-rgb),.25);}
+  .gns-days.d2{color:var(--yellow);background:rgba(var(--yellow-rgb),.10);border:1px solid rgba(var(--yellow-rgb),.25);}
+  .gns-days.d3{color:var(--brand);background:rgba(var(--brand-rgb),.12);border:1px solid rgba(var(--brand-rgb),.3);}
+  .gns-days.d4{color:var(--red);background:rgba(var(--red-rgb),.12);border:1px solid rgba(var(--red-rgb),.3);}
 
   .gns-status{
     font-family:var(--font-mono);font-size:10.5px;padding:3px 9px;border-radius:3px;
     display:inline-block;white-space:nowrap;
   }
-  .gns-status.Em-GNS  {color:var(--yellow);background:rgba(255,201,60,.10);border:1px solid rgba(255,201,60,.3);}
-  .gns-status.Liberado{color:var(--green);background:rgba(79,180,119,.10);border:1px solid rgba(79,180,119,.3);}
+  .gns-status.Em-GNS  {color:var(--yellow);background:rgba(var(--yellow-rgb),.10);border:1px solid rgba(var(--yellow-rgb),.3);}
+  .gns-status.Liberado{color:var(--green);background:rgba(var(--green-rgb),.10);border:1px solid rgba(var(--green-rgb),.3);}
 
   .gns-empty{padding:48px;text-align:center;color:var(--dim);font-size:13px;}
   .gns-act-btn{
@@ -1238,7 +1275,7 @@
     font-size:11px;padding:3px 8px;border-radius:3px;cursor:pointer;
     font-family:var(--font-mono);margin-right:3px;
   }
-  .gns-act-btn:hover{border-color:var(--amber);color:var(--amber);}
+  .gns-act-btn:hover{border-color:var(--brand-2);color:var(--brand-2);}
   .gns-act-btn.danger:hover{border-color:var(--red);color:var(--red);}
 
   /* Seleção em massa (checkbox por linha) em tabelas .gns-list-card */
@@ -1263,11 +1300,11 @@
   }
   .gns-kpi .gns-kpi-n{
     font-family:var(--font-display);font-size:26px;font-weight:700;
-    color:var(--amber);line-height:1;
+    color:var(--brand-2);line-height:1;
   }
   .gns-kpi .gns-kpi-l{font-size:11px;color:var(--dim);margin-top:3px;}
   .gns-kpi.abertos .gns-kpi-n{color:var(--yellow);}
-  .gns-kpi.andamento .gns-kpi-n{color:var(--amber);}
+  .gns-kpi.andamento .gns-kpi-n{color:var(--brand-2);}
   .gns-kpi.encerrados .gns-kpi-n{color:var(--green);}
   .gns-kpi.media .gns-kpi-n{color:var(--chalk);}
 
@@ -1292,7 +1329,7 @@
     font-family:var(--font-body);font-size:13px;padding:7px 10px;
     border-radius:3px;outline:none;width:160px;
   }
-  .hodo-search-input:focus{border-color:var(--amber);}
+  .hodo-search-input:focus{border-color:var(--brand-2);}
   .hodo-right{
     background:var(--panel);border:1px solid var(--line);border-radius:4px;
     padding:18px 16px;position:sticky;top:20px;
@@ -1304,7 +1341,7 @@
     width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
     font-family:var(--font-body);font-size:13px;padding:7px 9px;border-radius:3px;outline:none;
   }
-  .hodo-manual-form .import-field input:focus{border-color:var(--amber);}
+  .hodo-manual-form .import-field input:focus{border-color:var(--brand-2);}
   .hodo-manual-form .import-field label{
     display:block;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;
     letter-spacing:.06em;color:var(--dim);margin-bottom:4px;
@@ -1577,7 +1614,7 @@
     border-radius:3px;
     outline:none;
   }
-  .slim-toolbar > input[type=text]:focus{border-color:var(--amber);}
+  .slim-toolbar > input[type=text]:focus{border-color:var(--brand-2);}
   .slim-toolbar-actions{
     display:flex;
     align-items:center;
@@ -1594,14 +1631,14 @@
     border-radius:3px;
     outline:none;
   }
-  .slim-toolbar-actions select:focus{border-color:var(--amber);}
+  .slim-toolbar-actions select:focus{border-color:var(--brand-2);}
   .slim-count{
     font-family:var(--font-mono);
     font-size:12px;
     color:var(--dim);
     white-space:nowrap;
   }
-  .slim-count b{color:var(--amber);}
+  .slim-count b{color:var(--brand-2);}
 
   @media(max-width:600px){
     .slim-toolbar{flex-direction:column;align-items:stretch;gap:8px;}
@@ -1661,14 +1698,14 @@
     font-size:11px;
     padding:3px 10px;
     border-radius:3px;
-    background:rgba(245,166,35,.12);
-    color:var(--amber);
-    border:1px solid rgba(245,166,35,.3);
+    background:rgba(var(--brand-2-rgb),.12);
+    color:var(--brand-2);
+    border:1px solid rgba(var(--brand-2-rgb),.3);
   }
   .fechamento-toggle-bar .fech-badge.zero{
-    background:rgba(79,180,119,.10);
+    background:rgba(var(--green-rgb),.10);
     color:var(--green);
-    border-color:rgba(79,180,119,.3);
+    border-color:rgba(var(--green-rgb),.3);
   }
   .fechamento-toggle-bar .fech-arrow{
     font-family:var(--font-mono);
@@ -1703,7 +1740,7 @@
     border-radius:3px;
     outline:none;
   }
-  .fech-search:focus{border-color:var(--amber);}
+  .fech-search:focus{border-color:var(--brand-2);}
   .fech-select-all-btn, .fech-clear-sel-btn{
     background:none;
     border:1px solid var(--line);
@@ -1723,7 +1760,7 @@
     margin-left:auto;
     white-space:nowrap;
   }
-  .fech-count b{color:var(--amber);}
+  .fech-count b{color:var(--brand-2);}
 
   .fech-form-row{
     display:flex;
@@ -1762,7 +1799,7 @@
   }
   .fech-form-row input[type=date]:focus,
   .fech-form-row input[type=text]:focus,
-  .fech-form-row textarea:focus{border-color:var(--amber);}
+  .fech-form-row textarea:focus{border-color:var(--brand-2);}
   .fech-form-row textarea{resize:none;height:36px;min-width:200px;}
   .fech-form-row .fech-field-obs{flex:1;min-width:180px;}
   .fech-form-row .fech-field-obs textarea{width:100%;}
@@ -1827,20 +1864,20 @@
 
   /* Status pill */
   .pill-status-aberta{
-    background:rgba(245,166,35,.12);color:var(--amber);
-    border:1px solid rgba(245,166,35,.3);
+    background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);
+    border:1px solid rgba(var(--brand-2-rgb),.3);
     display:inline-block;padding:2px 8px;border-radius:3px;
     font-size:11px;font-family:var(--font-mono);
   }
   .pill-status-fechada{
-    background:rgba(79,180,119,.12);color:var(--green);
-    border:1px solid rgba(79,180,119,.3);
+    background:rgba(var(--green-rgb),.12);color:var(--green);
+    border:1px solid rgba(var(--green-rgb),.3);
     display:inline-block;padding:2px 8px;border-radius:3px;
     font-size:11px;font-family:var(--font-mono);
   }
   .pill-status-reaberta{
-    background:rgba(255,201,60,.10);color:var(--yellow);
-    border:1px solid rgba(255,201,60,.3);
+    background:rgba(var(--yellow-rgb),.10);color:var(--yellow);
+    border:1px solid rgba(var(--yellow-rgb),.3);
     display:inline-block;padding:2px 8px;border-radius:3px;
     font-size:11px;font-family:var(--font-mono);
   }
@@ -1849,18 +1886,18 @@
     font-size:11px;padding:3px 8px;border-radius:3px;cursor:pointer;
     font-family:var(--font-mono);
   }
-  .btn-reabrir:hover{border-color:var(--orange);color:var(--orange);}
+  .btn-reabrir:hover{border-color:var(--brand);color:var(--brand);}
 
   /* ── Login ── */
   .pcm-login-screen{
     position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center;
     background:
-      radial-gradient(1200px 500px at 10% -10%, rgba(255,106,43,.10), transparent 60%),
+      radial-gradient(1200px 500px at 10% -10%, rgba(var(--brand-rgb),.10), transparent 60%),
       var(--asphalt);
   }
   .pcm-login-card{
     width:min(360px, 90vw); background:var(--panel); border:1px solid var(--line);
-    border-radius:10px; padding:32px 28px; box-shadow:0 20px 60px rgba(0,0,0,.4);
+    border-radius:10px; padding:32px 28px; box-shadow:var(--shadow-modal);
   }
   .pcm-login-field{ margin-top:16px; }
   .pcm-login-field label{
@@ -1871,22 +1908,16 @@
     width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--chalk);
     padding:10px 12px; border-radius:6px; font-family:var(--font-body); font-size:14px;
   }
-  .pcm-login-field input:focus, .pcm-login-field select:focus{ outline:none; border-color:var(--amber); }
+  .pcm-login-field input:focus, .pcm-login-field select:focus{ outline:none; border-color:var(--brand-2); }
   .pcm-login-btn{
     width:100%; margin-top:22px; padding:12px; border:none; border-radius:6px;
-    background:var(--amber); color:var(--btn-text); font-weight:700; font-family:var(--font-display);
+    background:var(--brand-2); color:var(--brand-text); font-weight:700; font-family:var(--font-display);
     letter-spacing:.03em; text-transform:uppercase; cursor:pointer; font-size:14px;
   }
-  .pcm-login-btn:hover{ background:var(--orange); }
-  .pcm-login-theme-toggle{
-    position:absolute; top:18px; right:20px; z-index:1;
-    background:none; border:1px solid var(--line); color:var(--dim);
-    width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:15px;
-  }
-  .pcm-login-theme-toggle:hover{ border-color:var(--amber); color:var(--amber); }
+  .pcm-login-btn:hover{ background:var(--brand); }
   .pcm-login-erro{
-    margin-top:14px; padding:8px 10px; border-radius:6px; background:rgba(229,84,75,.12);
-    border:1px solid rgba(229,84,75,.4); color:var(--red); font-size:12.5px;
+    margin-top:14px; padding:8px 10px; border-radius:6px; background:rgba(var(--red-rgb),.12);
+    border:1px solid rgba(var(--red-rgb),.4); color:var(--red); font-size:12.5px;
   }
   .pcm-login-hint{ margin-top:16px; text-align:center; font-size:11.5px; color:var(--dim); }
 
@@ -1898,7 +1929,7 @@
   }
   .pcm-session-bar strong{ color:var(--chalk); }
   .pcm-session-bar .pcm-badge-role{
-    padding:2px 8px; border-radius:3px; border:1px solid var(--amber); color:var(--amber);
+    padding:2px 8px; border-radius:3px; border:1px solid var(--brand-2); color:var(--brand-2);
     font-size:10.5px; text-transform:uppercase; letter-spacing:.05em;
   }
   .pcm-session-bar button{
@@ -1906,8 +1937,6 @@
     padding:5px 12px; border-radius:5px; cursor:pointer; font-family:var(--font-mono); font-size:11.5px;
   }
   .pcm-session-bar button:hover{ border-color:var(--red); color:var(--red); }
-  #pcm-theme-toggle-btn{ margin-left:auto; }
-  #pcm-theme-toggle-btn:hover{ border-color:var(--amber); color:var(--amber); }
   .pcm-session-bar select{
     background:var(--panel); border:1px solid var(--line); color:var(--chalk);
     padding:4px 8px; border-radius:5px; font-family:var(--font-mono); font-size:11.5px;
@@ -1917,16 +1946,16 @@
   .pcm-admin-section{ margin-bottom:32px; }
   .pcm-admin-section h3{
     font-family:var(--font-display); text-transform:uppercase; letter-spacing:.03em;
-    color:var(--amber); font-size:16px; margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid var(--line);
+    color:var(--brand-2); font-size:16px; margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid var(--line);
   }
   .pcm-admin-toolbar{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
   .pcm-admin-btn{
     background:var(--panel-2); border:1px solid var(--line); color:var(--chalk);
     padding:8px 14px; border-radius:6px; cursor:pointer; font-family:var(--font-body); font-size:13px;
   }
-  .pcm-admin-btn:hover{ border-color:var(--amber); color:var(--amber); }
-  .pcm-admin-btn.primary{ background:var(--amber); border-color:var(--amber); color:var(--btn-text); font-weight:600; }
-  .pcm-admin-btn.primary:hover{ background:var(--orange); border-color:var(--orange); color:#fff; }
+  .pcm-admin-btn:hover{ border-color:var(--brand-2); color:var(--brand-2); }
+  .pcm-admin-btn.primary{ background:var(--brand-2); border-color:var(--brand-2); color:var(--brand-text); font-weight:600; }
+  .pcm-admin-btn.primary:hover{ background:var(--brand); border-color:var(--brand); color:#fff; }
   .pcm-admin-btn.danger{ border-color:var(--red); color:var(--red); }
   .pcm-admin-list{ display:flex; flex-direction:column; gap:8px; }
   .pcm-admin-row{
@@ -1941,7 +1970,7 @@
     background:none; border:1px solid var(--line); color:var(--dim); padding:5px 10px;
     border-radius:5px; cursor:pointer; font-size:11.5px; font-family:var(--font-mono);
   }
-  .pcm-admin-row .actions button:hover{ border-color:var(--amber); color:var(--amber); }
+  .pcm-admin-row .actions button:hover{ border-color:var(--brand-2); color:var(--brand-2); }
   .pcm-admin-row .actions button.del:hover{ border-color:var(--red); color:var(--red); }
 
   /* Matriz de permissões */
@@ -1951,13 +1980,13 @@
   }
   .pcm-perm-table th{ background:var(--panel-2); color:var(--dim); font-family:var(--font-mono); font-weight:500; font-size:11px; text-transform:uppercase; }
   .pcm-perm-table td:first-child, .pcm-perm-table th:first-child{ text-align:left; white-space:nowrap; }
-  .pcm-perm-table input[type="checkbox"]{ width:16px; height:16px; cursor:pointer; accent-color:var(--amber); }
+  .pcm-perm-table input[type="checkbox"]{ width:16px; height:16px; cursor:pointer; accent-color:var(--brand-2); }
   .pcm-perm-actions-row{ display:flex; gap:8px; margin-top:6px; }
   .pcm-perm-actions-row button{
     background:var(--panel-2); border:1px solid var(--line); color:var(--dim); padding:4px 10px;
     border-radius:5px; cursor:pointer; font-size:11px; font-family:var(--font-mono);
   }
-  .pcm-perm-actions-row button:hover{ border-color:var(--amber); color:var(--amber); }
+  .pcm-perm-actions-row button:hover{ border-color:var(--brand-2); color:var(--brand-2); }
 
   .pcm-form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
   .pcm-form-grid.full{ grid-template-columns:1fr; }
@@ -1969,7 +1998,7 @@
     width:100%; background:var(--panel); border:1px solid var(--line); color:var(--chalk);
     padding:8px 10px; border-radius:6px; font-size:13.5px;
   }
-  .pcm-form-field input:focus, .pcm-form-field select:focus{ outline:none; border-color:var(--amber); }
+  .pcm-form-field input:focus, .pcm-form-field select:focus{ outline:none; border-color:var(--brand-2); }
   .pcm-form-checkbox-group{ display:flex; flex-wrap:wrap; gap:10px; margin-top:6px; }
   .pcm-form-checkbox-group label{
     display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--chalk);
@@ -1986,10 +2015,9 @@
 
 <!-- ═══ TELA DE LOGIN ═══ -->
 <div id="pcm-login-screen" class="pcm-login-screen" style="display:none;">
-  <button type="button" id="pcm-theme-toggle-btn-login" class="pcm-login-theme-toggle" title="Alternar modo claro/escuro">🌙</button>
   <div class="pcm-login-card" id="pcm-login-card-normal">
     <p class="eyebrow" style="text-align:center;">Central de Login · Grupo</p>
-    <h1 style="text-align:center; font-size:clamp(24px,3vw,32px);">PCM <span style="color:var(--orange);">Frota</span></h1>
+    <h1 style="text-align:center; font-size:clamp(24px,3vw,32px);">PCM <span style="color:var(--brand);">Frota</span></h1>
     <div class="pcm-login-field">
       <label>Usuário</label>
       <input type="text" id="pcm-login-usuario" autocomplete="username" placeholder="Seu usuário">
@@ -2034,13 +2062,12 @@
   <span id="pcm-unidade-troca-wrap" style="display:none;">Unidade: <select id="pcm-unidade-troca-select"></select></span>
   <span>Usuário: <strong id="pcm-usuario-atual-label">—</strong></span>
   <span id="pcm-role-badge-wrap" style="display:none;"><span class="pcm-badge-role" id="pcm-role-badge">Admin</span></span>
-  <button id="pcm-theme-toggle-btn" title="Alternar modo claro/escuro">🌙 Escuro</button>
   <button id="pcm-logout-btn" title="Sair">Sair</button>
 </div>
 
 <header>
   <p class="eyebrow">Plano de Controle de Manutenção · Frota Rio Verde</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.20</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.08</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -2062,7 +2089,8 @@
     <span class="arrow">«</span><span class="toggle-label">Recolher</span>
   </button>
   <nav class="tab-nav-vertical">
-    <button class="tab-btn active" data-tab="painel"><span class="tab-icon">📊</span><span class="tab-label">Painel</span></button>
+    <button class="tab-btn active" data-tab="painel"><span class="tab-icon">📊</span><span class="tab-label">Painel OS</span></button>
+    <button class="tab-btn" data-tab="painel-sr"><span class="tab-icon">📋</span><span class="tab-label">Painel SR</span></button>
     <button class="tab-btn" data-tab="ordens"><span class="tab-icon">🗂️</span><span class="tab-label">Ordens de Serviço</span></button>
     <button class="tab-btn" data-tab="duplicadas"><span class="tab-icon">🧬</span><span class="tab-label">Duplicadas</span></button>
     <button class="tab-btn" data-tab="solicitacoes"><span class="tab-icon">🛠️</span><span class="tab-label">Solicitações de Reparo</span></button>
@@ -2107,8 +2135,40 @@
 
 </div><!-- /tab-painel -->
 
+<!-- ═══════════════ PAINEL SR TAB ═══════════════ -->
+<div id="tab-painel-sr" class="tab-panel">
+
+  <section class="kpis" id="sr-kpis"></section>
+
+  <section class="charts">
+    <div class="card">
+      <h3 class="card-h-row">Solicitações por mês
+        <select id="sr-months-month" class="card-h-select"><option value="">Todos os meses</option></select>
+      </h3>
+      <div class="months" id="sr-months"></div>
+    </div>
+    <div class="card">
+      <h3 class="card-h-row">Situação das solicitações</h3>
+      <div id="sr-donut"></div>
+    </div>
+    <div class="card">
+      <h3 class="card-h-row">Top veículos com mais solicitações</h3>
+      <div id="sr-vehbars"></div>
+    </div>
+  </section>
+
+  <section class="charts" style="grid-template-columns:1fr;">
+    <div class="card">
+      <h3 class="card-h-row">Top motivos de solicitação</h3>
+      <div id="sr-motivobars"></div>
+    </div>
+  </section>
+
+</div><!-- /tab-painel-sr -->
+
 <!-- ═══════════════ ORDENS DE SERVIÇO TAB ═══════════════ -->
 <div id="tab-ordens" class="tab-panel">
+
   <p class="sub" style="margin-top:0;margin-bottom:16px;">Consulte, filtre e gerencie todas as ordens de serviço lançadas. Clique em <b>Novo registro</b> para cadastrar uma OS manualmente, use os filtros para localizar rapidamente por operação, tipo, setor, responsável ou reincidência, e clique em uma linha para editar ou excluir.</p>
 
   <section class="filters">
@@ -2264,8 +2324,8 @@
         <div class="drop-icon">📂</div>
         <div>Arraste um arquivo aqui ou <strong>clique para selecionar</strong></div>
         <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
-          <span style="font-family:var(--font-mono);font-size:11px;background:rgba(79,180,119,.12);color:var(--green);border:1px solid rgba(79,180,119,.3);padding:3px 9px;border-radius:3px;">.xlsx / .xls</span>
-          <span style="font-family:var(--font-mono);font-size:11px;background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);padding:3px 9px;border-radius:3px;">.csv</span>
+          <span style="font-family:var(--font-mono);font-size:11px;background:rgba(var(--green-rgb),.12);color:var(--green);border:1px solid rgba(var(--green-rgb),.3);padding:3px 9px;border-radius:3px;">.xlsx / .xls</span>
+          <span style="font-family:var(--font-mono);font-size:11px;background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);border:1px solid rgba(var(--brand-2-rgb),.3);padding:3px 9px;border-radius:3px;">.csv</span>
         </div>
         <div style="font-size:11px;margin-top:10px;color:var(--dim);">
           Aceita o relatório de OS exportado do sistema (blocos por data, colunas Veículo/O.S./Tipo/Observação/Abertura) — Setor fica como "Não classificado" e você reclassifica depois.<br>
@@ -2346,7 +2406,7 @@
     <!-- Preview queue -->
     <div id="import-queue-wrap" style="display:none;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <span style="font-family:var(--font-mono);font-size:12px;color:var(--dim);">Fila de importação: <b id="queue-count" style="color:var(--amber)">0</b> ordem(ns)</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--dim);">Fila de importação: <b id="queue-count" style="color:var(--brand-2)">0</b> ordem(ns)</span>
         <div style="display:flex;gap:8px;">
           <button class="btn-secondary" id="imp-clear-queue-btn">Limpar fila</button>
           <button class="btn-primary" id="imp-commit-btn">✅ Importar tudo</button>
@@ -2392,8 +2452,8 @@
       <div class="drop-icon">📂</div>
       <div>Arraste um arquivo aqui ou <strong>clique para selecionar</strong></div>
       <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
-        <span style="font-family:var(--font-mono);font-size:11px;background:rgba(79,180,119,.12);color:var(--green);border:1px solid rgba(79,180,119,.3);padding:3px 9px;border-radius:3px;">.xlsx / .xls</span>
-        <span style="font-family:var(--font-mono);font-size:11px;background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.3);padding:3px 9px;border-radius:3px;">.csv</span>
+        <span style="font-family:var(--font-mono);font-size:11px;background:rgba(var(--green-rgb),.12);color:var(--green);border:1px solid rgba(var(--green-rgb),.3);padding:3px 9px;border-radius:3px;">.xlsx / .xls</span>
+        <span style="font-family:var(--font-mono);font-size:11px;background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);border:1px solid rgba(var(--brand-2-rgb),.3);padding:3px 9px;border-radius:3px;">.csv</span>
       </div>
       <div style="font-size:11px;margin-top:10px;color:var(--dim);">
         Aceita o relatório de Solicitação de Reparo exportado do sistema (blocos por data, colunas Veículo/Motivo/Situação/Crachá/Funcionario/Obs. Reclamação). Veículo é lido da coluna B (operação é preenchida automaticamente pela frota cadastrada — se não identificar, fica em branco); Motivo (col. E) e Situação (col. F) são transcritos como estão na planilha; Crachá (col. I) vai para "Funcionário"; Funcionario (col. K) vai para "Motorista" (em branco se ausente); Obs. Reclamação (col. L) vai para "Descrição".<br>
@@ -2404,7 +2464,7 @@
 
     <div id="sol-import-queue-wrap" style="display:none;margin-top:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <span style="font-family:var(--font-mono);font-size:12px;color:var(--dim);">Fila de importação: <b id="sol-queue-count" style="color:var(--amber)">0</b> solicitação(ões)</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--dim);">Fila de importação: <b id="sol-queue-count" style="color:var(--brand-2)">0</b> solicitação(ões)</span>
         <div style="display:flex;gap:8px;">
           <button class="btn-secondary" id="sol-imp-clear-queue-btn">Limpar fila</button>
           <button class="btn-primary" id="sol-imp-commit-btn">✅ Importar tudo</button>
@@ -2474,7 +2534,7 @@
   <div class="drawer-body">
     <div class="gns-field">
       <label>Nº da Solicitação <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-      <input type="text" id="sol-num" readonly style="color:var(--amber);cursor:default;">
+      <input type="text" id="sol-num" readonly style="color:var(--brand-2);cursor:default;">
     </div>
 
     <div class="gns-field">
@@ -2489,7 +2549,7 @@
 
     <div class="gns-field">
       <label for="sol-operacao">Operação <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-      <input type="text" id="sol-operacao" readonly style="color:var(--amber);cursor:default;" placeholder="—">
+      <input type="text" id="sol-operacao" readonly style="color:var(--brand-2);cursor:default;" placeholder="—">
     </div>
 
     <div class="gns-field">
@@ -2632,6 +2692,14 @@
   <p class="sub" style="margin-top:0;margin-bottom:16px;">Central de administração do grupo: gerencie unidades, perfis de acesso e usuários, e defina exatamente o que cada pessoa pode ver e fazer em cada aba do sistema.</p>
 
   <div class="pcm-admin-section">
+    <h3>🎨 Aparência</h3>
+    <p class="sub" style="margin-top:-6px;margin-bottom:12px;font-size:12.5px;">Alterna o tema visual do sistema para todos os usuários neste navegador.</p>
+    <div class="pcm-admin-toolbar">
+      <button class="pcm-admin-btn" id="pcm-theme-toggle-btn" title="Alternar modo claro/escuro">🌙 Escuro</button>
+    </div>
+  </div>
+
+  <div class="pcm-admin-section">
     <h3>🏢 Unidades</h3>
     <div class="pcm-admin-toolbar">
       <button class="pcm-admin-btn primary" id="pcm-admin-nova-unidade-btn">+ Nova Unidade</button>
@@ -2722,17 +2790,17 @@
 
     <div class="gns-field">
       <label>Nº do GNS <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-      <input type="text" id="gns-num" readonly style="color:var(--amber);cursor:default;">
+      <input type="text" id="gns-num" readonly style="color:var(--brand-2);cursor:default;">
     </div>
 
     <div class="gns-field">
       <label for="gns-veiculo-display">Veículo <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-      <input type="text" id="gns-veiculo-display" readonly style="color:var(--amber);cursor:default;" placeholder="—">
+      <input type="text" id="gns-veiculo-display" readonly style="color:var(--brand-2);cursor:default;" placeholder="—">
     </div>
 
     <div class="gns-field">
       <label for="gns-data-entrada">Data de Entrada em GNS <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-      <input type="date" id="gns-data-entrada" readonly style="color:var(--amber);cursor:default;">
+      <input type="date" id="gns-data-entrada" readonly style="color:var(--brand-2);cursor:default;">
     </div>
 
     <div class="gns-field">
@@ -2949,7 +3017,7 @@
 <aside class="edit-drawer" id="edit-drawer">
   <div class="drawer-head">
     <p class="eyebrow">Editar registro</p>
-    <h2>Ordem de Serviço <span id="ed-os-title" style="color:var(--amber);font-size:18px;"></span>
+    <h2>Ordem de Serviço <span id="ed-os-title" style="color:var(--brand-2);font-size:18px;"></span>
       <span class="edit-origin-badge" id="ed-origin-badge"></span>
     </h2>
     <button class="drawer-close" id="edit-drawer-close">&times;</button>
@@ -3031,7 +3099,7 @@
 
     <div class="field">
       <label for="ed-chave">Chave de erro <span class="edit-chave-auto">AUTO</span></label>
-      <input type="text" id="ed-chave" readonly style="color:var(--amber);cursor:default;">
+      <input type="text" id="ed-chave" readonly style="color:var(--brand-2);cursor:default;">
       <div class="field-hint">Recalculada a partir da chave de erro</div>
     </div>
 
@@ -3042,7 +3110,7 @@
 
     <div class="field">
       <label for="ed-hodo-preview">Hodômetro <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-      <input type="text" id="ed-hodo-preview" readonly style="color:var(--amber);cursor:default;">
+      <input type="text" id="ed-hodo-preview" readonly style="color:var(--brand-2);cursor:default;">
       <div class="field-hint" id="ed-hodo-hint" style="color:var(--dim);font-size:10px;margin-top:3px;">Leitura mais próxima da data da OS</div>
     </div>
 
@@ -3144,11 +3212,11 @@
     <div class="field-row">
       <div class="field">
         <label for="in-hodometro">Hodômetro (km) <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-        <input type="text" id="in-hodometro" placeholder="—" readonly style="color:var(--amber);cursor:default;">
+        <input type="text" id="in-hodometro" placeholder="—" readonly style="color:var(--brand-2);cursor:default;">
       </div>
       <div class="field">
         <label for="in-kml">Km/L (média) <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
-        <input type="text" id="in-kml" placeholder="—" readonly style="color:var(--amber);cursor:default;">
+        <input type="text" id="in-kml" placeholder="—" readonly style="color:var(--brand-2);cursor:default;">
       </div>
     </div>
 
@@ -3550,7 +3618,8 @@ const PCM_GLOBAL_DOCS = ['unidades','usuarios','perfis'];
 // Lista de abas do sistema — usada para montar a matriz de permissões.
 // value = data-tab do botão da sidebar; label = nome amigável.
 const PCM_ABAS = [
-  { id:'painel',       label:'Painel' },
+  { id:'painel',       label:'Painel OS' },
+  { id:'painel-sr',    label:'Painel SR' },
   { id:'ordens',       label:'Ordens de Serviço' },
   { id:'duplicadas',   label:'Duplicadas' },
   { id:'solicitacoes', label:'Solicitações de Reparo' },
@@ -3723,31 +3792,21 @@ document.getElementById('pcm-logout-btn').addEventListener('click', () => {
   if(confirm('Deseja sair da sua conta?')) pcmLogout();
 });
 
-// ── Alternância de tema claro/escuro ──
+// ── Alternância de tema claro/escuro (aba Administração) ──
+// Não persiste entre recarregamentos: toda sessão nova sempre inicia no modo escuro.
 function pcmAplicarTema(tema){
   if(tema === 'light'){
     document.documentElement.setAttribute('data-theme','light');
   }else{
     document.documentElement.removeAttribute('data-theme');
   }
-  const label = tema === 'light' ? '☀️ Claro' : '🌙 Escuro';
-  const iconOnly = tema === 'light' ? '☀️' : '🌙';
   const btn = document.getElementById('pcm-theme-toggle-btn');
-  if(btn) btn.textContent = label;
-  const btnLogin = document.getElementById('pcm-theme-toggle-btn-login');
-  if(btnLogin) btnLogin.textContent = iconOnly;
-  try{ localStorage.setItem('pcm_theme', tema); }catch(e){}
+  if(btn) btn.textContent = tema === 'light' ? '☀️ Claro' : '🌙 Escuro';
 }
 document.getElementById('pcm-theme-toggle-btn').addEventListener('click', () => {
   const atual = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
   pcmAplicarTema(atual === 'light' ? 'dark' : 'light');
 });
-document.getElementById('pcm-theme-toggle-btn-login').addEventListener('click', () => {
-  const atual = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-  pcmAplicarTema(atual === 'light' ? 'dark' : 'light');
-});
-// Sincroniza o rótulo do botão com o tema já aplicado no <head> (evita flash)
-pcmAplicarTema(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
 
 // ── UNIDADES ──
 function pcmRenderAdminUnidades(){
@@ -4156,7 +4215,7 @@ const firebaseConfig = {
 // Show a loading indicator while Firestore data loads
 function showSyncStatus(msg, color){
   const el = document.getElementById('last-backup-label');
-  if(el) el.innerHTML = `<span style="color:${color||'var(--amber)'}">${msg}</span>`;
+  if(el) el.innerHTML = `<span style="color:${color||'var(--brand-2)'}">${msg}</span>`;
 }
 
 
@@ -4203,7 +4262,7 @@ async function initFirestore(){
     const db = firebase.firestore();
     window._db = db;
 
-    showSyncStatus('🔄 Conectando ao banco de dados…', 'var(--amber)');
+    showSyncStatus('🔄 Conectando ao banco de dados…', 'var(--brand-2)');
 
     // A partir daqui, cada documento tem um listener em tempo real (onSnapshot) em vez de
     // uma leitura única (.get()). Isso significa que qualquer alteração feita por você ou por
@@ -4799,6 +4858,192 @@ function renderVehBars(){
   }).join('');
 }
 
+// ═══════════════ PAINEL SR — funções de render ═══════════════
+// Reutiliza solRecords (mesma fonte de dados da aba Solicitações de Reparo).
+
+function srKpis(){
+  const rows = solRecords;
+  const total = rows.length;
+  const todayStr = new Date().toISOString().slice(0,10);
+  const hoje = rows.filter(r => r.data === todayStr).length;
+  const veiculos = new Set(rows.map(r=>r.veiculo).filter(Boolean)).size;
+  const atendida = rows.filter(r => r.situacao === 'Atendida').length;
+  const naoAtendida = rows.filter(r => r.situacao === 'Não atendida').length;
+  const improcedente = rows.filter(r => r.situacao === 'Improcedente').length;
+  const taxa = total ? Math.round((atendida/total)*100) : 0;
+  return { total, hoje, veiculos, atendida, naoAtendida, improcedente, taxa };
+}
+
+function renderSrKpis(){
+  const k = srKpis();
+  const kpis = [
+    {n:k.total, l:'Total de solicitações', cls:''},
+    {n:k.hoje, l:'Hoje', cls:''},
+    {n:k.veiculos, l:'Veículos distintos', cls:'atendida'},
+    {n:k.atendida, l:'Atendidas', cls:'atendida'},
+    {n:k.naoAtendida, l:'Não atendidas', cls:'naoatendida'},
+    {n:k.improcedente, l:'Improcedentes', cls:'improcedente'},
+    {n:k.taxa+'%', l:'Taxa de atendimento', cls:'taxa'},
+  ];
+  document.getElementById('sr-kpis').innerHTML = kpis.map(x=>`
+    <div class="kpi ${x.cls}">
+      <div class="n">${x.n}</div>
+      <div class="l">${x.l}</div>
+    </div>`).join('');
+}
+
+function srPopulateMonths(){
+  const sel = document.getElementById('sr-months-month');
+  const prev = sel.value;
+  const months = [...new Set(solRecords.map(r => (r.data||'').slice(0,7)).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Todos os meses</option>' + months.map(m => {
+    const label = `${MESES[parseInt(m.slice(5,7),10)-1]}/${m.slice(0,4)}`;
+    return `<option value="${m}">${label}</option>`;
+  }).join('');
+  if(months.includes(prev)) sel.value = prev;
+}
+
+function renderSrMonths(){
+  const monthFilter = document.getElementById('sr-months-month').value;
+  const monthMap = {};
+  solRecords.forEach(r=>{
+    if(!r.data) return;
+    const key = r.data.slice(0,7);
+    monthMap[key] = (monthMap[key]||0) + 1;
+  });
+  const monthKeys = Object.keys(monthMap).sort();
+  const maxMonth = Math.max(...monthKeys.map(k=>monthMap[k]), 1);
+  document.getElementById('sr-months').innerHTML = monthKeys.map(k=>{
+    const n = monthMap[k];
+    const label = MESES[parseInt(k.slice(5,7),10)-1];
+    const h = Math.round((n/maxMonth)*120);
+    const active = k === monthFilter;
+    return `<div class="month-col">
+      <div class="month-bars">
+        <div class="seg c" style="height:${h}px;background:${active?'var(--amber)':'var(--brand)'};cursor:pointer;" title="${n} solicitações" data-month="${k}"></div>
+      </div>
+      <div class="month-name">${label}</div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#sr-months .seg').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const sel = document.getElementById('sr-months-month');
+      sel.value = (sel.value === el.dataset.month) ? '' : el.dataset.month;
+      renderSrMonths(); renderSrKpis(); renderSrDonut(); renderSrVehBars(); renderSrMotivoBars();
+    });
+  });
+}
+
+function srFilteredRows(){
+  const monthFilter = document.getElementById('sr-months-month').value;
+  return solRecords.filter(r => !monthFilter || (r.data||'').slice(0,7) === monthFilter);
+}
+
+function renderSrDonut(){
+  const rows = srFilteredRows();
+  const total = rows.length;
+  const atendida = rows.filter(r => r.situacao === 'Atendida').length;
+  const naoAtendida = rows.filter(r => r.situacao === 'Não atendida').length;
+  const improcedente = rows.filter(r => r.situacao === 'Improcedente').length;
+  const outras = total - atendida - naoAtendida - improcedente;
+
+  const segs = [
+    {label:'Atendida', n:atendida, color:'var(--green)'},
+    {label:'Não atendida', n:naoAtendida, color:'var(--red)'},
+    {label:'Improcedente', n:improcedente, color:'var(--yellow)'},
+  ];
+  if(outras > 0) segs.push({label:'Outras', n:outras, color:'var(--dim)'});
+
+  if(total === 0){
+    document.getElementById('sr-donut').innerHTML = '<div style="color:var(--dim);font-size:12.5px;">Nenhuma solicitação neste período.</div>';
+    return;
+  }
+
+  const R = 52, CX = 60, CY = 60, STROKE = 16;
+  const circ = 2 * Math.PI * R;
+  let offset = 0;
+  const arcs = segs.filter(s=>s.n>0).map(s=>{
+    const frac = s.n/total;
+    const len = frac*circ;
+    const dash = `${len.toFixed(2)} ${(circ-len).toFixed(2)}`;
+    const rot = (offset/total)*360;
+    offset += s.n;
+    return `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${s.color}" stroke-width="${STROKE}"
+      stroke-dasharray="${dash}" transform="rotate(${rot-90} ${CX} ${CY})" />`;
+  }).join('');
+
+  const svg = `<svg class="donut-svg" width="120" height="120" viewBox="0 0 120 120">
+    ${arcs}
+    <text x="${CX}" y="${CY-3}" text-anchor="middle" class="donut-center-n">${total}</text>
+    <text x="${CX}" y="${CY+13}" text-anchor="middle" class="donut-center-l">TOTAL</text>
+  </svg>`;
+
+  const legend = segs.map(s=>`
+    <div class="donut-legend-row">
+      <span class="donut-legend-dot" style="background:${s.color}"></span>
+      <span>${s.label}</span>
+      <span class="donut-legend-val"><b>${s.n}</b> (${total?Math.round(s.n/total*100):0}%)</span>
+    </div>`).join('');
+
+  document.getElementById('sr-donut').innerHTML = `
+    <div class="donut-wrap">
+      ${svg}
+      <div class="donut-legend">${legend}</div>
+    </div>`;
+}
+
+function renderSrVehBars(){
+  const rows = srFilteredRows();
+  const vehCount = {};
+  rows.forEach(r=>{ if(r.veiculo) vehCount[r.veiculo] = (vehCount[r.veiculo]||0)+1; });
+  const topVeh = Object.entries(vehCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(topVeh.length===0){
+    document.getElementById('sr-vehbars').innerHTML = '<div style="color:var(--dim);font-size:12.5px;">Nenhuma solicitação neste período.</div>';
+    return;
+  }
+  const maxVeh = topVeh[0][1];
+  document.getElementById('sr-vehbars').innerHTML = topVeh.map(([veiculo,n])=>{
+    const op = getOperacao(veiculo);
+    const label = op ? `${veiculo} · ${op}` : veiculo;
+    return `
+    <div class="bar-row">
+      <div class="bar-label">${label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(n/maxVeh*100).toFixed(0)}%"></div></div>
+      <div class="bar-val">${n}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSrMotivoBars(){
+  const rows = srFilteredRows();
+  const motivoCount = {};
+  rows.forEach(r=>{ if(r.motivo) motivoCount[r.motivo] = (motivoCount[r.motivo]||0)+1; });
+  const topMotivos = Object.entries(motivoCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if(topMotivos.length===0){
+    document.getElementById('sr-motivobars').innerHTML = '<div style="color:var(--dim);font-size:12.5px;">Nenhuma solicitação neste período.</div>';
+    return;
+  }
+  const maxMotivo = topMotivos[0][1];
+  document.getElementById('sr-motivobars').innerHTML = topMotivos.map(([motivo,n])=>`
+    <div class="bar-row">
+      <div class="bar-label" style="width:180px;">${motivo}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(n/maxMotivo*100).toFixed(0)}%"></div></div>
+      <div class="bar-val">${n}</div>
+    </div>`).join('');
+}
+
+function renderPainelSr(){
+  srPopulateMonths();
+  renderSrKpis();
+  renderSrMonths();
+  renderSrDonut();
+  renderSrVehBars();
+  renderSrMotivoBars();
+}
+document.getElementById('sr-months-month').addEventListener('change', ()=>{
+  renderSrMonths(); renderSrKpis(); renderSrDonut(); renderSrVehBars(); renderSrMotivoBars();
+});
+
 // ---- Filters ----
 function uniqueSorted(field){
   const s = new Set();
@@ -4942,7 +5187,7 @@ function fmtCategorias(r){
     cats = r.categoria ? [r.categoria] : ['—'];
   }
   if(cats.length <= 3) return cats.join(', ');
-  return cats.slice(0,3).join(', ') + ' <span title="' + cats.join(', ') + '" style="cursor:default;color:var(--amber);font-family:var(--font-mono);font-size:11px;">+</span>';
+  return cats.slice(0,3).join(', ') + ' <span title="' + cats.join(', ') + '" style="cursor:default;color:var(--brand-2);font-family:var(--font-mono);font-size:11px;">+</span>';
 }
 
 // ── Formata coluna Reincidência: se >1 ocorrência separada por " • ", mostra a 1ª + "+"
@@ -4951,7 +5196,7 @@ function fmtReincidencia(r){
   const partes = r.reincidente.split(' • ');
   if(partes.length <= 1) return `<span class="flag-reinc">${r.reincidente}</span>`;
   const tooltip = r.reincidente.replace(/"/g, '&quot;');
-  return `<span class="flag-reinc">${partes[0]} <span title="${tooltip}" style="cursor:default;color:var(--amber);font-family:var(--font-mono);font-size:11px;">+</span></span>`;
+  return `<span class="flag-reinc">${partes[0]} <span title="${tooltip}" style="cursor:default;color:var(--brand-2);font-family:var(--font-mono);font-size:11px;">+</span></span>`;
 }
 
 function fmtStatusFechamento(r){
@@ -5138,7 +5383,7 @@ function renderFechamento(){
       return `<tr>
         <td class="fech-td-check"><input type="checkbox" class="fech-row-check" data-uid="${uid}" ${checked}></td>
         <td>${fmtDate(r.data)}</td>
-        <td style="font-family:var(--font-mono);color:var(--amber);">${r.veiculo}</td>
+        <td style="font-family:var(--font-mono);color:var(--brand-2);">${r.veiculo}</td>
         <td class="os-code">${r.os}</td>
         <td>${r.operacao ? `<span class="${opClass(r.operacao)}">${r.operacao}</span>` : '—'}</td>
         <td><span class="pill ${r.tipo}">${r.tipo}</span></td>
@@ -5173,7 +5418,7 @@ function renderFechamento(){
       return `<tr>
         <td>${fmtDate(r.data)}</td>
         <td style="font-family:var(--font-mono);color:var(--green);">${fmtDate(f.data_fechamento)}</td>
-        <td style="font-family:var(--font-mono);color:var(--amber);">${r.veiculo}</td>
+        <td style="font-family:var(--font-mono);color:var(--brand-2);">${r.veiculo}</td>
         <td class="os-code">${r.os}</td>
         <td><span class="pill ${r.tipo}">${r.tipo}</span></td>
         <td>${r.pares ? [...new Set(r.pares.map(p=>p.setor))].join(', ') : (r.setor||'—')}</td>
@@ -5525,6 +5770,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-' + tab).classList.add('active');
     if(tab === 'frota') renderFrota();
+    if(tab === 'painel-sr') renderPainelSr();
     if(tab === 'ordens') { refreshSelectsPreservingValue(); applyFilters(); }
     if(tab === 'solicitacoes') renderSolTab();
     if(tab === 'hodometro') renderHodoTab();
@@ -5552,7 +5798,7 @@ function renderFrota(){
   }
   tbody.innerHTML = rows.map(([v, d]) => `
     <tr>
-      <td style="font-family:var(--font-mono);color:var(--amber);">${v}</td>
+      <td style="font-family:var(--font-mono);color:var(--brand-2);">${v}</td>
       <td>${d.placa || '<span style="color:var(--dim)">—</span>'}</td>
       <td>${d.operacao ? `<span class="${opClass(d.operacao)}">${d.operacao}</span>` : '<span style="color:var(--dim)">—</span>'}</td>
       <td>
@@ -5847,7 +6093,7 @@ function edRenderPairs(){
     list.appendChild(tag);
   });
   document.getElementById('ed-chave').value = edPares[0]?.chave || '';
-  document.getElementById('ed-chave').style.color = edPares[0]?.chave ? 'var(--amber)' : 'var(--dim)';
+  document.getElementById('ed-chave').style.color = edPares[0]?.chave ? 'var(--brand-2)' : 'var(--dim)';
   edUpdateReincPreview();
 }
 
@@ -6975,7 +7221,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v10.20 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v7.6 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
@@ -7097,7 +7343,7 @@ function renderSolKpis(){
 
   document.getElementById('sol-kpis').innerHTML = `
     <div class="kpi veic"><div class="n">${total}</div><div class="l">Total de Solicitações</div></div>
-    <div class="kpi" style="--accent:var(--amber)"><div class="n">${hojeN}</div><div class="l">Hoje</div></div>
+    <div class="kpi" style="--accent:var(--brand-2)"><div class="n">${hojeN}</div><div class="l">Hoje</div></div>
     <div class="kpi" style="--accent:var(--green)"><div class="n">${veiculosUnicos}</div><div class="l">Veículos distintos</div></div>
   `;
 }
@@ -7438,7 +7684,7 @@ function renderSolQueue(){
   document.getElementById('sol-queue-tbody').innerHTML = solImportQueue.map((r,i)=>`
     <tr>
       <td>${fmtDate(r.data)}</td>
-      <td style="font-family:var(--font-mono);color:var(--amber);">${esc(r.veiculo)||'—'}</td>
+      <td style="font-family:var(--font-mono);color:var(--brand-2);">${esc(r.veiculo)||'—'}</td>
       <td style="color:var(--dim);">${esc(r.operacao)||'—'}</td>
       <td>${esc(r.motivo)||'—'}</td>
       <td>${esc(r.situacao)||'—'}</td>
@@ -9088,7 +9334,7 @@ function renderQueue(){
   document.getElementById('queue-tbody').innerHTML = importQueue.map((r,i)=>`
     <tr>
       <td>${fmtDate(r.data)}</td>
-      <td style="font-family:var(--font-mono);color:var(--amber);">${r.veiculo}</td>
+      <td style="font-family:var(--font-mono);color:var(--brand-2);">${r.veiculo}</td>
       <td style="font-family:var(--font-mono);color:var(--dim);">${r.os}</td>
       <td><span class="pill ${r.tipo}">${r.tipo}</span></td>
       <td>${r.pares ? [...new Set(r.pares.map(p=>p.setor))].join(', ') : (r.setor||'')}</td>
