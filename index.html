@@ -2731,6 +2731,19 @@
   </div>
 
   <div class="pcm-admin-section">
+    <h3>🏭 Empresas</h3>
+    <p class="sub" style="margin-top:-6px;margin-bottom:12px;font-size:12.5px;">Empresas cadastradas dentro de cada unidade (ex: em Rio Verde — Expresso Planalto, Viação Itapetinga). Cada usuário pode ser vinculado a uma empresa no cadastro dele.</p>
+    <div class="pcm-form-field" style="max-width:320px;margin-bottom:10px;">
+      <label>Unidade</label>
+      <select id="pcm-admin-empresas-unidade-select"></select>
+    </div>
+    <div class="pcm-admin-toolbar">
+      <button class="pcm-admin-btn primary" id="pcm-admin-nova-empresa-btn">+ Nova Empresa</button>
+    </div>
+    <div class="pcm-admin-list" id="pcm-admin-empresas-list"></div>
+  </div>
+
+  <div class="pcm-admin-section">
     <h3>🧩 Perfis de Acesso</h3>
     <p class="sub" style="margin-top:-6px;margin-bottom:12px;font-size:12.5px;">Um perfil define um conjunto de permissões que pode ser aplicado a vários usuários de uma vez (ex: Mecânico, Supervisor, Encarregado).</p>
     <div class="pcm-admin-toolbar">
@@ -3685,6 +3698,7 @@ let pcmSession = null; // { usuarioId, usuario, nome, role, unidadeAtual, unidad
 let pcmUnidades = [];   // [{id, nome}]
 let pcmUsuarios = [];   // [{id, uid, usuario, email, nome, role, unidadeIds, perfilId, overrides}] — senha NUNCA fica aqui; mora só no Firebase Authentication.
 let pcmPerfis   = [];   // [{id, nome, permissoes}]
+let pcmEmpresas = [];   // [{id, nome}] — empresas da UNIDADE ATUAL (documento "empresas_<UNIDADE_ID>", não global)
 
 const UNIDADE_PADRAO = { id: 'RIOVERDE', nome: 'Rio Verde - GO' };
 
@@ -3796,6 +3810,7 @@ function pcmAplicarPermissoesNaUI(){
 function pcmMontarAdminSeNecessario(){
   if(!pcmEhAdmin()) return;
   pcmRenderAdminUnidades();
+  pcmMontarSeletorEmpresasAdmin();
   pcmRenderAdminPerfis();
   pcmRenderAdminUsuarios();
 }
@@ -3899,6 +3914,129 @@ async function pcmExcluirUnidade(id){
     return;
   }
   pcmRenderAdminUnidades();
+}
+
+// ── EMPRESAS (cadastradas dentro de cada unidade) ──
+// Cache local por unidade, para o admin poder navegar entre unidades no painel
+// sem precisar recarregar a página. pcmEmpresas sempre reflete a unidade
+// selecionada em #pcm-admin-empresas-unidade-select.
+const pcmEmpresasCache = {}; // { [unidadeId]: [{id, nome}] }
+let pcmAdminEmpresasUnidadeId = null;
+
+function pcmDocEmpresas(unidadeId){
+  return window._db.collection('pcm').doc(`empresas_${unidadeId}`);
+}
+async function pcmCarregarEmpresasDaUnidade(unidadeId){
+  if(pcmEmpresasCache[unidadeId]) return pcmEmpresasCache[unidadeId];
+  try{
+    const snap = await pcmDocEmpresas(unidadeId).get();
+    const list = (snap.exists && Array.isArray(snap.data().list)) ? snap.data().list : [];
+    pcmEmpresasCache[unidadeId] = list;
+    return list;
+  }catch(e){
+    console.error('PCM: falha ao carregar empresas da unidade', unidadeId, e);
+    return [];
+  }
+}
+async function pcmSalvarEmpresas(unidadeId){
+  if(!window._db){ alert('Sem conexão com o banco de dados. A alteração não foi salva — verifique sua internet e tente novamente.'); throw new Error('sem conexão'); }
+  try{
+    await pcmDocEmpresas(unidadeId).set({ list: pcmEmpresasCache[unidadeId] || [], updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  }catch(e){
+    console.error('PCM: falha ao salvar empresas', e);
+    alert('Não foi possível salvar. Verifique sua conexão e tente novamente.');
+    throw e;
+  }
+}
+
+async function pcmMontarSeletorEmpresasAdmin(){
+  const select = document.getElementById('pcm-admin-empresas-unidade-select');
+  if(!select) return;
+  select.innerHTML = pcmUnidades.map(u => `<option value="${u.id}" ${u.id === pcmAdminEmpresasUnidadeId ? 'selected' : ''}>${u.nome}</option>`).join('');
+  if(!pcmAdminEmpresasUnidadeId && pcmUnidades.length){
+    pcmAdminEmpresasUnidadeId = (pcmSession && pcmUnidades.some(u => u.id === pcmSession.unidadeAtual)) ? pcmSession.unidadeAtual : pcmUnidades[0].id;
+    select.value = pcmAdminEmpresasUnidadeId;
+  }
+  await pcmRenderAdminEmpresas();
+}
+document.getElementById('pcm-admin-empresas-unidade-select').addEventListener('change', async (e) => {
+  pcmAdminEmpresasUnidadeId = e.target.value;
+  await pcmRenderAdminEmpresas();
+});
+
+async function pcmRenderAdminEmpresas(){
+  const el = document.getElementById('pcm-admin-empresas-list');
+  if(!el || !pcmAdminEmpresasUnidadeId) return;
+  el.innerHTML = '<p class="sub">Carregando…</p>';
+  pcmEmpresas = await pcmCarregarEmpresasDaUnidade(pcmAdminEmpresasUnidadeId);
+  if(!pcmEmpresas.length){ el.innerHTML = '<p class="sub">Nenhuma empresa cadastrada nesta unidade.</p>'; return; }
+  el.innerHTML = pcmEmpresas.map(emp => `
+    <div class="pcm-admin-row">
+      <div class="info"><strong>${emp.nome}</strong></div>
+      <div class="actions">
+        <button onclick="pcmEditarEmpresa('${emp.id}')">Editar</button>
+        <button class="del" onclick="pcmExcluirEmpresa('${emp.id}')">Excluir</button>
+      </div>
+    </div>
+  `).join('');
+}
+function pcmNovaEmpresaForm(empresaExistente){
+  const editando = !!empresaExistente;
+  const unidade = pcmUnidades.find(u => u.id === pcmAdminEmpresasUnidadeId);
+  pcmAbrirAdminModal(`
+    <h2 style="margin-top:0;">${editando ? 'Editar' : 'Nova'} Empresa</h2>
+    <p class="sub" style="margin-top:-8px;">Unidade: <strong>${unidade ? unidade.nome : pcmAdminEmpresasUnidadeId}</strong></p>
+    <div class="pcm-form-grid full">
+      <div class="pcm-form-field">
+        <label>Nome da empresa</label>
+        <input type="text" id="pcm-form-empresa-nome" value="${editando ? empresaExistente.nome : ''}" placeholder="Ex: Expresso Planalto">
+      </div>
+    </div>
+    <div class="pcm-admin-toolbar">
+      <button class="pcm-admin-btn primary" id="pcm-form-empresa-salvar">Salvar</button>
+      <button class="pcm-admin-btn" onclick="pcmFecharAdminModal()">Cancelar</button>
+    </div>
+  `);
+  document.getElementById('pcm-form-empresa-salvar').addEventListener('click', async () => {
+    const nome = document.getElementById('pcm-form-empresa-nome').value.trim();
+    if(!nome){ alert('Informe o nome da empresa.'); return; }
+    const unidadeId = pcmAdminEmpresasUnidadeId;
+    const lista = pcmEmpresasCache[unidadeId] || (pcmEmpresasCache[unidadeId] = []);
+    let idNovo = null;
+    if(editando){
+      empresaExistente.nome = nome;
+    } else {
+      idNovo = 'E_' + nome.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,24) + '_' + Date.now().toString(36).slice(-4);
+      lista.push({ id: idNovo, nome });
+    }
+    try{
+      await pcmSalvarEmpresas(unidadeId);
+    }catch(e){
+      if(idNovo) pcmEmpresasCache[unidadeId] = lista.filter(emp => emp.id !== idNovo);
+      return;
+    }
+    await pcmRenderAdminEmpresas();
+    pcmFecharAdminModal();
+  });
+}
+document.getElementById('pcm-admin-nova-empresa-btn').addEventListener('click', () => pcmNovaEmpresaForm(null));
+function pcmEditarEmpresa(id){
+  const emp = (pcmEmpresasCache[pcmAdminEmpresasUnidadeId] || []).find(e => e.id === id);
+  if(emp) pcmNovaEmpresaForm(emp);
+}
+async function pcmExcluirEmpresa(id){
+  if(!confirm('Excluir esta empresa? Usuários já vinculados a ela continuarão com a referência até serem editados.')) return;
+  const unidadeId = pcmAdminEmpresasUnidadeId;
+  const lista = pcmEmpresasCache[unidadeId] || [];
+  const removida = lista.find(e => e.id === id);
+  pcmEmpresasCache[unidadeId] = lista.filter(e => e.id !== id);
+  try{
+    await pcmSalvarEmpresas(unidadeId);
+  }catch(e){
+    if(removida) pcmEmpresasCache[unidadeId].push(removida);
+    return;
+  }
+  await pcmRenderAdminEmpresas();
 }
 
 // ── MATRIZ DE PERMISSÕES (compartilhada entre Perfil e Usuário) ──
@@ -4018,10 +4156,12 @@ async function pcmExcluirPerfil(id){
 }
 
 // ── USUÁRIOS ──
-function pcmRenderAdminUsuarios(){
+async function pcmRenderAdminUsuarios(){
   const el = document.getElementById('pcm-admin-usuarios-list');
   if(!el) return;
   if(!pcmUsuarios.length){ el.innerHTML = '<p class="sub">Nenhum usuário cadastrado.</p>'; return; }
+  // Garante que o cache de empresas de todas as unidades esteja disponível para exibir o nome da empresa de cada usuário.
+  await Promise.all(pcmUnidades.map(u => pcmCarregarEmpresasDaUnidade(u.id)));
   const roleLabels = { super_admin:'Super Admin (todas as unidades)', admin_unidade:'Admin da unidade', perfil:'Usuário com perfil' };
   el.innerHTML = pcmUsuarios.map(u => {
     const perfil = pcmPerfis.find(p => p.id === u.perfilId);
@@ -4029,11 +4169,16 @@ function pcmRenderAdminUsuarios(){
       ? u.unidadeIds.map(id => (pcmUnidades.find(un => un.id === id) || {}).nome || id).join(', ')
       : 'Todas';
     const unidadePadraoTxt = (pcmUnidades.find(un => un.id === u.unidadePadrao) || {}).nome || '—';
+    const empresaIds = u.empresaIds && u.empresaIds.length ? u.empresaIds : (u.empresaId ? [u.empresaId] : []);
+    const empresasTxt = empresaIds
+      .map(id => ((pcmEmpresasCache[u.unidadePadrao] || []).find(e => e.id === id) || {}).nome)
+      .filter(Boolean)
+      .join(', ');
     return `
     <div class="pcm-admin-row">
       <div class="info">
         <strong>${u.nome || u.usuario} (@${u.usuario})</strong>
-        <span>${roleLabels[u.role] || u.role}${perfil ? ' · Perfil: ' + perfil.nome : ''} · Unidades: ${unidadesTxt} · Padrão no login: ${unidadePadraoTxt}</span>
+        <span>${roleLabels[u.role] || u.role}${perfil ? ' · Perfil: ' + perfil.nome : ''} · Unidades: ${unidadesTxt} · Padrão no login: ${unidadePadraoTxt}${empresasTxt ? ' · Empresas: ' + empresasTxt : ''}</span>
       </div>
       <div class="actions">
         <button onclick="pcmEditarUsuario('${u.id}')">Editar</button>
@@ -4042,7 +4187,7 @@ function pcmRenderAdminUsuarios(){
     </div>`;
   }).join('');
 }
-function pcmFormUsuario(usuarioExistente){
+async function pcmFormUsuario(usuarioExistente){
   const editando = !!usuarioExistente;
   const unidadesCheckboxes = pcmUnidades.map(u => `
     <label><input type="checkbox" value="${u.id}" class="pcm-form-usuario-unidade" ${editando && usuarioExistente.unidadeIds && usuarioExistente.unidadeIds.includes(u.id) ? 'checked' : ''}> ${u.nome}</label>
@@ -4050,6 +4195,17 @@ function pcmFormUsuario(usuarioExistente){
   const unidadePadraoAtual = editando ? usuarioExistente.unidadePadrao : null;
   const unidadePadraoOptions = pcmUnidades.map(u => `<option value="${u.id}" ${unidadePadraoAtual === u.id ? 'selected' : ''}>${u.nome}</option>`).join('');
   const perfilOptions = `<option value="">— Sem perfil (ajuste 100% manual) —</option>` + pcmPerfis.map(p => `<option value="${p.id}" ${editando && usuarioExistente.perfilId === p.id ? 'selected' : ''}>${p.nome}</option>`).join('');
+  // Pré-carrega empresas de todas as unidades acessíveis ao usuário (ou de todas, se novo/super_admin),
+  // para a lista de empresas poder ser atualizada dinamicamente conforme a unidade padrão escolhida.
+  await Promise.all(pcmUnidades.map(u => pcmCarregarEmpresasDaUnidade(u.id)));
+  const empresaIdsAtuais = editando ? (usuarioExistente.empresaIds && usuarioExistente.empresaIds.length ? usuarioExistente.empresaIds : (usuarioExistente.empresaId ? [usuarioExistente.empresaId] : [])) : [];
+  function empresaCheckboxesParaUnidade(unidadeId, empresaIdsSelecionados){
+    const lista = pcmEmpresasCache[unidadeId] || [];
+    if(!lista.length) return '<p class="sub" style="margin:4px 0;">Nenhuma empresa cadastrada nesta unidade.</p>';
+    return lista.map(emp => `
+      <label><input type="checkbox" value="${emp.id}" class="pcm-form-usuario-empresa-check" ${empresaIdsSelecionados.includes(emp.id) ? 'checked' : ''}> ${emp.nome}</label>
+    `).join('');
+  }
   pcmAbrirAdminModal(`
     <h2 style="margin-top:0;">${editando ? 'Editar' : 'Novo'} Usuário</h2>
     <div class="pcm-form-grid">
@@ -4091,6 +4247,10 @@ function pcmFormUsuario(usuarioExistente){
       <label>Unidade padrão (entra automaticamente nela ao fazer login)</label>
       <select id="pcm-form-usuario-unidadepadrao">${unidadePadraoOptions}</select>
     </div>
+    <div class="pcm-form-field" id="pcm-form-usuario-empresa-wrap" style="margin-top:12px;">
+      <label>Empresas (dentro da unidade padrão)</label>
+      <div class="pcm-form-checkbox-group" id="pcm-form-usuario-empresa-group">${empresaCheckboxesParaUnidade(unidadePadraoAtual || (pcmUnidades[0] && pcmUnidades[0].id), empresaIdsAtuais)}</div>
+    </div>
     <div class="pcm-form-field" id="pcm-form-usuario-perfil-wrap" style="margin-top:12px;">
       <label>Perfil de permissões (aplica-se apenas a "Usuário comum")</label>
       <select id="pcm-form-usuario-perfil">${perfilOptions}</select>
@@ -4128,7 +4288,18 @@ function pcmFormUsuario(usuarioExistente){
     if(!opcoes.length) opcoes = pcmUnidades; // evita select vazio antes de marcar alguma unidade
     selectPadrao.innerHTML = opcoes.map(u => `<option value="${u.id}" ${u.id === valorAtual ? 'selected' : ''}>${u.nome}</option>`).join('');
     if(!opcoes.some(u => u.id === valorAtual) && opcoes.length) selectPadrao.value = opcoes[0].id;
+    atualizarOpcoesEmpresa();
   }
+
+  // As empresas disponíveis dependem de qual unidade está selecionada como padrão.
+  // Ao trocar de unidade, a seleção de empresas é reiniciada (empresas pertencem a uma unidade só).
+  function atualizarOpcoesEmpresa(){
+    const grupoEmpresa = document.getElementById('pcm-form-usuario-empresa-group');
+    const selectPadrao = document.getElementById('pcm-form-usuario-unidadepadrao');
+    if(!grupoEmpresa || !selectPadrao) return;
+    grupoEmpresa.innerHTML = empresaCheckboxesParaUnidade(selectPadrao.value, empresaIdsAtuais);
+  }
+  document.getElementById('pcm-form-usuario-unidadepadrao').addEventListener('change', atualizarOpcoesEmpresa);
 
   function atualizarVisibilidadeCamposPorRole(){
     const role = document.getElementById('pcm-form-usuario-role').value;
@@ -4158,6 +4329,7 @@ function pcmFormUsuario(usuarioExistente){
     const unidadePadrao = document.getElementById('pcm-form-usuario-unidadepadrao').value;
     if(role !== 'super_admin' && !unidadeIds.includes(unidadePadrao)){ alert('A unidade padrão precisa estar entre as unidades com acesso marcadas.'); return; }
     const perfilId = document.getElementById('pcm-form-usuario-perfil').value || null;
+    const empresaIds = Array.from(document.querySelectorAll('.pcm-form-usuario-empresa-check:checked')).map(cb => cb.value);
     const overrides = pcmLerMatrizPermissoes('pcm-matriz-usuario');
 
     const salvarBtn = document.getElementById('pcm-form-usuario-salvar');
@@ -4166,7 +4338,7 @@ function pcmFormUsuario(usuarioExistente){
     try{
       if(editando){
         const usuarioAntigo = usuarioExistente.usuario;
-        const dados = { usuario, nome, role, unidadeIds, unidadePadrao, perfilId, overrides };
+        const dados = { usuario, nome, role, unidadeIds, unidadePadrao, perfilId, empresaIds, overrides };
         const dadosAnteriores = { ...usuarioExistente };
         Object.assign(usuarioExistente, dados);
         try{
@@ -4182,7 +4354,7 @@ function pcmFormUsuario(usuarioExistente){
         // Cria a conta real no Firebase Authentication numa instância secundária,
         // para não derrubar a sessão de quem está logado como admin agora.
         const uid = await pcmCriarContaAuthSemDeslogar(email, senhaInput);
-        const novoObj = { id: 'u_' + Date.now(), uid, usuario, email, nome, role, unidadeIds, unidadePadrao, perfilId, overrides };
+        const novoObj = { id: 'u_' + Date.now(), uid, usuario, email, nome, role, unidadeIds, unidadePadrao, perfilId, empresaIds, overrides };
         pcmUsuarios.push(novoObj);
         try{
           await pcmSalvarUsuarios();
