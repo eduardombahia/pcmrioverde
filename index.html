@@ -2058,8 +2058,18 @@
 <div id="pcm-app-shell-wrap" style="display:none;">
 
 <div class="pcm-session-bar">
-  <span id="pcm-unidade-atual-wrap">Unidade: <strong id="pcm-unidade-atual-label">—</strong></span>
-  <span id="pcm-unidade-troca-wrap" style="display:none;">Unidade: <select id="pcm-unidade-troca-select"></select></span>
+  <span id="pcm-unidade-atual-wrap">Local: <strong id="pcm-unidade-atual-label">—</strong></span>
+  <span id="pcm-unidade-troca-wrap" style="display:none;position:relative;">
+    Locais:
+    <button type="button" id="pcm-unidade-troca-btn" style="cursor:pointer;">
+      <span id="pcm-unidade-troca-label">—</span> ▾
+    </button>
+    <div id="pcm-unidade-troca-menu" style="display:none;position:absolute;top:100%;left:0;z-index:50;background:var(--bg-card,#fff);border:1px solid var(--border,#ccc);border-radius:6px;padding:8px;min-width:220px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+      <div id="pcm-unidade-troca-checkboxes"></div>
+      <div style="margin-top:8px;font-size:11.5px;color:var(--text-muted,#888);">Marque um ou mais locais — os dados de todos os marcados serão somados. Novos registros são sempre criados no 1º local marcado (local principal).</div>
+      <button type="button" id="pcm-unidade-troca-aplicar" class="pcm-admin-btn primary" style="margin-top:8px;width:100%;">Aplicar</button>
+    </div>
+  </span>
   <span>Usuário: <strong id="pcm-usuario-atual-label">—</strong></span>
   <span id="pcm-role-badge-wrap" style="display:none;"><span class="pcm-badge-role" id="pcm-role-badge">Admin</span></span>
   <button id="pcm-logout-btn" title="Sair">Sair</button>
@@ -2074,7 +2084,7 @@
 <div class="backup-bar">
   <span class="backup-label">💾 Dados</span>
   <span class="last-backup" id="last-backup-label">Último backup: <span>—</span></span>
-  <button class="btn-backup" id="btn-recalcular" title="Identifica chaves de erro de registros não classificados com base em descrições semelhantes já classificadas, garante uma chave de erro obrigatória para toda linha classificada, reprocessa reincidências (todas as chaves, corretiva + preventiva) e atualiza o hodômetro dos registros com os dados mais recentes">🔄 Recalcular base</button>
+  <button class="btn-backup" id="btn-recalcular" title="Identifica chaves de erro de registros não classificados com base em descrições semelhantes já classificadas, garante uma chave de erro obrigatória para toda linha classificada, reprocessa reincidências (todas as chaves, corretiva + preventiva), atualiza o hodômetro dos registros com os dados mais recentes, e recalcula Operação/Empresa de todas as Solicitações de Reparo com base no veículo cadastrado na Frota">🔄 Recalcular base</button>
   <button class="btn-backup" id="btn-export">⬇ Exportar backup</button>
   <button class="btn-backup import" id="btn-import">⬆ Importar backup</button>
   <input type="file" id="backup-file-input" accept=".json">
@@ -2101,6 +2111,7 @@
     <button class="tab-btn" data-tab="sugestoes"><span class="tab-icon">💡</span><span class="tab-label">Sugestões de Categoria</span><span class="tab-badge" id="sugestoes-badge" style="display:none;">0</span></button>
     <button class="tab-btn" data-tab="log"><span class="tab-icon">📋</span><span class="tab-label">Log</span></button>
     <button class="tab-btn" data-tab="admin" id="pcm-admin-tab-btn" style="display:none;"><span class="tab-icon">🔐</span><span class="tab-label">Administração</span></button>
+    <button class="tab-btn" data-tab="vinculo-frota" id="pcm-vinculo-frota-tab-btn" style="display:none;"><span class="tab-icon">🏢</span><span class="tab-label">Vínculo Empresa × Frota</span></button>
   </nav>
 </aside>
 
@@ -2130,6 +2141,16 @@
       </h3>
       <div id="vehbars"></div>
     </div>
+    <div class="card">
+      <h3 class="card-h-row">Ordens por tipo de OS</h3>
+      <div id="tipodonut"></div>
+    </div>
+    <div class="card">
+      <h3 class="card-h-row">MKBF por garagem
+        <span title="Média de Km entre Socorros: total de km rodados pela frota da garagem ÷ número de OS do tipo Socorro no período." style="cursor:help;color:var(--dim);font-size:12px;">ⓘ</span>
+      </h3>
+      <div id="mkbfbars"></div>
+    </div>
   </section>
 
 
@@ -2137,6 +2158,18 @@
 
 <!-- ═══════════════ PAINEL SR TAB ═══════════════ -->
 <div id="tab-painel-sr" class="tab-panel">
+
+  <section class="filters" style="margin-bottom:12px;">
+    <select id="sr-empresa"><option value="">Empresa: todas</option></select>
+    <select id="sr-garagem"><option value="">Garagem: todas</option></select>
+    <select id="sr-situacao">
+      <option value="">Situação: todas</option>
+      <option value="Atendida">Atendida</option>
+      <option value="Não atendida">Não atendida</option>
+      <option value="Improcedente">Improcedente</option>
+    </select>
+    <input type="text" id="sr-veiculo" list="dl-veiculo" placeholder="Veículo: todos" autocomplete="off">
+  </section>
 
   <section class="kpis" id="sr-kpis"></section>
 
@@ -2172,6 +2205,7 @@
   <p class="sub" style="margin-top:0;margin-bottom:16px;">Consulte, filtre e gerencie todas as ordens de serviço lançadas. Clique em <b>Novo registro</b> para cadastrar uma OS manualmente, use os filtros para localizar rapidamente por operação, tipo, setor, responsável ou reincidência, e clique em uma linha para editar ou excluir.</p>
 
   <section class="filters">
+    <select id="f-empresa"><option value="">Empresa: todas</option></select>
     <select id="f-operacao"><option value="">Operação: todas</option></select>
     <select id="f-tipo"><option value="">Tipo: todos</option></select>
     <select id="f-setor"><option value="">Setor: todos</option></select>
@@ -2196,6 +2230,7 @@
     <table>
       <thead>
         <tr>
+          <th id="th-unidade-ordens" data-k="_unidadeNome" style="display:none;">Local</th>
           <th data-k="data">Data</th>
           <th data-k="veiculo">Veículo</th>
           <th data-k="os">OS</th>
@@ -2442,7 +2477,7 @@
 
 <!-- ═══════════════ SOLICITAÇÕES DE REPARO TAB ═══════════════ -->
 <div id="tab-solicitacoes" class="tab-panel">
-  <p class="sub" style="margin-top:0;margin-bottom:16px;">Registre e acompanhe as solicitações de reparo abertas pelos motoristas e líderes antes de virarem uma OS. Cadastre uma nova solicitação, vincule-a ao cadastro de OS quando o reparo for executado, e use a busca para localizar por número, veículo, motorista ou líder.</p>
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Registre e acompanhe as solicitações de reparo antes de virarem uma OS. Cadastre uma nova solicitação, vincule-a ao cadastro de OS quando o reparo for executado, e use a busca para localizar por número, veículo ou funcionário.</p>
 
   <!-- ── Importação de SR (dentro do próprio painel de Solicitações) ── -->
   <div class="import-area" id="sol-import-area" style="margin-bottom:20px;display:none;">
@@ -2456,8 +2491,8 @@
         <span style="font-family:var(--font-mono);font-size:11px;background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);border:1px solid rgba(var(--brand-2-rgb),.3);padding:3px 9px;border-radius:3px;">.csv</span>
       </div>
       <div style="font-size:11px;margin-top:10px;color:var(--dim);">
-        Aceita o relatório de Solicitação de Reparo exportado do sistema (blocos por data, colunas Veículo/Motivo/Situação/Crachá/Funcionario/Obs. Reclamação). Veículo é lido da coluna B (operação é preenchida automaticamente pela frota cadastrada — se não identificar, fica em branco); Motivo (col. E) e Situação (col. F) são transcritos como estão na planilha; Crachá (col. I) vai para "Funcionário"; Funcionario (col. K) vai para "Motorista" (em branco se ausente); Obs. Reclamação (col. L) vai para "Descrição".<br>
-        Também aceita CSV/XLSX genérico com colunas: <code style="color:var(--chalk);">data&nbsp;&nbsp;veiculo&nbsp;&nbsp;motivo&nbsp;&nbsp;situacao&nbsp;&nbsp;funcionario&nbsp;&nbsp;motorista&nbsp;&nbsp;descricao</code>
+        Aceita o relatório de Solicitação de Reparo exportado do sistema (blocos por data, colunas Emp./Veículo/Reclamação/Motivo/Situação/Emp./Crachá/Funcionario/Obs. Reclamação). Veículo é lido da coluna B (operação é preenchida automaticamente pela frota cadastrada — se não identificar, fica em branco); Empresa (col. A) é identificada dentro dos Locais cadastrados — se nenhum bater, cai para a empresa já vinculada ao veículo e, por último, usa o código do relatório como está; Motivo (col. E) e Situação (col. F) são transcritos como estão na planilha; Funcionário é a junção das colunas H e I; Obs. Reclamação (col. L) vai para "Descrição"; o número da coluna C (Reclamação) fica salvo como referência interna, visível só ao abrir a solicitação — o Nº exibido na lista continua sendo o gerado automaticamente pelo sistema.<br>
+        Também aceita CSV/XLSX genérico com colunas: <code style="color:var(--chalk);">data&nbsp;&nbsp;veiculo&nbsp;&nbsp;motivo&nbsp;&nbsp;situacao&nbsp;&nbsp;funcionario&nbsp;&nbsp;descricao</code>
       </div>
       <input type="file" id="sol-csv-input" accept=".csv,.txt,.xlsx,.xls">
     </div>
@@ -2474,7 +2509,7 @@
         <table>
           <thead>
             <tr>
-              <th>Data</th><th>Veículo</th><th>Operação</th><th>Motivo</th><th>Situação</th><th>Funcionário</th><th>Motorista</th><th>Descrição</th><th></th>
+              <th>Data</th><th>Veículo</th><th>Operação</th><th>Motivo</th><th>Situação</th><th>Funcionário</th><th>Descrição</th><th></th>
             </tr>
           </thead>
           <tbody id="sol-queue-tbody"></tbody>
@@ -2487,12 +2522,15 @@
 
   <!-- ── Listagem ── -->
   <div class="slim-toolbar">
-    <input type="text" id="sol-search" placeholder="Buscar por nº, veículo, motorista, líder…">
+    <input type="text" id="sol-search" placeholder="Buscar por nº, veículo, funcionário…">
     <select id="sol-filter-situacao" style="background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;">
       <option value="">Todas as situações</option>
       <option value="Atendida">Atendida</option>
       <option value="Não atendida">Não atendida</option>
       <option value="Improcedente">Improcedente</option>
+    </select>
+    <select id="sol-filter-empresa" style="background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;">
+      <option value="">Empresa: todas</option>
     </select>
     <div class="slim-toolbar-actions">
       <button type="button" class="bulk-del-btn" id="sol-bulk-del-btn" title="Excluir todas as solicitações marcadas">🗑 Excluir selecionadas (<span id="sol-sel-count">0</span>)</button>
@@ -2510,13 +2548,12 @@
           <th data-sort="num">Nº Solicitação</th>
           <th data-sort="data">Data</th>
           <th data-sort="veiculo">Veículo</th>
+          <th>Empresa</th>
           <th data-sort="operacao">Operação</th>
           <th data-sort="descricao">Descrição</th>
           <th data-sort="motivo">Motivo</th>
           <th data-sort="situacao">Situação</th>
           <th data-sort="funcionario">Funcionário</th>
-          <th data-sort="motorista">Motorista</th>
-          <th data-sort="lider">Líder Requisitante</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -2558,6 +2595,11 @@
     <div class="gns-field">
       <label>Nº da Solicitação <span style="color:var(--green);font-size:10px;margin-left:4px;">AUTO</span></label>
       <input type="text" id="sol-num" readonly style="color:var(--brand-2);cursor:default;">
+    </div>
+
+    <div class="gns-field" id="sol-num-relatorio-field" style="display:none;">
+      <label>Nº no relatório importado</label>
+      <input type="text" id="sol-num-relatorio" readonly style="color:var(--dim);cursor:default;">
     </div>
 
     <div class="gns-field">
@@ -2602,16 +2644,6 @@
     </div>
 
     <div class="gns-field">
-      <label for="sol-motorista">Motorista</label>
-      <input type="text" id="sol-motorista" placeholder="Nome do motorista">
-    </div>
-
-    <div class="gns-field">
-      <label for="sol-lider">Líder Requisitante</label>
-      <input type="text" id="sol-lider" placeholder="Nome do líder requisitante">
-    </div>
-
-    <div class="gns-field">
       <label for="sol-observacao">Observação</label>
       <textarea id="sol-observacao" placeholder="Observação da reclamação…"></textarea>
     </div>
@@ -2630,12 +2662,52 @@
   <p class="sub" style="margin-top:0;margin-bottom:16px;">Cadastre e gerencie os veículos da frota, com placa e operação vinculada. Esta lista alimenta os campos de veículo em todos os outros formulários do sistema (OS, hodômetro, GNS e solicitações).</p>
   <div class="frota-toolbar">
     <input type="text" id="frota-search" placeholder="Filtrar por veículo, placa ou operação…">
+    <button class="btn-secondary" id="frota-import-toggle-btn">📂 Importar frota (CSV)</button>
     <button class="btn-primary" id="frota-add-btn">+ Adicionar veículo</button>
   </div>
+
+  <!-- ── Importação de Frota a partir do relatório "Equipamentos" ── -->
+  <div id="frota-import-area" style="display:none;margin-bottom:20px;">
+    <div class="import-area">
+      <h3>Importar frota — relatório "Equipamentos" (CSV)</h3>
+      <p class="sub" style="margin-top:0;">Aceita o relatório de equipamentos exportado do sistema, em qualquer combinação de colunas que tenha pelo menos Empresa, Nr. Ordem e Placa (as colunas Local e Tipo Serviço são lidas quando vierem no arquivo). O código de "Nr. Ordem" é usado como Veículo. Quando o relatório traz a coluna "Tipo Serviço" (ex: "J5 - COMIGO"), ela é usada como a própria Operação do veículo. A coluna "Local" do relatório (ex: "801 - GARAGEM RIO VERDE") é comparada com os Locais já cadastrados para decidir em qual Local cada veículo será importado — confira/ajuste no combo antes de importar. Veículos que já existem na Frota são <b>pulados</b> e listados abaixo — nada neles é alterado.</p>
+
+      <div class="import-drop" id="frota-csv-drop">
+        <div class="drop-icon">📂</div>
+        <div>Arraste o relatório aqui ou <strong>clique para selecionar</strong></div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
+          <span style="font-family:var(--font-mono);font-size:11px;background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);border:1px solid rgba(var(--brand-2-rgb),.3);padding:3px 9px;border-radius:3px;">.csv</span>
+        </div>
+        <input type="file" id="frota-csv-input" accept=".csv,.txt">
+      </div>
+
+      <div id="frota-import-summary" style="display:none;margin-top:16px;"></div>
+
+      <div id="frota-import-preview-wrap" style="display:none;margin-top:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-family:var(--font-mono);font-size:12px;color:var(--dim);">Novos veículos a importar: <b id="frota-import-count" style="color:var(--brand-2)">0</b></span>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-secondary" id="frota-import-cancel-btn">Cancelar</button>
+            <button class="btn-primary" id="frota-import-commit-btn">✅ Importar novos veículos</button>
+          </div>
+        </div>
+        <div class="import-preview">
+          <table>
+            <thead>
+              <tr><th>Veículo</th><th>Placa</th><th>Empresa (relatório)</th><th>Local (relatório)</th><th>Local de destino</th><th>Tipo Serviço</th><th>Operação sugerida</th></tr>
+            </thead>
+            <tbody id="frota-import-preview-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="frota-card">
     <table>
       <thead>
         <tr>
+          <th id="th-unidade-frota" style="display:none;">Local</th>
           <th>Veículo</th>
           <th>Placa</th>
           <th>Operação</th>
@@ -2646,6 +2718,48 @@
     </table>
   </div>
 </div>
+
+<!-- ═══════════════ VÍNCULO EMPRESA × FROTA (SOMENTE ADMIN) ═══════════════ -->
+<!-- Esta aba só aparece para super_admin/admin_unidade (ver pcmAplicarPermissoesNaUI).
+     Para qualquer outro usuário, o botão fica com display:none e ele nem sabe que existe. -->
+<div id="tab-vinculo-frota" class="tab-panel">
+  <p class="sub" style="margin-top:0;">Painel restrito para vincular veículos à empresa correta de forma definitiva. Diferente da importação da aba Frota (que só sugere a Operação), aqui cada veículo é <b>registrado na empresa</b> escolhida — usado como base para o isolamento de dados por empresa.</p>
+
+  <div class="import-area">
+    <h3>Importar relatório "Equipamentos" (CSV)</h3>
+    <p class="sub" style="margin-top:0;">Aceita o relatório de equipamentos exportado do sistema, com pelo menos as colunas Empresa, Nr. Ordem e Placa (Local e Tipo Serviço, se vierem, são só informativas aqui). Para cada veículo, o sistema tenta reconhecer a empresa pelo prefixo numérico do relatório (ex: "080") comparando com as operações já cadastradas em cada empresa, em Administração → Cadastro de Empresas. Veículos que já existem na Frota também aparecem aqui — importar de novo <b>atualiza</b> a empresa/operação deles.</p>
+
+    <div class="import-drop" id="vinculo-csv-drop">
+      <div class="drop-icon">📂</div>
+      <div>Arraste o relatório aqui ou <strong>clique para selecionar</strong></div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
+        <span style="font-family:var(--font-mono);font-size:11px;background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);border:1px solid rgba(var(--brand-2-rgb),.3);padding:3px 9px;border-radius:3px;">.csv</span>
+      </div>
+      <input type="file" id="vinculo-csv-input" accept=".csv,.txt">
+    </div>
+
+    <div id="vinculo-import-summary" style="display:none;margin-top:16px;"></div>
+
+    <div id="vinculo-import-preview-wrap" style="display:none;margin-top:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--dim);">Veículos no relatório: <b id="vinculo-import-count" style="color:var(--brand-2)">0</b></span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" id="vinculo-import-cancel-btn">Cancelar</button>
+          <button class="btn-primary" id="vinculo-import-commit-btn">✅ Vincular veículos selecionados</button>
+        </div>
+      </div>
+      <div class="import-preview">
+        <table>
+          <thead>
+            <tr><th>Veículo</th><th>Placa</th><th>Empresa (relatório)</th><th>Local</th><th>Empresa cadastrada</th><th>Operação</th><th>Status</th></tr>
+          </thead>
+          <tbody id="vinculo-import-preview-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- ═══════════════ CHAVES DE ERRO TAB ═══════════════ -->
 <div id="tab-categorias" class="tab-panel">
@@ -2700,6 +2814,7 @@
     <table>
       <thead>
         <tr>
+          <th id="th-unidade-log" style="width:110px;display:none;">Local</th>
           <th style="width:150px;">Data/Hora</th>
           <th style="width:110px;">Categoria</th>
           <th>Detalhe</th>
@@ -2723,18 +2838,18 @@
   </div>
 
   <div class="pcm-admin-section">
-    <h3>🏢 Unidades</h3>
+    <h3>🏢 Locais</h3>
     <div class="pcm-admin-toolbar">
-      <button class="pcm-admin-btn primary" id="pcm-admin-nova-unidade-btn">+ Nova Unidade</button>
+      <button class="pcm-admin-btn primary" id="pcm-admin-nova-unidade-btn">+ Novo Local</button>
     </div>
     <div class="pcm-admin-list" id="pcm-admin-unidades-list"></div>
   </div>
 
   <div class="pcm-admin-section">
     <h3>🏭 Empresas</h3>
-    <p class="sub" style="margin-top:-6px;margin-bottom:12px;font-size:12.5px;">Empresas cadastradas dentro de cada unidade (ex: em Rio Verde — Expresso Planalto, Viação Itapetinga). Cada usuário pode ser vinculado a uma empresa no cadastro dele.</p>
+    <p class="sub" style="margin-top:-6px;margin-bottom:12px;font-size:12.5px;">Empresas cadastradas dentro de cada local (ex: em Rio Verde — Expresso Planalto, Viação Itapetinga). Cada usuário pode ser vinculado a uma empresa no cadastro dele.</p>
     <div class="pcm-form-field" style="max-width:320px;margin-bottom:10px;">
-      <label>Unidade</label>
+      <label>Local</label>
       <select id="pcm-admin-empresas-unidade-select"></select>
     </div>
     <div class="pcm-admin-toolbar">
@@ -2794,6 +2909,7 @@
     <table>
       <thead>
         <tr>
+          <th id="th-unidade-gns" style="display:none;">Local</th>
           <th data-sort="num">Nº GNS</th>
           <th data-sort="os">OS</th>
           <th data-sort="veiculo">Veículo</th>
@@ -2888,6 +3004,7 @@
         <table>
           <thead>
             <tr>
+              <th id="th-unidade-hodo" style="display:none;">Local</th>
               <th>Veículo</th>
               <th>Operação</th>
               <th>Hodômetro</th>
@@ -2981,9 +3098,6 @@
       <label>Operação *</label>
       <select id="fm-operacao">
         <option value="">Selecione</option>
-        <option value="087 - URBANO">087 - URBANO</option>
-        <option value="080 - COMIGO">080 - COMIGO</option>
-        <option value="APOIO">APOIO</option>
       </select>
     </div>
     <div id="fm-error" style="color:var(--red);font-size:12px;font-family:var(--font-mono);display:none;margin-top:4px;">Preencha todos os campos.</div>
@@ -3341,7 +3455,7 @@ function exportBackup(){
   localStorage.setItem(BACKUP_DATE_KEY, exportTs);
   addLog('backup', 'Backup exportado', `${manualRecords.length} OS · ${Object.keys(frota).length} veículos`);
   if(window._db){
-    window._db.collection('pcm').doc(pcmDocId('meta'))
+    window._db.collection('pcm').doc(pcmDocIdParaUnidade('meta', pcmUnidadePrincipal()))
       .set({ lastBackup: exportTs }, { merge: true })
       .catch(e => console.warn('Firestore meta:', e));
   }
@@ -3370,42 +3484,46 @@ function importBackup(file){
         `Backup de ${exportDate}\n` +
         `  • ${totalOS} ordem(ns) de serviço\n` +
         `  • ${totalFrota} veículo(s) na frota\n\n` +
-        `Isso VAI SOBRESCREVER os dados atuais. Continuar?`;
+        `Isso VAI SOBRESCREVER os dados atuais do local "${pcmNomeUnidade(pcmUnidadePrincipal())}" (local principal). Continuar?`;
 
       if(!confirm(confirm_msg)) return;
 
+      const uidRestauro = pcmUnidadePrincipal();
       // Restore
       if(payload.manualRecords){
-        manualRecords = payload.manualRecords;
-        manualRecords.forEach(r => { r.origin = 'manual'; });
+        manualRecords = payload.manualRecords.map(r => ({ ...r, origin: 'manual', _unidadeId: uidRestauro, _unidadeNome: pcmNomeUnidade(uidRestauro) }));
         saveManualRecords(manualRecords);
         nextManualId = manualRecords.reduce((m,r) => Math.max(m, r._id||0), 0) + 1;
       }
       if(payload.frota){
-        frota = payload.frota;
+        frota = {};
+        Object.entries(payload.frota).forEach(([v, info]) => { frota[v] = { ...info, _unidadeId: uidRestauro, _unidadeNome: pcmNomeUnidade(uidRestauro) }; });
         saveFrota(frota);
       }
       if(payload.hodoData){
-        hodoData = payload.hodoData;
+        let hd = payload.hodoData;
         // Migrate old array-of-all-vehicles or single-object-per-vehicle formats
-        if(Array.isArray(hodoData)){
+        if(Array.isArray(hd)){
           const obj = {};
-          hodoData.forEach(r => { obj[String(r.veiculo)] = [r]; });
-          hodoData = obj;
+          hd.forEach(r => { obj[String(r.veiculo)] = [r]; });
+          hd = obj;
         }
-        Object.keys(hodoData).forEach(v => {
-          if(!Array.isArray(hodoData[v])) hodoData[v] = [hodoData[v]];
-          hodoData[v].forEach(entry => {
+        Object.keys(hd).forEach(v => {
+          if(!Array.isArray(hd[v])) hd[v] = [hd[v]];
+          hd[v] = hd[v].map(entry => {
             if(entry.ts === undefined || entry.ts === null){
               const parsed = parseHodoDate(entry.dataHora);
               entry.ts = parsed ? parsed.getTime() : null;
             }
+            return { ...entry, _unidadeId: uidRestauro, _unidadeNome: pcmNomeUnidade(uidRestauro) };
           });
         });
+        hodoData = hd;
         saveHodoData();
       }
       if(payload.overrides){
-        overrides = payload.overrides;
+        overrides = {};
+        Object.entries(payload.overrides).forEach(([key, updates]) => { overrides[key] = updates; });
         saveOverrides();
         // Re-apply overrides to DATA
         Object.entries(overrides).forEach(([key, updates]) => {
@@ -3426,28 +3544,18 @@ function importBackup(file){
       const importTs = new Date().toISOString();
       localStorage.setItem(BACKUP_DATE_KEY, importTs);
       if(window._db){
-        window._db.collection('pcm').doc(pcmDocId('meta'))
+        window._db.collection('pcm').doc(pcmDocIdParaUnidade('meta', uidRestauro))
           .set({ lastBackup: importTs }, { merge: true })
           .catch(e => console.warn('Firestore meta:', e));
       }
       addLog('backup', 'Backup restaurado', `${totalOS} OS · exportado em ${exportDate}`);
       updateBackupLabel(importTs);
-
-      // Push restored data to Firestore
-      if(window._db){
-        const db = window._db;
-        Promise.all([
-          db.collection('pcm').doc(pcmDocId('manualRecords')).set({ records: manualRecords, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
-          db.collection('pcm').doc(pcmDocId('frota')).set({ data: frota, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
-          db.collection('pcm').doc(pcmDocId('overrides')).set({ data: overrides, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
-          db.collection('pcm').doc(pcmDocId('deletedKeys')).set({ data: deletedKeys, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
-          db.collection('pcm').doc(pcmDocId('meta')).set({ lastBackup: importTs }, { merge: true }),
-          db.collection('pcm').doc(pcmDocId('hodometro')).set({ data: hodoData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }),
-        ]).then(() => {
-          showSyncStatus('✅ Backup restaurado e sincronizado', 'var(--green)');
-          setTimeout(() => updateBackupLabel(importTs), 2000);
-        }).catch(e => console.warn('Firestore importBackup:', e));
-      }
+      // Observação: a gravação em si (saveManualRecords/saveFrota/saveOverrides/
+      // saveDeletedKeys/saveHodoData) já foi feita acima, na unidade principal, por meio
+      // das funções save* corrigidas para multi-unidade — não é necessário duplicar
+      // as escritas diretas ao Firestore aqui.
+      showSyncStatus('✅ Backup restaurado e sincronizado', 'var(--green)');
+      setTimeout(() => updateBackupLabel(importTs), 2000);
 
       renderAll();
       alert(`✅ Backup restaurado com sucesso!\n${totalOS} ordem(ns) importada(s).`);
@@ -3616,7 +3724,7 @@ function ensureChave(tipo, setor, categoria){
 // Persiste setores/categorias/códigos personalizados no Firestore
 function saveCategorias(){
   if(!window._db) return;
-  window._db.collection('pcm').doc(pcmDocId('categorias'))
+  window._db.collection('pcm').doc(pcmDocIdParaUnidade('categorias', pcmUnidadePrincipal()))
     .set({
       setores: SETOR_CATEGORIAS,
       chaveMap: CHAVE_MAP,
@@ -3651,6 +3759,78 @@ const STORAGE_KEY = 'pcm_controle_manual_records_v1'; // kept for migration only
 // overrides, deletedKeys, categorias, fechamentos, meta) ganham sufixo "_<UNIDADE_ID>".
 
 const PCM_GLOBAL_DOCS = ['unidades','usuarios','perfis'];
+
+// ── MULTI-UNIDADE: carregamento e soma de dados de várias unidades ao mesmo tempo ──
+// pcmSession.unidadesAtivas (array) substitui o antigo conceito de "1 unidade ativa".
+// A "unidade principal" é sempre a primeira do array — é nela que um NOVO registro é
+// criado quando há mais de uma unidade ativa. Cada tipo de dado por-unidade (manualRecords,
+// frota, overrides, deletedKeys, hodometro, log, gns, fechamentos, solicitacoes) passa a ter
+// um listener por unidade ativa; os resultados brutos ficam em pcmCacheBase[nomeBase][unidadeId],
+// e cada item combinado ganha _unidadeId/_unidadeNome para permitir a coluna "Unidade" nas tabelas
+// e saber em qual documento gravar de volta cada alteração.
+function pcmUnidadesAtivas(){
+  if(!pcmSession) return [UNIDADE_PADRAO.id];
+  if(Array.isArray(pcmSession.unidadesAtivas) && pcmSession.unidadesAtivas.length) return pcmSession.unidadesAtivas;
+  return [pcmSession.unidadeAtual || UNIDADE_PADRAO.id];
+}
+function pcmUnidadePrincipal(){
+  return pcmUnidadesAtivas()[0];
+}
+function pcmDocIdParaUnidade(nomeBase, unidadeId){
+  if(PCM_GLOBAL_DOCS.includes(nomeBase)) return nomeBase;
+  return `${nomeBase}_${unidadeId}`;
+}
+function pcmNomeUnidade(unidadeId){
+  const u = pcmUnidades.find(un => un.id === unidadeId);
+  return u ? u.nome : unidadeId;
+}
+// Mapa de operações que identificam registros da planilha original (DATA) como pertencentes
+// à unidade Rio Verde: '087 - URBANO', '080 - COMIGO' e 'APOIO' são todas operações de Rio Verde.
+const PCM_OPERACOES_RIOVERDE = ['087 - URBANO', '080 - COMIGO', 'APOIO'];
+function pcmUnidadeDaOperacao(operacao){
+  // Hoje só existe um conjunto de operações mapeado (Rio Verde). Futuras unidades que
+  // importem sua própria planilha devem ter suas operações adicionadas aqui.
+  if(PCM_OPERACOES_RIOVERDE.includes(operacao)) return 'RIOVERDE';
+  return 'RIOVERDE'; // fallback: dado legado sem operação mapeada ainda é tratado como Rio Verde
+}
+// Resolve a empresa (nome) de um registro a partir da sua operação, usando o
+// cadastro de Empresas feito na tela de Administração (pcmEmpresasCache). Cada
+// empresa tem uma lista de operações vinculadas; a primeira empresa cuja lista
+// contém a operação do registro é a dona dele. Retorna null se nenhuma empresa
+// tiver essa operação vinculada ainda (ex: operação nova, ainda não configurada).
+function pcmEmpresaDaOperacao(operacao){
+  if(!operacao) return null;
+  for(const lista of Object.values(pcmEmpresasCache)){
+    const emp = (lista || []).find(e => Array.isArray(e.operacoes) && e.operacoes.includes(operacao));
+    if(emp) return emp;
+  }
+  return null;
+}
+// Lista de empresas conhecidas nas unidades atualmente ativas — usada para montar
+// o filtro de Empresa no Painel de OS e no Painel SR. Requer que pcmEmpresasCache
+// já tenha sido pré-carregado (pcmPrecarregarEmpresasAtivas) para as unidades ativas.
+function pcmEmpresasDasUnidadesAtivas(){
+  const vistos = new Set();
+  const resultado = [];
+  pcmUnidadesAtivas().forEach(uid => {
+    (pcmEmpresasCache[uid] || []).forEach(emp => {
+      if(!vistos.has(emp.id)){ vistos.add(emp.id); resultado.push(emp); }
+    });
+  });
+  return resultado;
+}
+// Garante que as empresas das unidades ativas estejam carregadas no cache antes de
+// montar os filtros — chamado uma vez ao iniciar a sessão e ao trocar de unidade(s).
+async function pcmPrecarregarEmpresasAtivas(){
+  await Promise.all(pcmUnidadesAtivas().map(uid => pcmCarregarEmpresasDaUnidade(uid)));
+}
+
+// Cache bruto por [nomeBase][unidadeId] = valor tal como veio do Firestore (array ou objeto,
+// dependendo do tipo). Preenchido pelos listeners onSnapshot por unidade.
+const pcmCacheBase = {};
+// Listeners ativos por [nomeBase][unidadeId] = função de unsubscribe, para poder desligar
+// quando uma unidade deixa de estar ativa.
+const pcmListenersBase = {};
 
 // Lista de abas do sistema — usada para montar a matriz de permissões.
 // value = data-tab do botão da sidebar; label = nome amigável.
@@ -3701,13 +3881,6 @@ let pcmPerfis   = [];   // [{id, nome, permissoes}]
 let pcmEmpresas = [];   // [{id, nome}] — empresas da UNIDADE ATUAL (documento "empresas_<UNIDADE_ID>", não global)
 
 const UNIDADE_PADRAO = { id: 'RIOVERDE', nome: 'Rio Verde - GO' };
-
-function pcmDocId(nomeBase){
-  // Documentos globais nunca levam sufixo de unidade.
-  if(PCM_GLOBAL_DOCS.includes(nomeBase)) return nomeBase;
-  const uid = (pcmSession && pcmSession.unidadeAtual) ? pcmSession.unidadeAtual : UNIDADE_PADRAO.id;
-  return `${nomeBase}_${uid}`;
-}
 
 function pcmSalvarSessao(){
   try{ localStorage.setItem(PCM_SESSION_KEY, JSON.stringify(pcmSession)); }catch(e){}
@@ -3782,6 +3955,9 @@ function pcmAplicarPermissoesNaUI(){
   // Botão/aba de Administração só aparece para admins.
   const adminBtn = document.getElementById('pcm-admin-tab-btn');
   if(adminBtn) adminBtn.style.display = pcmEhAdmin() ? '' : 'none';
+  // Aba de Vínculo Empresa × Frota: mesma regra — só admins sabem que ela existe.
+  const vinculoBtn = document.getElementById('pcm-vinculo-frota-tab-btn');
+  if(vinculoBtn) vinculoBtn.style.display = pcmEhAdmin() ? '' : 'none';
   // Botões de ação (criar/editar/excluir/fechar/exportar) ficam ocultos via atributo data-pcm-acao.
   document.querySelectorAll('[data-pcm-acao]').forEach(el => {
     const [aba, acao] = el.getAttribute('data-pcm-acao').split(':');
@@ -3798,7 +3974,7 @@ function pcmAplicarPermissoesNaUI(){
   const roleBadge = document.getElementById('pcm-role-badge');
   const roleBadgeWrap = document.getElementById('pcm-role-badge-wrap');
   if(roleBadge && roleBadgeWrap && pcmSession){
-    const labels = { super_admin:'Super Admin', admin_unidade:'Admin da Unidade' };
+    const labels = { super_admin:'Super Admin', admin_unidade:'Admin do Local' };
     if(labels[pcmSession.role]){ roleBadge.textContent = labels[pcmSession.role]; roleBadgeWrap.style.display=''; }
     else roleBadgeWrap.style.display = 'none';
   }
@@ -3851,7 +4027,7 @@ document.getElementById('pcm-theme-toggle-btn').addEventListener('click', () => 
 function pcmRenderAdminUnidades(){
   const el = document.getElementById('pcm-admin-unidades-list');
   if(!el) return;
-  if(!pcmUnidades.length){ el.innerHTML = '<p class="sub">Nenhuma unidade cadastrada.</p>'; return; }
+  if(!pcmUnidades.length){ el.innerHTML = '<p class="sub">Nenhum local cadastrado.</p>'; return; }
   el.innerHTML = pcmUnidades.map(u => `
     <div class="pcm-admin-row">
       <div class="info"><strong>${u.nome}</strong><span>ID: ${u.id}</span></div>
@@ -3865,10 +4041,10 @@ function pcmRenderAdminUnidades(){
 function pcmNovaUnidadeForm(unidadeExistente){
   const editando = !!unidadeExistente;
   pcmAbrirAdminModal(`
-    <h2 style="margin-top:0;">${editando ? 'Editar' : 'Nova'} Unidade</h2>
+    <h2 style="margin-top:0;">${editando ? 'Editar' : 'Novo'} Local</h2>
     <div class="pcm-form-grid full">
       <div class="pcm-form-field">
-        <label>Nome da unidade</label>
+        <label>Nome do local</label>
         <input type="text" id="pcm-form-unidade-nome" value="${editando ? unidadeExistente.nome : ''}" placeholder="Ex: Goiânia - GO">
       </div>
     </div>
@@ -3879,7 +4055,7 @@ function pcmNovaUnidadeForm(unidadeExistente){
   `);
   document.getElementById('pcm-form-unidade-salvar').addEventListener('click', async () => {
     const nome = document.getElementById('pcm-form-unidade-nome').value.trim();
-    if(!nome){ alert('Informe o nome da unidade.'); return; }
+    if(!nome){ alert('Informe o nome do local.'); return; }
     let idNovo = null;
     if(editando){
       unidadeExistente.nome = nome;
@@ -3903,7 +4079,7 @@ function pcmEditarUnidade(id){
   if(u) pcmNovaUnidadeForm(u);
 }
 async function pcmExcluirUnidade(id){
-  if(pcmUnidades.length <= 1){ alert('É preciso manter ao menos uma unidade.'); return; }
+  if(pcmUnidades.length <= 1){ alert('É preciso manter ao menos um local.'); return; }
   if(!confirm('Excluir esta unidade? Os dados operacionais dela permanecem no banco, mas ela some da lista de login.')) return;
   const removida = pcmUnidades.find(u => u.id === id);
   pcmUnidades = pcmUnidades.filter(u => u.id !== id);
@@ -3920,8 +4096,18 @@ async function pcmExcluirUnidade(id){
 // Cache local por unidade, para o admin poder navegar entre unidades no painel
 // sem precisar recarregar a página. pcmEmpresas sempre reflete a unidade
 // selecionada em #pcm-admin-empresas-unidade-select.
-const pcmEmpresasCache = {}; // { [unidadeId]: [{id, nome}] }
+const pcmEmpresasCache = {}; // { [unidadeId]: [{id, nome, operacoes:[...]}] }
 let pcmAdminEmpresasUnidadeId = null;
+
+// Semente inicial de empresas por unidade — só é aplicada automaticamente quando a
+// unidade ainda não tem NENHUMA empresa cadastrada no Firestore (evita sobrescrever
+// edições feitas pelo admin depois). Pode ser ajustada livremente pela tela de Administração.
+const PCM_EMPRESAS_SEED = {
+  RIOVERDE: [
+    { id: 'E_EXPRESSO_PLANALTO', nome: 'Expresso Planalto', operacoes: ['080 - COMIGO'] },
+    { id: 'E_VIACAO_ITAPETINGA', nome: 'Viação Itapetinga', operacoes: ['087 - URBANO', 'APOIO'] },
+  ],
+};
 
 function pcmDocEmpresas(unidadeId){
   return window._db.collection('pcm').doc(`empresas_${unidadeId}`);
@@ -3930,7 +4116,14 @@ async function pcmCarregarEmpresasDaUnidade(unidadeId){
   if(pcmEmpresasCache[unidadeId]) return pcmEmpresasCache[unidadeId];
   try{
     const snap = await pcmDocEmpresas(unidadeId).get();
-    const list = (snap.exists && Array.isArray(snap.data().list)) ? snap.data().list : [];
+    let list = (snap.exists && Array.isArray(snap.data().list)) ? snap.data().list : [];
+    if(!list.length && PCM_EMPRESAS_SEED[unidadeId]){
+      list = PCM_EMPRESAS_SEED[unidadeId].map(e => ({...e}));
+      pcmEmpresasCache[unidadeId] = list;
+      pcmDocEmpresas(unidadeId).set({ list, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+        .catch(e2 => console.warn('Firestore empresas seed:', unidadeId, e2));
+      return list;
+    }
     pcmEmpresasCache[unidadeId] = list;
     return list;
   }catch(e){
@@ -3972,7 +4165,10 @@ async function pcmRenderAdminEmpresas(){
   if(!pcmEmpresas.length){ el.innerHTML = '<p class="sub">Nenhuma empresa cadastrada nesta unidade.</p>'; return; }
   el.innerHTML = pcmEmpresas.map(emp => `
     <div class="pcm-admin-row">
-      <div class="info"><strong>${emp.nome}</strong></div>
+      <div class="info">
+        <strong>${emp.nome}</strong>
+        ${emp.operacoes && emp.operacoes.length ? `<span>Operações: ${emp.operacoes.join(', ')}</span>` : '<span style="color:var(--dim);">Nenhuma operação vinculada ainda</span>'}
+      </div>
       <div class="actions">
         <button onclick="pcmEditarEmpresa('${emp.id}')">Editar</button>
         <button class="del" onclick="pcmExcluirEmpresa('${emp.id}')">Excluir</button>
@@ -3983,13 +4179,22 @@ async function pcmRenderAdminEmpresas(){
 function pcmNovaEmpresaForm(empresaExistente){
   const editando = !!empresaExistente;
   const unidade = pcmUnidades.find(u => u.id === pcmAdminEmpresasUnidadeId);
+  const operacoesConhecidas = pcmOperacoesConhecidas(pcmAdminEmpresasUnidadeId);
+  const operacoesAtuais = editando && Array.isArray(empresaExistente.operacoes) ? empresaExistente.operacoes : [];
+  const operacoesCheckboxes = operacoesConhecidas.map(op => `
+    <label style="display:block;padding:2px 0;"><input type="checkbox" value="${op}" class="pcm-form-empresa-operacao-check" ${operacoesAtuais.includes(op) ? 'checked' : ''}> ${op}</label>
+  `).join('') || '<p class="sub" style="margin:4px 0;">Nenhuma operação encontrada ainda nos dados.</p>';
   pcmAbrirAdminModal(`
     <h2 style="margin-top:0;">${editando ? 'Editar' : 'Nova'} Empresa</h2>
-    <p class="sub" style="margin-top:-8px;">Unidade: <strong>${unidade ? unidade.nome : pcmAdminEmpresasUnidadeId}</strong></p>
+    <p class="sub" style="margin-top:-8px;">Local: <strong>${unidade ? unidade.nome : pcmAdminEmpresasUnidadeId}</strong></p>
     <div class="pcm-form-grid full">
       <div class="pcm-form-field">
         <label>Nome da empresa</label>
         <input type="text" id="pcm-form-empresa-nome" value="${editando ? empresaExistente.nome : ''}" placeholder="Ex: Expresso Planalto">
+      </div>
+      <div class="pcm-form-field" style="margin-top:12px;">
+        <label>Operações vinculadas (define de quais veículos/OS/SR essa empresa é dona)</label>
+        <div class="pcm-form-checkbox-group">${operacoesCheckboxes}</div>
       </div>
     </div>
     <div class="pcm-admin-toolbar">
@@ -4000,14 +4205,16 @@ function pcmNovaEmpresaForm(empresaExistente){
   document.getElementById('pcm-form-empresa-salvar').addEventListener('click', async () => {
     const nome = document.getElementById('pcm-form-empresa-nome').value.trim();
     if(!nome){ alert('Informe o nome da empresa.'); return; }
+    const operacoes = Array.from(document.querySelectorAll('.pcm-form-empresa-operacao-check:checked')).map(cb => cb.value);
     const unidadeId = pcmAdminEmpresasUnidadeId;
     const lista = pcmEmpresasCache[unidadeId] || (pcmEmpresasCache[unidadeId] = []);
     let idNovo = null;
     if(editando){
       empresaExistente.nome = nome;
+      empresaExistente.operacoes = operacoes;
     } else {
       idNovo = 'E_' + nome.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,24) + '_' + Date.now().toString(36).slice(-4);
-      lista.push({ id: idNovo, nome });
+      lista.push({ id: idNovo, nome, operacoes });
     }
     try{
       await pcmSalvarEmpresas(unidadeId);
@@ -4162,7 +4369,7 @@ async function pcmRenderAdminUsuarios(){
   if(!pcmUsuarios.length){ el.innerHTML = '<p class="sub">Nenhum usuário cadastrado.</p>'; return; }
   // Garante que o cache de empresas de todas as unidades esteja disponível para exibir o nome da empresa de cada usuário.
   await Promise.all(pcmUnidades.map(u => pcmCarregarEmpresasDaUnidade(u.id)));
-  const roleLabels = { super_admin:'Super Admin (todas as unidades)', admin_unidade:'Admin da unidade', perfil:'Usuário com perfil' };
+  const roleLabels = { super_admin:'Super Admin (todos os locais)', admin_unidade:'Admin do local', perfil:'Usuário com perfil' };
   el.innerHTML = pcmUsuarios.map(u => {
     const perfil = pcmPerfis.find(p => p.id === u.perfilId);
     const unidadesTxt = (u.unidadeIds && u.unidadeIds.length)
@@ -4178,7 +4385,7 @@ async function pcmRenderAdminUsuarios(){
     <div class="pcm-admin-row">
       <div class="info">
         <strong>${u.nome || u.usuario} (@${u.usuario})</strong>
-        <span>${roleLabels[u.role] || u.role}${perfil ? ' · Perfil: ' + perfil.nome : ''} · Unidades: ${unidadesTxt} · Padrão no login: ${unidadePadraoTxt}${empresasTxt ? ' · Empresas: ' + empresasTxt : ''}</span>
+        <span>${roleLabels[u.role] || u.role}${perfil ? ' · Perfil: ' + perfil.nome : ''} · Locais: ${unidadesTxt} · Padrão no login: ${unidadePadraoTxt}${empresasTxt ? ' · Empresas: ' + empresasTxt : ''}</span>
       </div>
       <div class="actions">
         <button onclick="pcmEditarUsuario('${u.id}')">Editar</button>
@@ -4234,21 +4441,21 @@ async function pcmFormUsuario(usuarioExistente){
         <label>Papel</label>
         <select id="pcm-form-usuario-role">
           <option value="perfil" ${editando && usuarioExistente.role==='perfil' ? 'selected' : ''}>Usuário comum (permissões por perfil/ajuste fino)</option>
-          <option value="admin_unidade" ${editando && usuarioExistente.role==='admin_unidade' ? 'selected' : ''}>Admin da unidade (acesso total, só na(s) unidade(s) marcada(s))</option>
-          <option value="super_admin" ${editando && usuarioExistente.role==='super_admin' ? 'selected' : ''}>Super Admin (acesso total a todas as unidades)</option>
+          <option value="admin_unidade" ${editando && usuarioExistente.role==='admin_unidade' ? 'selected' : ''}>Admin do local (acesso total, só no(s) local(is) marcado(s))</option>
+          <option value="super_admin" ${editando && usuarioExistente.role==='super_admin' ? 'selected' : ''}>Super Admin (acesso total a todos os locais)</option>
         </select>
       </div>
     </div>
     <div class="pcm-form-field" id="pcm-form-usuario-unidades-wrap">
-      <label>Unidades com acesso (para Super Admin, marque todas ou deixe todas selecionadas)</label>
+      <label>Locais com acesso (para Super Admin, marque todos ou deixe todos selecionados)</label>
       <div class="pcm-form-checkbox-group">${unidadesCheckboxes}</div>
     </div>
     <div class="pcm-form-field" id="pcm-form-usuario-unidadepadrao-wrap" style="margin-top:12px;">
-      <label>Unidade padrão (entra automaticamente nela ao fazer login)</label>
+      <label>Local padrão (entra automaticamente nele ao fazer login)</label>
       <select id="pcm-form-usuario-unidadepadrao">${unidadePadraoOptions}</select>
     </div>
     <div class="pcm-form-field" id="pcm-form-usuario-empresa-wrap" style="margin-top:12px;">
-      <label>Empresas (dentro da unidade padrão)</label>
+      <label>Empresas (dentro do local padrão)</label>
       <div class="pcm-form-checkbox-group" id="pcm-form-usuario-empresa-group">${empresaCheckboxesParaUnidade(unidadePadraoAtual || (pcmUnidades[0] && pcmUnidades[0].id), empresaIdsAtuais)}</div>
     </div>
     <div class="pcm-form-field" id="pcm-form-usuario-perfil-wrap" style="margin-top:12px;">
@@ -4464,165 +4671,292 @@ async function initFirestore(){
     // uma leitura única (.get()). Isso significa que qualquer alteração feita por você ou por
     // outra pessoa em qualquer aba/dispositivo aparece automaticamente aqui, sem precisar recarregar.
 
-    // ── manualRecords — tempo real ──
-    db.collection('pcm').doc(pcmDocId('manualRecords')).onSnapshot(snap => {
-      if(snap.exists && snap.data().records){
-        manualRecords = snap.data().records;
-        manualRecords.forEach(r => { r.origin = 'manual'; });
-        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(manualRecords)); }catch(e){}
-        nextManualId = manualRecords.reduce((m,r) => Math.max(m, r._id||0), 0) + 1;
-      }
-      pcmRecebeuMR = true;
-      if(!pcmPrimeiraCarga){ purgeManualDuplicates(); renderAll(); }
-      pcmTentaRenderInicial(timeoutId);
-    }, err => { console.warn('Firestore manualRecords:', err); pcmRecebeuMR = true; pcmTentaRenderInicial(timeoutId); });
+    // ── manualRecords — tempo real, 1 listener por unidade ativa, somado em memória ──
+    pcmCacheBase.manualRecords = pcmCacheBase.manualRecords || {};
+    pcmListenersBase.manualRecords = pcmListenersBase.manualRecords || {};
+    function pcmRecombinarManualRecords(){
+      manualRecords = [];
+      pcmUnidadesAtivas().forEach(uid => {
+        const lista = pcmCacheBase.manualRecords[uid] || [];
+        lista.forEach(r => { manualRecords.push({ ...r, origin: 'manual', _unidadeId: uid, _unidadeNome: pcmNomeUnidade(uid) }); });
+      });
+      nextManualId = manualRecords.reduce((m,r) => Math.max(m, r._id||0), 0) + 1;
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(manualRecords)); }catch(e){}
+    }
+    pcmUnidadesAtivas().forEach(uid => {
+      if(pcmListenersBase.manualRecords[uid]) return; // já tem listener nesta unidade
+      pcmListenersBase.manualRecords[uid] = db.collection('pcm').doc(pcmDocIdParaUnidade('manualRecords', uid)).onSnapshot(snap => {
+        pcmCacheBase.manualRecords[uid] = (snap.exists && snap.data().records) ? snap.data().records : [];
+        pcmRecombinarManualRecords();
+        pcmRecebeuMR = true;
+        if(!pcmPrimeiraCarga){ purgeManualDuplicates(); renderAll(); }
+        pcmTentaRenderInicial(timeoutId);
+      }, err => { console.warn('Firestore manualRecords', uid, ':', err); pcmRecebeuMR = true; pcmTentaRenderInicial(timeoutId); });
+    });
 
-    // ── frota — tempo real ──
-    db.collection('pcm').doc(pcmDocId('frota')).onSnapshot(snap => {
-      if(snap.exists && snap.data().data){
-        frota = snap.data().data;
-        const firestoreVersion = Number(snap.data().seedVersion||0);
-        if(firestoreVersion < FROTA_SEED_VERSION){
-          // Merge seed data (placas + operacoes) into Firestore frota
-          Object.entries(FROTA_SEED).forEach(([v, d]) => {
-            if(!frota[v]) frota[v] = d;
-            else { frota[v].placa = d.placa; frota[v].operacao = d.operacao; }
-          });
-          db.collection('pcm').doc(pcmDocId('frota'))
-            .set({ data: frota, seedVersion: FROTA_SEED_VERSION, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-            .catch(e => console.warn('Firestore frota merge:', e));
+    // ── frota — tempo real, 1 listener por unidade ativa, somado em memória ──
+    pcmCacheBase.frota = pcmCacheBase.frota || {};
+    pcmListenersBase.frota = pcmListenersBase.frota || {};
+    function pcmRecombinarFrota(){
+      frota = {};
+      pcmUnidadesAtivas().forEach(uid => {
+        const dados = pcmCacheBase.frota[uid] || {};
+        Object.entries(dados).forEach(([placaVeiculo, info]) => {
+          frota[placaVeiculo] = { ...info, _unidadeId: uid, _unidadeNome: pcmNomeUnidade(uid) };
+        });
+      });
+      try{ localStorage.setItem(FROTA_STORAGE_KEY, JSON.stringify(frota)); }catch(e){}
+    }
+    pcmUnidadesAtivas().forEach(uid => {
+      if(pcmListenersBase.frota[uid]) return;
+      const docRef = db.collection('pcm').doc(pcmDocIdParaUnidade('frota', uid));
+      pcmListenersBase.frota[uid] = docRef.onSnapshot(snap => {
+        if(snap.exists && snap.data().data){
+          let dadosUnidade = snap.data().data;
+          const firestoreVersion = Number(snap.data().seedVersion||0);
+          // A base semente (FROTA_SEED) só é aplicada automaticamente na unidade principal
+          // de Rio Verde (única unidade que já tinha essa frota antes do multi-unidade).
+          if(uid === 'RIOVERDE' && firestoreVersion < FROTA_SEED_VERSION){
+            Object.entries(FROTA_SEED).forEach(([v, d]) => {
+              if(!dadosUnidade[v]) dadosUnidade[v] = d;
+              else { dadosUnidade[v].placa = d.placa; dadosUnidade[v].operacao = d.operacao; }
+            });
+            docRef.set({ data: dadosUnidade, seedVersion: FROTA_SEED_VERSION, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+              .catch(e => console.warn('Firestore frota merge:', e));
+          }
+          pcmCacheBase.frota[uid] = dadosUnidade;
+        } else {
+          pcmCacheBase.frota[uid] = pcmCacheBase.frota[uid] || {};
+          if(uid === 'RIOVERDE'){
+            // Documento ainda não existe para Rio Verde: envia a base semente.
+            docRef.set({ data: pcmCacheBase.frota[uid], seedVersion: FROTA_SEED_VERSION, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+              .catch(e => console.warn('Firestore frota seed:', e));
+          }
         }
-        try{ localStorage.setItem(FROTA_STORAGE_KEY, JSON.stringify(frota)); }catch(e){}
-      } else {
-        // Documento ainda não existe: envia a base semente
-        db.collection('pcm').doc(pcmDocId('frota'))
-          .set({ data: frota, seedVersion: FROTA_SEED_VERSION, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-          .catch(e => console.warn('Firestore frota seed:', e));
-      }
-      pcmRecebeuFrota = true;
-      if(!pcmPrimeiraCarga) renderAll();
-      pcmTentaRenderInicial(timeoutId);
-    }, err => { console.warn('Firestore frota:', err); pcmRecebeuFrota = true; pcmTentaRenderInicial(timeoutId); });
+        pcmRecombinarFrota();
+        pcmRecebeuFrota = true;
+        if(!pcmPrimeiraCarga) renderAll();
+        pcmTentaRenderInicial(timeoutId);
+      }, err => { console.warn('Firestore frota', uid, ':', err); pcmRecebeuFrota = true; pcmTentaRenderInicial(timeoutId); });
+    });
 
-    // ── overrides — tempo real ──
-    db.collection('pcm').doc(pcmDocId('overrides')).onSnapshot(snap => {
-      if(snap.exists && snap.data().data){
-        overrides = snap.data().data;
-        try{ localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides)); }catch(e){}
-      }
-      reaplicarOverrides();
-      pcmRecebeuOv = true;
-      if(!pcmPrimeiraCarga) renderAll();
-      pcmTentaRenderInicial(timeoutId);
-    }, err => { console.warn('Firestore overrides:', err); pcmRecebeuOv = true; pcmTentaRenderInicial(timeoutId); });
+    // ── overrides — tempo real, 1 listener por unidade ativa, somado em memória ──
+    // (overrides se aplicam sobre DATA, que hoje é toda de Rio Verde — mas o padrão já
+    // fica pronto para quando outra unidade tiver sua própria planilha importada.)
+    pcmCacheBase.overrides = pcmCacheBase.overrides || {};
+    pcmListenersBase.overrides = pcmListenersBase.overrides || {};
+    function pcmRecombinarOverrides(){
+      overrides = {};
+      pcmUnidadesAtivas().forEach(uid => { Object.assign(overrides, pcmCacheBase.overrides[uid] || {}); });
+      try{ localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides)); }catch(e){}
+    }
+    pcmUnidadesAtivas().forEach(uid => {
+      if(pcmListenersBase.overrides[uid]) return;
+      pcmListenersBase.overrides[uid] = db.collection('pcm').doc(pcmDocIdParaUnidade('overrides', uid)).onSnapshot(snap => {
+        pcmCacheBase.overrides[uid] = (snap.exists && snap.data().data) ? snap.data().data : {};
+        pcmRecombinarOverrides();
+        reaplicarOverrides();
+        pcmRecebeuOv = true;
+        if(!pcmPrimeiraCarga) renderAll();
+        pcmTentaRenderInicial(timeoutId);
+      }, err => { console.warn('Firestore overrides', uid, ':', err); pcmRecebeuOv = true; pcmTentaRenderInicial(timeoutId); });
+    });
 
-    // ── deletedKeys (OS excluídas da planilha) — tempo real ──
-    db.collection('pcm').doc(pcmDocId('deletedKeys')).onSnapshot(snap => {
-      if(snap.exists && snap.data().data){
-        deletedKeys = snap.data().data;
-        try{ localStorage.setItem(DELETED_KEYS_KEY, JSON.stringify(deletedKeys)); }catch(e){}
-      }
-      pcmRecebeuDel = true;
-      if(!pcmPrimeiraCarga) renderAll();
-      pcmTentaRenderInicial(timeoutId);
-    }, err => { console.warn('Firestore deletedKeys:', err); pcmRecebeuDel = true; pcmTentaRenderInicial(timeoutId); });
+    // ── deletedKeys (OS excluídas da planilha) — tempo real, 1 listener por unidade ativa ──
+    pcmCacheBase.deletedKeys = pcmCacheBase.deletedKeys || {};
+    pcmListenersBase.deletedKeys = pcmListenersBase.deletedKeys || {};
+    function pcmRecombinarDeletedKeys(){
+      deletedKeys = {};
+      pcmUnidadesAtivas().forEach(uid => { Object.assign(deletedKeys, pcmCacheBase.deletedKeys[uid] || {}); });
+      try{ localStorage.setItem(DELETED_KEYS_KEY, JSON.stringify(deletedKeys)); }catch(e){}
+    }
+    pcmUnidadesAtivas().forEach(uid => {
+      if(pcmListenersBase.deletedKeys[uid]) return;
+      pcmListenersBase.deletedKeys[uid] = db.collection('pcm').doc(pcmDocIdParaUnidade('deletedKeys', uid)).onSnapshot(snap => {
+        pcmCacheBase.deletedKeys[uid] = (snap.exists && snap.data().data) ? snap.data().data : {};
+        pcmRecombinarDeletedKeys();
+        pcmRecebeuDel = true;
+        if(!pcmPrimeiraCarga) renderAll();
+        pcmTentaRenderInicial(timeoutId);
+      }, err => { console.warn('Firestore deletedKeys', uid, ':', err); pcmRecebeuDel = true; pcmTentaRenderInicial(timeoutId); });
+    });
 
-    // ── hodômetro — tempo real ──
-    db.collection('pcm').doc(pcmDocId('hodometro')).onSnapshot(snap => {
-      if(snap.exists && snap.data().data){
-        let hd = snap.data().data;
-        // Migrate old array-of-all-vehicles format
-        if(Array.isArray(hd)){
+    // ── hodômetro — tempo real, subcoleção por veículo (pcm/hodometro_<unidade>/veiculos/<veiculo>),
+    // 1 listener por unidade ativa, somado em memória. Antes era 1 documento único por unidade com
+    // TODOS os veículos juntos, que passou a estourar o limite de 1MB do Firestore quando a soma
+    // do abastecimento acumulado de um Local inteiro ficou grande — agora cada veículo tem seu
+    // próprio documento pequeno. Documentos antigos são migrados automaticamente (uma vez só).
+    pcmCacheBase.hodometro = pcmCacheBase.hodometro || {};
+    pcmListenersBase.hodometro = pcmListenersBase.hodometro || {};
+    function pcmRecombinarHodometro(){
+      hodoData = {};
+      pcmUnidadesAtivas().forEach(uid => {
+        const dados = pcmCacheBase.hodometro[uid] || {};
+        Object.entries(dados).forEach(([veiculo, historico]) => {
+          // Cada entrada do histórico ganha a marca de unidade, para a coluna "Unidade" na tabela.
+          hodoData[veiculo] = historico.map(entry => ({ ...entry, _unidadeId: uid, _unidadeNome: pcmNomeUnidade(uid) }));
+        });
+      });
+      try{ localStorage.setItem(HODO_KEY, JSON.stringify(hodoData)); }catch(e){}
+    }
+    function pcmMigrarHodometroLegado(uid, docRef, veiculosRef){
+      // Migração única: se ainda existir o documento antigo (1 só por unidade, campo "data" com
+      // todos os veículos juntos) e a subcoleção nova ainda estiver vazia, copia cada veículo
+      // para seu próprio documento e limpa o campo "data" do documento antigo (evita ele voltar
+      // a crescer e estourar o limite de novo).
+      docRef.get().then(snap => {
+        let dadosAntigos = snap.exists && snap.data() ? snap.data().data : null;
+        if(!dadosAntigos) return;
+        // Formatos bem antigos, por segurança (mesma migração que já existia antes desta mudança).
+        if(Array.isArray(dadosAntigos)){
           const obj = {};
-          hd.forEach(r => { obj[String(r.veiculo)] = [r]; });
-          hd = obj;
+          dadosAntigos.forEach(r => { obj[String(r.veiculo)] = [r]; });
+          dadosAntigos = obj;
         }
-        // Migrate old single-object-per-vehicle format → history array
-        Object.keys(hd).forEach(v => {
-          if(!Array.isArray(hd[v])) hd[v] = [hd[v]];
-          hd[v].forEach(entry => {
+        Object.keys(dadosAntigos).forEach(v => {
+          if(!Array.isArray(dadosAntigos[v])) dadosAntigos[v] = [dadosAntigos[v]];
+        });
+        if(!Object.keys(dadosAntigos).length) return;
+        veiculosRef.limit(1).get().then(subSnap => {
+          if(!subSnap.empty) return; // subcoleção já tem dados — não migra de novo
+          const gravacoes = Object.entries(dadosAntigos)
+            .filter(([, historico]) => Array.isArray(historico) && historico.length)
+            .map(([veiculo, historico]) => veiculosRef.doc(pcmSafeVeiculoDocId(veiculo))
+              .set({ veiculo: String(veiculo), historico, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }));
+          Promise.all(gravacoes)
+            .then(() => docRef.set({ data: {}, migradoParaSubcolecao: true, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }))
+            .catch(e => console.warn('Firestore migração hodômetro', uid, ':', e));
+        });
+      }).catch(e => console.warn('Firestore migração hodômetro (leitura)', uid, ':', e));
+    }
+    pcmUnidadesAtivas().forEach(uid => {
+      if(pcmListenersBase.hodometro[uid]) return;
+      const docRef = db.collection('pcm').doc(pcmDocIdParaUnidade('hodometro', uid));
+      const veiculosRef = docRef.collection('veiculos');
+      pcmCacheBase.hodometro[uid] = pcmCacheBase.hodometro[uid] || {};
+      pcmMigrarHodometroLegado(uid, docRef, veiculosRef);
+      pcmListenersBase.hodometro[uid] = veiculosRef.onSnapshot(snap => {
+        snap.docChanges().forEach(change => {
+          if(change.type === 'removed'){
+            delete pcmCacheBase.hodometro[uid][change.doc.id];
+            return;
+          }
+          const d = change.doc.data() || {};
+          let hist = Array.isArray(d.historico) ? d.historico : [];
+          hist.forEach(entry => {
             if(entry.ts === undefined || entry.ts === null){
               const parsed = parseHodoDate(entry.dataHora);
               entry.ts = parsed ? parsed.getTime() : null;
             }
           });
+          pcmCacheBase.hodometro[uid][d.veiculo || change.doc.id] = hist;
         });
-        hodoData = hd;
-        try{ localStorage.setItem(HODO_KEY, JSON.stringify(hodoData)); }catch(e){}
-      }
-      pcmRecebeuHodo = true;
-      if(!pcmPrimeiraCarga) renderAll();
-      pcmTentaRenderInicial(timeoutId);
-    }, err => { console.warn('Firestore hodometro:', err); pcmRecebeuHodo = true; pcmTentaRenderInicial(timeoutId); });
-
-    // ── log — tempo real ──
-    db.collection('pcm').doc(pcmDocId('log')).onSnapshot(snap => {
-      if(snap.exists && snap.data().entries){
-        const cloudEntries = snap.data().entries;
-        // Merge: keep local + cloud, deduplicate by id, sort newest first
-        const merged = [...logEntries, ...cloudEntries];
-        const seen = new Set();
-        logEntries = merged.filter(e => { if(seen.has(e.id)) return false; seen.add(e.id); return true; });
-        logEntries.sort((a,b) => new Date(b.ts) - new Date(a.ts));
-        pruneLog();
-        try{ localStorage.setItem(LOG_KEY, JSON.stringify(logEntries)); }catch(err){}
-      }
-      pcmRecebeuLog = true;
-      if(!pcmPrimeiraCarga) renderAll();
-      pcmTentaRenderInicial(timeoutId);
-    }, err => { console.warn('Firestore log:', err); pcmRecebeuLog = true; pcmTentaRenderInicial(timeoutId); });
-
-    // ── gns — tempo real ──
-    db.collection('pcm').doc(pcmDocId('gns')).onSnapshot(snap => {
-      if(snap.exists && snap.data().records){
-        gnsRecords = snap.data().records;
-        gnsNextId  = gnsRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
-        try{ localStorage.setItem(GNS_KEY, JSON.stringify(gnsRecords)); }catch(e){}
-      }
-      pcmRecebeuGns = true;
-      if(!pcmPrimeiraCarga) renderAll();
-      pcmTentaRenderInicial(timeoutId);
-    }, err => { console.warn('Firestore gns:', err); pcmRecebeuGns = true; pcmTentaRenderInicial(timeoutId); });
-
-    // ── solicitações de reparo — tempo real ──
-    // ── Solicitações de Reparo — subcoleção (sem limite de 1 MiB) ──
-    // Cada SR é um documento separado em pcm/solicitacoes_<unidade>/registros/<id>.
-    // O listener recebe a coleção inteira na primeira entrega e só os documentos
-    // alterados nas entregas seguintes — montamos/atualizamos solRecords por docChanges.
-    db.collection('pcm').doc(pcmDocId('solicitacoes'))
-      .collection('registros')
-      .onSnapshot(snap => {
-        snap.docChanges().forEach(change => {
-          const sr = change.doc.data();
-          if(change.type === 'removed'){
-            solRecords = solRecords.filter(r => String(r.id) !== change.doc.id);
-          } else {
-            // 'added' ou 'modified'
-            const idx = solRecords.findIndex(r => String(r.id) === change.doc.id);
-            if(idx >= 0) solRecords[idx] = sr;
-            else         solRecords.push(sr);
-          }
-        });
-        solNextId = solRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
-        try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
-        if(typeof renderSolLinkList === 'function' && drawer && drawer.classList.contains('open')) renderSolLinkList();
-        // Se outro usuário adicionou/editou/excluiu uma SR, redesenha a aba
-        // "Painel SR" e/ou "Solicitações" caso estejam abertas neste momento.
-        const painelSrAberto = document.getElementById('tab-painel-sr');
-        if(!pcmPrimeiraCarga && painelSrAberto && painelSrAberto.classList.contains('active') && typeof renderPainelSr === 'function'){
-          renderPainelSr();
-        }
-        const solicitacoesAberto = document.getElementById('tab-solicitacoes');
-        if(!pcmPrimeiraCarga && solicitacoesAberto && solicitacoesAberto.classList.contains('active') && typeof renderSolTab === 'function'){
-          renderSolTab();
-        }
-        pcmRecebeuSol = true;
+        pcmRecombinarHodometro();
+        pcmRecebeuHodo = true;
         if(!pcmPrimeiraCarga) renderAll();
         pcmTentaRenderInicial(timeoutId);
-      }, err => { console.warn('Firestore solicitacoes:', err); pcmRecebeuSol = true; pcmTentaRenderInicial(timeoutId); });
+      }, err => { console.warn('Firestore hodometro', uid, ':', err); pcmRecebeuHodo = true; pcmTentaRenderInicial(timeoutId); });
+    });
 
-    // ── meta (último backup) — tempo real ──
-    db.collection('pcm').doc(pcmDocId('meta')).onSnapshot(snap => {
+    // ── log — tempo real, 1 listener por unidade ativa, somado em memória ──
+    pcmCacheBase.log = pcmCacheBase.log || {};
+    pcmListenersBase.log = pcmListenersBase.log || {};
+    function pcmRecombinarLog(){
+      const combinado = [];
+      pcmUnidadesAtivas().forEach(uid => {
+        (pcmCacheBase.log[uid] || []).forEach(e => combinado.push({ ...e, _unidadeId: uid, _unidadeNome: pcmNomeUnidade(uid) }));
+      });
+      const seen = new Set();
+      logEntries = combinado.filter(e => { if(seen.has(e.id)) return false; seen.add(e.id); return true; });
+      logEntries.sort((a,b) => new Date(b.ts) - new Date(a.ts));
+      pruneLog();
+      try{ localStorage.setItem(LOG_KEY, JSON.stringify(logEntries)); }catch(err){}
+    }
+    pcmUnidadesAtivas().forEach(uid => {
+      if(pcmListenersBase.log[uid]) return;
+      pcmListenersBase.log[uid] = db.collection('pcm').doc(pcmDocIdParaUnidade('log', uid)).onSnapshot(snap => {
+        pcmCacheBase.log[uid] = (snap.exists && snap.data().entries) ? snap.data().entries : [];
+        pcmRecombinarLog();
+        pcmRecebeuLog = true;
+        if(!pcmPrimeiraCarga) renderAll();
+        pcmTentaRenderInicial(timeoutId);
+      }, err => { console.warn('Firestore log', uid, ':', err); pcmRecebeuLog = true; pcmTentaRenderInicial(timeoutId); });
+    });
+
+    // ── gns — tempo real, 1 listener por unidade ativa, somado em memória ──
+    pcmCacheBase.gns = pcmCacheBase.gns || {};
+    pcmListenersBase.gns = pcmListenersBase.gns || {};
+    function pcmRecombinarGns(){
+      gnsRecords = [];
+      pcmUnidadesAtivas().forEach(uid => {
+        (pcmCacheBase.gns[uid] || []).forEach(r => gnsRecords.push({ ...r, _unidadeId: uid, _unidadeNome: pcmNomeUnidade(uid) }));
+      });
+      gnsNextId = gnsRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
+      try{ localStorage.setItem(GNS_KEY, JSON.stringify(gnsRecords)); }catch(e){}
+    }
+    pcmUnidadesAtivas().forEach(uid => {
+      if(pcmListenersBase.gns[uid]) return;
+      pcmListenersBase.gns[uid] = db.collection('pcm').doc(pcmDocIdParaUnidade('gns', uid)).onSnapshot(snap => {
+        pcmCacheBase.gns[uid] = (snap.exists && snap.data().records) ? snap.data().records : [];
+        pcmRecombinarGns();
+        pcmRecebeuGns = true;
+        if(!pcmPrimeiraCarga) renderAll();
+        pcmTentaRenderInicial(timeoutId);
+      }, err => { console.warn('Firestore gns', uid, ':', err); pcmRecebeuGns = true; pcmTentaRenderInicial(timeoutId); });
+    });
+
+    // ── solicitações de reparo — tempo real, 1 listener por unidade ativa (subcoleção) ──
+    // Cada SR é um documento separado em pcm/solicitacoes_<unidade>/registros/<id>.
+    // O listener recebe a coleção inteira na primeira entrega e só os documentos
+    // alterados nas entregas seguintes — montamos/atualizamos o cache POR UNIDADE via
+    // docChanges, e depois recombinamos em solRecords (todas as unidades ativas somadas).
+    pcmCacheBase.solicitacoes = pcmCacheBase.solicitacoes || {};
+    pcmListenersBase.solicitacoes = pcmListenersBase.solicitacoes || {};
+    function pcmRecombinarSolicitacoes(){
+      solRecords = [];
+      pcmUnidadesAtivas().forEach(uid => {
+        (pcmCacheBase.solicitacoes[uid] || []).forEach(sr => solRecords.push({ ...sr, _unidadeId: uid, _unidadeNome: pcmNomeUnidade(uid) }));
+      });
+      solNextId = solRecords.reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
+      try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
+    }
+    pcmUnidadesAtivas().forEach(uid => {
+      if(pcmListenersBase.solicitacoes[uid]) return;
+      pcmCacheBase.solicitacoes[uid] = pcmCacheBase.solicitacoes[uid] || [];
+      pcmListenersBase.solicitacoes[uid] = db.collection('pcm').doc(pcmDocIdParaUnidade('solicitacoes', uid))
+        .collection('registros')
+        .onSnapshot(snap => {
+          const lista = pcmCacheBase.solicitacoes[uid];
+          snap.docChanges().forEach(change => {
+            const sr = change.doc.data();
+            if(change.type === 'removed'){
+              pcmCacheBase.solicitacoes[uid] = lista.filter(r => String(r.id) !== change.doc.id);
+            } else {
+              const idx = pcmCacheBase.solicitacoes[uid].findIndex(r => String(r.id) === change.doc.id);
+              if(idx >= 0) pcmCacheBase.solicitacoes[uid][idx] = sr;
+              else         pcmCacheBase.solicitacoes[uid].push(sr);
+            }
+          });
+          pcmRecombinarSolicitacoes();
+          if(typeof renderSolLinkList === 'function' && drawer && drawer.classList.contains('open')) renderSolLinkList();
+          // Se outro usuário adicionou/editou/excluiu uma SR, redesenha a aba
+          // "Painel SR" e/ou "Solicitações" caso estejam abertas neste momento.
+          const painelSrAberto = document.getElementById('tab-painel-sr');
+          if(!pcmPrimeiraCarga && painelSrAberto && painelSrAberto.classList.contains('active') && typeof renderPainelSr === 'function'){
+            renderPainelSr();
+          }
+          const solicitacoesAberto = document.getElementById('tab-solicitacoes');
+          if(!pcmPrimeiraCarga && solicitacoesAberto && solicitacoesAberto.classList.contains('active') && typeof renderSolTab === 'function'){
+            renderSolTab();
+          }
+          pcmRecebeuSol = true;
+          if(!pcmPrimeiraCarga) renderAll();
+          pcmTentaRenderInicial(timeoutId);
+        }, err => { console.warn('Firestore solicitacoes', uid, ':', err); pcmRecebeuSol = true; pcmTentaRenderInicial(timeoutId); });
+    });
+
+    // ── meta (último backup) — tempo real, só da unidade PRINCIPAL (não é dado somável) ──
+    db.collection('pcm').doc(pcmDocIdParaUnidade('meta', pcmUnidadePrincipal())).onSnapshot(snap => {
       pcmLastBackup = snap.exists ? snap.data().lastBackup : null;
       if(pcmLastBackup) localStorage.setItem(BACKUP_DATE_KEY, pcmLastBackup);
       pcmRecebeuMeta = true;
@@ -4630,23 +4964,34 @@ async function initFirestore(){
       pcmTentaRenderInicial(timeoutId);
     }, err => { console.warn('Firestore meta:', err); pcmRecebeuMeta = true; pcmTentaRenderInicial(timeoutId); });
 
-    // ── fechamentos de OS — tempo real ──
-    db.collection('pcm').doc(pcmDocId('fechamentos')).onSnapshot(snap => {
-      if(snap.exists && snap.data().data){
-        fechamentos = snap.data().data;
-        try{ localStorage.setItem(FECHAMENTO_KEY, JSON.stringify(fechamentos)); }catch(e){}
-      }
-      pcmRecebeuFech = true;
-      if(!pcmPrimeiraCarga){
-        renderFechamento();
-        const pagina = ordensRowsAtuais.slice((ordensPageAtual-1)*ORDENS_POR_PAGINA, ordensPageAtual*ORDENS_POR_PAGINA);
-        renderTable(pagina);
-      }
-      pcmTentaRenderInicial(timeoutId);
-    }, err => { console.warn('Firestore fechamentos:', err); pcmRecebeuFech = true; pcmTentaRenderInicial(timeoutId); });
+    // ── fechamentos de OS — tempo real, 1 listener por unidade ativa, somado em memória ──
+    pcmCacheBase.fechamentos = pcmCacheBase.fechamentos || {};
+    pcmListenersBase.fechamentos = pcmListenersBase.fechamentos || {};
+    function pcmRecombinarFechamentos(){
+      fechamentos = {};
+      pcmUnidadesAtivas().forEach(uid => {
+        const dados = pcmCacheBase.fechamentos[uid] || {};
+        Object.entries(dados).forEach(([chave, fech]) => { fechamentos[chave] = { ...fech, _unidadeId: uid, _unidadeNome: pcmNomeUnidade(uid) }; });
+      });
+      try{ localStorage.setItem(FECHAMENTO_KEY, JSON.stringify(fechamentos)); }catch(e){}
+    }
+    pcmUnidadesAtivas().forEach(uid => {
+      if(pcmListenersBase.fechamentos[uid]) return;
+      pcmListenersBase.fechamentos[uid] = db.collection('pcm').doc(pcmDocIdParaUnidade('fechamentos', uid)).onSnapshot(snap => {
+        pcmCacheBase.fechamentos[uid] = (snap.exists && snap.data().data) ? snap.data().data : {};
+        pcmRecombinarFechamentos();
+        pcmRecebeuFech = true;
+        if(!pcmPrimeiraCarga){
+          renderFechamento();
+          const pagina = ordensRowsAtuais.slice((ordensPageAtual-1)*ORDENS_POR_PAGINA, ordensPageAtual*ORDENS_POR_PAGINA);
+          renderTable(pagina);
+        }
+        pcmTentaRenderInicial(timeoutId);
+      }, err => { console.warn('Firestore fechamentos', uid, ':', err); pcmRecebeuFech = true; pcmTentaRenderInicial(timeoutId); });
+    });
 
-    // ── categorias (setores/categorias/chaves personalizados) — tempo real ──
-    db.collection('pcm').doc(pcmDocId('categorias')).onSnapshot(snap => {
+    // ── categorias (setores/categorias/chaves personalizados) — tempo real, só da unidade PRINCIPAL ──
+    db.collection('pcm').doc(pcmDocIdParaUnidade('categorias', pcmUnidadePrincipal())).onSnapshot(snap => {
       if(snap.exists){
         const d = snap.data() || {};
         if(d.setores)        SETOR_CATEGORIAS = d.setores;
@@ -4686,16 +5031,29 @@ function loadManualRecords(){
   }catch(e){ return []; }
 }
 function saveManualRecords(list){
-  // Write to Firestore (async, fire-and-forget)
+  // 'list' é o array COMBINADO de todas as unidades ativas (pode ter vários _unidadeId
+  // diferentes misturados). Precisamos separar por unidade antes de gravar, senão um save
+  // aqui sobrescreveria o documento de uma unidade com registros de outra unidade misturados.
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }catch(e){} // local cache
-  if(window._db){
-    window._db.collection('pcm').doc(pcmDocId('manualRecords'))
-      .set({ records: list, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(e => console.warn('Firestore saveManualRecords:', e));
-  }
+  if(!window._db) return;
+  const porUnidade = {};
+  list.forEach(r => {
+    const uid = r._unidadeId || pcmUnidadePrincipal();
+    if(!porUnidade[uid]) porUnidade[uid] = [];
+    // Remove os campos derivados (_unidadeId/_unidadeNome) antes de persistir — eles são
+    // recalculados a cada carga, não fazem parte do dado real do registro.
+    const { _unidadeId, _unidadeNome, ...limpo } = r;
+    porUnidade[uid].push(limpo);
+  });
+  Object.entries(porUnidade).forEach(([uid, registros]) => {
+    pcmCacheBase.manualRecords[uid] = registros; // mantém o cache local coerente até o snapshot confirmar
+    window._db.collection('pcm').doc(pcmDocIdParaUnidade('manualRecords', uid))
+      .set({ records: registros, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e => console.warn('Firestore saveManualRecords', uid, ':', e));
+  });
 }
 
-DATA.forEach((r,i)=>{ r.origin = 'planilha'; r._edit_id = i; });
+DATA.forEach((r,i)=>{ r.origin = 'planilha'; r._edit_id = i; r._unidadeId = pcmUnidadeDaOperacao(r.operacao); r._unidadeNome = pcmNomeUnidade(r._unidadeId); });
 const ORIGINAL_DATA = DATA.map(r => ({...r}));
 
 // Reseta DATA para os valores originais da planilha e reaplica os overrides atuais.
@@ -4738,6 +5096,8 @@ function renderAll(){
   renderMonths();
   renderCatBars();
   renderVehBars();
+  renderTipoDonut();
+  renderMkbfBars();
   refreshSelectsPreservingValue();
   refreshDatalists();
   applyFilters();
@@ -4798,6 +5158,7 @@ function renderDuplicatas(){
   const totalExtras = dupGroups.reduce((s,g)=>s+(g.length-1),0);
   wrapSummary.innerHTML = `<b style="color:var(--red);">${dupGroups.length}</b> número(s) de OS com mais de 1 lançamento — <b style="color:var(--red);">${totalExtras}</b> registro(s) a mais que poderiam ser removidos.`;
 
+  const mostrarUnidadeDup = pcmUnidadesAtivas().length > 1;
   wrapGroups.innerHTML = dupGroups.map(group=>{
     const first = group[0];
     const sorted = group.slice().sort((a,b)=>String(a.data).localeCompare(String(b.data)));
@@ -4806,6 +5167,7 @@ function renderDuplicatas(){
       const id = r.origin==='manual' ? r._id : r._edit_id;
       return `<div class="dup-row" data-id="${id}" data-origin="${r.origin}">
         <input type="checkbox" class="dup-check" data-id="${id}" data-origin="${r.origin}">
+        ${mostrarUnidadeDup ? `<span class="dup-field"><b>Local</b>${r._unidadeNome||'—'}</span>` : ''}
         <span class="dup-field"><b>Data</b>${fmtDate(r.data)}</span>
         <span class="dup-field"><b>Veículo</b>${r.veiculo||'—'}</span>
         <span class="dup-field"><b>Tipo</b><span class="pill ${r.tipo}">${r.tipo}</span></span>
@@ -5072,7 +5434,7 @@ function renderCatBars(){
       <div class="bar-val">${n}</div>
     </div>`).join('');
 }
-document.getElementById('months-month').addEventListener('change', ()=>{ renderMonths(); renderKpis(); renderCatBars(); renderVehBars(); });
+document.getElementById('months-month').addEventListener('change', ()=>{ renderMonths(); renderKpis(); renderCatBars(); renderVehBars(); renderTipoDonut(); renderMkbfBars(); });
 
 // "Intervenções" = número de ordens de serviço distintas (OS) por veículo —
 // evita contar múltiplas vezes uma OS que tenha várias chaves de erro.
@@ -5108,11 +5470,108 @@ function renderVehBars(){
   }).join('');
 }
 
+// Separação das OS por tipo (Corretiva / Preventiva / Socorro / outros que venham
+// a existir) — respeita o filtro de mês do card "Ordens por mês".
+function renderTipoDonut(){
+  const monthSel = document.getElementById('months-month');
+  const monthFilter = monthSel ? monthSel.value : '';
+  const rows = allRows().filter(r => !monthFilter || r.data.slice(0,7) === monthFilter);
+  const total = rows.length;
+
+  if(total === 0){
+    document.getElementById('tipodonut').innerHTML = '<div style="color:var(--dim);font-size:12.5px;">Nenhuma ordem neste período.</div>';
+    return;
+  }
+
+  const CORES_TIPO = { 'Corretiva':'var(--orange)', 'Preventiva':'var(--green)', 'Socorro':'var(--red)' };
+  const tipoCount = {};
+  rows.forEach(r=>{ const t = r.tipo || 'Não classificada'; tipoCount[t] = (tipoCount[t]||0)+1; });
+  const segs = Object.entries(tipoCount)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([label,n])=>({ label, n, color: CORES_TIPO[label] || 'var(--dim)' }));
+
+  const R = 52, CX = 60, CY = 60, STROKE = 16;
+  const circ = 2 * Math.PI * R;
+  let offset = 0;
+  const arcs = segs.filter(s=>s.n>0).map(s=>{
+    const frac = s.n/total;
+    const len = frac*circ;
+    const dash = `${len.toFixed(2)} ${(circ-len).toFixed(2)}`;
+    const rot = (offset/total)*360;
+    offset += s.n;
+    return `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${s.color}" stroke-width="${STROKE}"
+      stroke-dasharray="${dash}" transform="rotate(${rot-90} ${CX} ${CY})" />`;
+  }).join('');
+
+  const svg = `<svg class="donut-svg" width="120" height="120" viewBox="0 0 120 120">
+    ${arcs}
+    <text x="${CX}" y="${CY-3}" text-anchor="middle" class="donut-center-n">${total}</text>
+    <text x="${CX}" y="${CY+13}" text-anchor="middle" class="donut-center-l">TOTAL</text>
+  </svg>`;
+
+  const legend = segs.map(s=>`
+    <div class="donut-legend-row">
+      <span class="donut-legend-dot" style="background:${s.color}"></span>
+      <span>${s.label}</span>
+      <span class="donut-legend-val"><b>${s.n}</b> (${total?Math.round(s.n/total*100):0}%)</span>
+    </div>`).join('');
+
+  document.getElementById('tipodonut').innerHTML = `
+    <div class="donut-wrap">
+      ${svg}
+      <div class="donut-legend">${legend}</div>
+    </div>`;
+}
+
+// MKBF (Média de Km entre Socorros) por garagem: soma dos km rodados (histórico
+// de hodômetro) das unidades ativas dividida pelo nº de OS do tipo "Socorro" no
+// período — quanto maior, mais tempo/km a frota roda entre socorros mecânicos.
+// Respeita o filtro de mês do card "Ordens por mês".
+function renderMkbfBars(){
+  const monthSel = document.getElementById('months-month');
+  const monthFilter = monthSel ? monthSel.value : '';
+  const rows = allRows().filter(r => !monthFilter || r.data.slice(0,7) === monthFilter);
+
+  const unidades = pcmUnidadesAtivas();
+  const resultados = unidades.map(uid => {
+    const socorros = rows.filter(r => r.tipo === 'Socorro' && r._unidadeId === uid).length;
+    let kmTotal = 0;
+    Object.values(hodoData).forEach(historico=>{
+      (historico||[]).forEach(entry=>{
+        if(entry._unidadeId !== uid) return;
+        if(monthFilter){
+          const d = (typeof entry.ts === 'number') ? new Date(entry.ts) : parseHodoDate(entry.dataHora);
+          if(!d || d.toISOString().slice(0,7) !== monthFilter) return;
+        }
+        kmTotal += Number(entry.kmRodado)||0;
+      });
+    });
+    return { uid, nome: pcmNomeUnidade(uid), socorros, kmTotal, mkbf: socorros>0 ? Math.round(kmTotal/socorros) : null };
+  });
+
+  const comDados = resultados.filter(r => r.socorros > 0);
+  if(comDados.length === 0){
+    document.getElementById('mkbfbars').innerHTML = '<div style="color:var(--dim);font-size:12.5px;">Sem OS de Socorro neste período.</div>';
+    return;
+  }
+
+  const maxMkbf = Math.max(...comDados.map(r=>r.mkbf), 1);
+  document.getElementById('mkbfbars').innerHTML = comDados
+    .sort((a,b)=>b.mkbf-a.mkbf)
+    .map(r=>`
+    <div class="bar-row">
+      <div class="bar-label">${r.nome}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(r.mkbf/maxMkbf*100).toFixed(0)}%"></div></div>
+      <div class="bar-val">${r.mkbf.toLocaleString('pt-BR')} km</div>
+    </div>`).join('') +
+    (resultados.some(r=>r.socorros===0) ? `<div style="font-size:11px;color:var(--dim);margin-top:8px;">Garagens sem Socorro no período não aparecem no gráfico.</div>` : '');
+}
+
 // ═══════════════ PAINEL SR — funções de render ═══════════════
 // Reutiliza solRecords (mesma fonte de dados da aba Solicitações de Reparo).
 
 function srKpis(){
-  const rows = solRecords;
+  const rows = srFilteredRows();
   const total = rows.length;
   const todayStr = new Date().toISOString().slice(0,10);
   const hoje = rows.filter(r => r.data === todayStr).length;
@@ -5142,10 +5601,30 @@ function renderSrKpis(){
     </div>`).join('');
 }
 
+// Aplica os filtros de Empresa, Garagem, Situação e Veículo (sem o filtro de mês)
+// — usado para popular o seletor de meses e como base para os demais filtros.
+function srBaseRows(){
+  const empFilter = document.getElementById('sr-empresa')?.value || '';
+  const garFilter = document.getElementById('sr-garagem')?.value || '';
+  const sitFilter = document.getElementById('sr-situacao')?.value || '';
+  const veicFilter = (document.getElementById('sr-veiculo')?.value || '').trim();
+  return solRecords.filter(r => {
+    if(empFilter){
+      const e = pcmEmpresaDaSR(r);
+      if(!e || e.id !== empFilter) return false;
+    }
+    if(garFilter && r._unidadeId !== garFilter) return false;
+    if(sitFilter && r.situacao !== sitFilter) return false;
+    if(veicFilter && String(r.veiculo||'') !== veicFilter) return false;
+    return true;
+  });
+}
+
 function srPopulateMonths(){
   const sel = document.getElementById('sr-months-month');
   const prev = sel.value;
-  const months = [...new Set(solRecords.map(r => (r.data||'').slice(0,7)).filter(Boolean))].sort();
+  const baseRows = srBaseRows();
+  const months = [...new Set(baseRows.map(r => (r.data||'').slice(0,7)).filter(Boolean))].sort();
   sel.innerHTML = '<option value="">Todos os meses</option>' + months.map(m => {
     const label = `${MESES[parseInt(m.slice(5,7),10)-1]}/${m.slice(0,4)}`;
     return `<option value="${m}">${label}</option>`;
@@ -5155,8 +5634,9 @@ function srPopulateMonths(){
 
 function renderSrMonths(){
   const monthFilter = document.getElementById('sr-months-month').value;
+  const baseRows = srBaseRows();
   const monthMap = {};
-  solRecords.forEach(r=>{
+  baseRows.forEach(r=>{
     if(!r.data) return;
     const key = r.data.slice(0,7);
     monthMap[key] = (monthMap[key]||0) + 1;
@@ -5186,7 +5666,7 @@ function renderSrMonths(){
 
 function srFilteredRows(){
   const monthFilter = document.getElementById('sr-months-month').value;
-  return solRecords.filter(r => !monthFilter || (r.data||'').slice(0,7) === monthFilter);
+  return srBaseRows().filter(r => !monthFilter || (r.data||'').slice(0,7) === monthFilter);
 }
 
 function renderSrDonut(){
@@ -5282,7 +5762,23 @@ function renderSrMotivoBars(){
     </div>`).join('');
 }
 
+// Popula o filtro de Garagem do Painel SR com as unidades ativas na sessão.
+function fillSelectGaragens(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const current = el.value;
+  el.querySelectorAll('option:not(:first-child)').forEach(o=>o.remove());
+  pcmUnidadesAtivas().forEach(uid => {
+    const o = document.createElement('option');
+    o.value = uid; o.textContent = pcmNomeUnidade(uid);
+    el.appendChild(o);
+  });
+  if([...el.options].some(o=>o.value===current)) el.value = current;
+}
+
 function renderPainelSr(){
+  fillSelectEmpresas('sr-empresa');
+  fillSelectGaragens('sr-garagem');
   srPopulateMonths();
   renderSrKpis();
   renderSrMonths();
@@ -5292,6 +5788,18 @@ function renderPainelSr(){
 }
 document.getElementById('sr-months-month').addEventListener('change', ()=>{
   renderSrMonths(); renderSrKpis(); renderSrDonut(); renderSrVehBars(); renderSrMotivoBars();
+});
+document.getElementById('sr-empresa').addEventListener('change', ()=>{
+  srPopulateMonths(); renderSrMonths(); renderSrKpis(); renderSrDonut(); renderSrVehBars(); renderSrMotivoBars();
+});
+document.getElementById('sr-garagem').addEventListener('change', ()=>{
+  srPopulateMonths(); renderSrMonths(); renderSrKpis(); renderSrDonut(); renderSrVehBars(); renderSrMotivoBars();
+});
+document.getElementById('sr-situacao').addEventListener('change', ()=>{
+  srPopulateMonths(); renderSrMonths(); renderSrKpis(); renderSrDonut(); renderSrVehBars(); renderSrMotivoBars();
+});
+document.getElementById('sr-veiculo').addEventListener('input', ()=>{
+  srPopulateMonths(); renderSrMonths(); renderSrKpis(); renderSrDonut(); renderSrVehBars(); renderSrMotivoBars();
 });
 
 // ---- Filters ----
@@ -5307,6 +5815,26 @@ function uniqueSorted(field){
   });
   return [...s].sort();
 }
+// Lista completa de operações conhecidas pelo sistema: junta as que já aparecem
+// em OS lançadas com as que só existem hoje no cadastro de veículos da Frota
+// (ex: recém-importadas, ainda sem nenhuma OS lançada). Usada para popular o
+// select de Operação do modal de Frota, o filtro/datalist do Painel de OS, e a
+// lista de checkboxes do Cadastro de Empresas.
+// Sem argumento: junta tudo das unidades ATIVAS no momento (uso nos filtros/
+// selects do painel multi-unidade). Passando unidadeId: filtra só os dados
+// DAQUELA unidade — usado no Cadastro de Empresas, pra não vazar operação de
+// uma unidade pro formulário de empresa de outra.
+function pcmOperacoesConhecidas(unidadeId){
+  if(unidadeId){
+    const s = new Set();
+    allRows().filter(r => r._unidadeId === unidadeId).forEach(r => { if(r.operacao) s.add(r.operacao); });
+    Object.values(frota).filter(f => f._unidadeId === unidadeId).forEach(f => { if(f.operacao) s.add(f.operacao); });
+    return [...s].sort();
+  }
+  const s = new Set(uniqueSorted('operacao'));
+  Object.values(frota).forEach(f => { if(f.operacao) s.add(f.operacao); });
+  return [...s].sort();
+}
 function fillSelect(id, field){
   const el = document.getElementById(id);
   const current = el.value;
@@ -5319,11 +5847,40 @@ function fillSelect(id, field){
   if([...el.options].some(o=>o.value===current)) el.value = current;
 }
 function refreshSelectsPreservingValue(){
-  fillSelect('f-operacao','operacao');
+  fillSelectEmpresas('f-empresa');
+  fillSelectOperacoes('f-operacao');
   fillSelect('f-tipo','tipo');
   fillSelect('f-setor','setor');
   fillSelect('f-categoria','categoria');
   fillSelect('f-resp','responsavel');
+}
+// Como fillSelect(id, field), mas para Operação: usa pcmOperacoesConhecidas()
+// (OS lançadas + Frota) em vez de só as operações que já aparecem em OS, para
+// que uma operação recém-importada na Frota já apareça no filtro.
+function fillSelectOperacoes(id){
+  const el = document.getElementById(id);
+  const current = el.value;
+  el.querySelectorAll('option:not(:first-child)').forEach(o=>o.remove());
+  pcmOperacoesConhecidas().forEach(v=>{
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    el.appendChild(o);
+  });
+  if([...el.options].some(o=>o.value===current)) el.value = current;
+}
+// Preenche um <select> de Empresa com as empresas cadastradas nas unidades ativas
+// (requer pcmPrecarregarEmpresasAtivas já ter rodado — o cache é síncrono aqui).
+function fillSelectEmpresas(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const current = el.value;
+  el.querySelectorAll('option:not(:first-child)').forEach(o=>o.remove());
+  pcmEmpresasDasUnidadesAtivas().forEach(emp => {
+    const o = document.createElement('option');
+    o.value = emp.id; o.textContent = emp.nome;
+    el.appendChild(o);
+  });
+  if([...el.options].some(o=>o.value===current)) el.value = current;
 }
 function refreshDatalists(){
   const fill = (id, field) => {
@@ -5332,7 +5889,7 @@ function refreshDatalists(){
     el.innerHTML = uniqueSorted(field).map(v=>`<option value="${v}">`).join('');
   };
   fill('dl-veiculo','veiculo');
-  fill('dl-operacao','operacao');
+  document.getElementById('dl-operacao').innerHTML = pcmOperacoesConhecidas().map(v=>`<option value="${v}">`).join('');
   fill('dl-responsavel','responsavel');
   fill('dl-chave','chave_erro');
 }
@@ -5368,6 +5925,7 @@ function renderOrdensPagina(){
 }
 
 function applyFilters(){
+  const emp = document.getElementById('f-empresa')?.value || '';
   const op = document.getElementById('f-operacao').value;
   const tp = document.getElementById('f-tipo').value;
   const st = document.getElementById('f-setor').value;
@@ -5380,6 +5938,10 @@ function applyFilters(){
   const onlyReinc = document.getElementById('f-reinc').checked;
 
   let rows = allRows().filter(r=>{
+    if(emp){
+      const empresaDoRegistro = pcmEmpresaDaOperacao(r.operacao);
+      if(!empresaDoRegistro || empresaDoRegistro.id !== emp) return false;
+    }
     if(op && r.operacao!==op) return false;
     if(tp && r.tipo!==tp) return false;
     if(st && r.setor!==st) return false;
@@ -5456,8 +6018,12 @@ function fmtStatusFechamento(r){
 }
 
 function renderTable(rows){
+  const mostrarUnidade = pcmUnidadesAtivas().length > 1;
+  const thUnidade = document.getElementById('th-unidade-ordens');
+  if(thUnidade) thUnidade.style.display = mostrarUnidade ? '' : 'none';
   document.getElementById('tbody').innerHTML = rows.map(r=>`
     <tr>
+      ${mostrarUnidade ? `<td data-label="Local">${r._unidadeNome||'—'}</td>` : ''}
       <td data-label="Data">${fmtDate(r.data)}</td>
       <td data-label="Veículo">${r.veiculo}</td>
       <td class="os-code" data-label="OS">${r.os}</td>
@@ -5531,12 +6097,22 @@ function loadFechamentos(){
   try{ const r = localStorage.getItem(FECHAMENTO_KEY); return r ? JSON.parse(r) : {}; }catch(e){ return {}; }
 }
 function saveFechamentos(){
+  // 'fechamentos' é o dicionário COMBINADO de todas as unidades ativas.
   try{ localStorage.setItem(FECHAMENTO_KEY, JSON.stringify(fechamentos)); }catch(e){}
-  if(window._db){
-    window._db.collection('pcm').doc(pcmDocId('fechamentos'))
-      .set({ data: fechamentos, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(e => console.warn('Firestore saveFechamentos:', e));
-  }
+  if(!window._db) return;
+  const porUnidade = {};
+  Object.entries(fechamentos).forEach(([chave, fech]) => {
+    const uid = fech._unidadeId || pcmUnidadePrincipal();
+    if(!porUnidade[uid]) porUnidade[uid] = {};
+    const { _unidadeId, _unidadeNome, ...limpo } = fech;
+    porUnidade[uid][chave] = limpo;
+  });
+  Object.entries(porUnidade).forEach(([uid, dados]) => {
+    pcmCacheBase.fechamentos[uid] = dados;
+    window._db.collection('pcm').doc(pcmDocIdParaUnidade('fechamentos', uid))
+      .set({ data: dados, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e => console.warn('Firestore saveFechamentos', uid, ':', e));
+  });
 }
 fechamentos = loadFechamentos();
 
@@ -5566,6 +6142,7 @@ function fecharOS(records, dataFechamento, responsavelFechamento, obsFechamento)
       origin: r.origin,
       record_id: r.origin === 'manual' ? r._id : r._edit_id,
       fechado_em: new Date().toISOString(),
+      _unidadeId: r._unidadeId || pcmUnidadePrincipal(),
     };
     addLog('os-fechamento', `OS fechada: ${r.os} — Veículo ${r.veiculo}`,
       `Data fechamento: ${dataFechamento}${responsavelFechamento ? ' · '+responsavelFechamento : ''}`);
@@ -5767,7 +6344,7 @@ document.getElementById('btn-fechar-massa')?.addEventListener('click', ()=>{
 
 
 
-['f-operacao','f-tipo','f-setor','f-categoria','f-resp','f-reinc','f-data-de','f-data-ate','f-status'].forEach(id=>{
+['f-empresa','f-operacao','f-tipo','f-setor','f-categoria','f-resp','f-reinc','f-data-de','f-data-ate','f-status'].forEach(id=>{
   document.getElementById(id)?.addEventListener('change', applyFilters);
 });
 // Busca por texto só roda ao clicar em "Pesquisar" ou apertar Enter —
@@ -5805,6 +6382,7 @@ document.getElementById('ordens-per-page').addEventListener('change', function()
   renderOrdensPagina();
 });
 document.getElementById('f-clear').addEventListener('click', ()=>{
+  document.getElementById('f-empresa').value='';
   document.getElementById('f-operacao').value='';
   document.getElementById('f-tipo').value='';
   document.getElementById('f-setor').value='';
@@ -5923,6 +6501,8 @@ document.getElementById('drawer-submit').addEventListener('click', ()=>{
     hodometro: hodoEntry ? hodoEntry.hodometro : null,
     kml: hodoEntry ? hodoEntry.kml : null,
     origin: 'manual',
+    _unidadeId: pcmUnidadePrincipal(),
+    _unidadeNome: pcmNomeUnidade(pcmUnidadePrincipal()),
   };
 
   manualRecords.push(record);
@@ -5969,12 +6549,24 @@ function loadFrota(){
   return JSON.parse(JSON.stringify(FROTA_SEED));
 }
 function saveFrota(f){
+  // 'f' é o objeto COMBINADO de todas as unidades ativas (cada veículo tem _unidadeId).
+  // Precisa separar por unidade antes de gravar para não misturar veículos de unidades diferentes
+  // no mesmo documento.
   try{ localStorage.setItem(FROTA_STORAGE_KEY, JSON.stringify(f)); }catch(e){}
-  if(window._db){
-    window._db.collection('pcm').doc(pcmDocId('frota'))
-      .set({ data: f, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(e => console.warn('Firestore saveFrota:', e));
-  }
+  if(!window._db) return;
+  const porUnidade = {};
+  Object.entries(f).forEach(([veiculo, info]) => {
+    const uid = info._unidadeId || pcmUnidadePrincipal();
+    if(!porUnidade[uid]) porUnidade[uid] = {};
+    const { _unidadeId, _unidadeNome, ...limpo } = info;
+    porUnidade[uid][veiculo] = limpo;
+  });
+  Object.entries(porUnidade).forEach(([uid, dados]) => {
+    pcmCacheBase.frota[uid] = dados;
+    window._db.collection('pcm').doc(pcmDocIdParaUnidade('frota', uid))
+      .set({ data: dados, seedVersion: FROTA_SEED_VERSION, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e => console.warn('Firestore saveFrota', uid, ':', e));
+  });
 }
 
 let frota = loadFrota();
@@ -5983,6 +6575,68 @@ let frota = loadFrota();
 function getOperacao(veiculo){
   const entry = frota[String(veiculo)];
   return entry ? entry.operacao : '';
+}
+
+// Resolve a empresa (objeto) de um número de frota, usando o vínculo gravado em
+// frota[veiculo].empresaId (feito no painel Vínculo Empresa × Frota). Busca só na
+// unidade dona do veículo (frota[veiculo]._unidadeId) — nunca em outras unidades,
+// para não cruzar empresas de cadastros diferentes por coincidência de ID.
+// Retorna null se o veículo não existe ou não tem empresa vinculada ainda.
+function pcmEmpresaDoVeiculo(veiculo){
+  const entry = frota[String(veiculo)];
+  if(!entry || !entry.empresaId) return null;
+  const unidadeDoVeiculo = entry._unidadeId || pcmUnidadePrincipal();
+  const lista = pcmEmpresasCache[unidadeDoVeiculo] || [];
+  return lista.find(e => e.id === entry.empresaId) || null;
+}
+
+// Resolve a "empresa" de um veículo pra fins de exibição/gravação: primeiro tenta
+// o vínculo fino cadastrado via Vínculo Empresa × Frota (pcmEmpresaDoVeiculo) — útil
+// quando várias empresas dividem o mesmo Local (ex.: Rio Verde). Se não houver esse
+// vínculo, cai para o próprio Local do veículo (frota[veiculo]._unidadeNome): em
+// vários casos (ex.: "027 - Ansal Matriz") o Local já É a empresa, sem precisar de
+// vínculo adicional algum. Retorna { id, nome } ou null se o veículo não existe.
+function pcmEmpresaOuLocalDoVeiculo(veiculo){
+  const empresa = pcmEmpresaDoVeiculo(veiculo);
+  if(empresa) return { id: empresa.id, nome: empresa.nome };
+  const entry = frota[String(veiculo)];
+  if(entry && entry._unidadeNome) return { id: entry._unidadeNome, nome: entry._unidadeNome };
+  return null;
+}
+
+// Resolve a empresa de uma SR: prioriza o campo r.empresaId já gravado no próprio
+// registro (preenchido pelo "Recalcular base" ou ao editar/importar a SR) — mais
+// barato e reflete exatamente o que foi persistido. Se a SR ainda não tem empresaId
+// salvo (registro antigo, anterior a essa funcionalidade, que ainda não passou por um
+// recálculo), cai para o cálculo ao vivo a partir do veículo, como já fazia antes.
+// Resolve a empresa de uma SR para exibição: prioriza o campo r.empresaId já
+// gravado no próprio registro. empresaId pode ser (a) o ID de uma empresa
+// CADASTRADA (Administração → Cadastro de Empresas, em qualquer Local) — nesse
+// caso mostra o objeto da empresa (nome); ou (b) um código cru do relatório (ex:
+// "027") quando a importação não conseguiu casar com nenhuma empresa cadastrada —
+// nesse caso não há objeto de empresa para retornar, então quem exibe deve usar
+// pcmNomeEmpresaOuTextoDaSR(sr) (abaixo) para mostrar o texto cru. Só cai para o
+// cálculo por veículo (pcmEmpresaDoVeiculo) quando a SR não tem empresaId nenhum
+// (registro antigo, anterior a essa funcionalidade).
+function pcmEmpresaDaSR(sr){
+  if(sr && sr.empresaId){
+    for(const lista of Object.values(pcmEmpresasCache)){
+      const emp = (lista || []).find(e => e.id === sr.empresaId);
+      if(emp) return emp;
+    }
+    return null; // empresaId preenchido mas não é uma empresa cadastrada (código cru do CSV)
+  }
+  return pcmEmpresaDoVeiculo(sr ? sr.veiculo : null);
+}
+
+// Texto de exibição da Empresa de uma SR: nome da empresa cadastrada quando
+// pcmEmpresaDaSR encontra uma; senão, se a SR tem um empresaId cru (código do
+// relatório não reconhecido, ex: "027"), mostra esse código; senão "—".
+function pcmNomeEmpresaOuTextoDaSR(sr){
+  const emp = pcmEmpresaDaSR(sr);
+  if(emp) return emp.nome;
+  if(sr && sr.empresaId) return sr.empresaId; // código cru, sem cadastro correspondente
+  return '';
 }
 
 // ── Sidebar recolhível ───────────────────────────────────
@@ -6046,8 +6700,12 @@ function renderFrota(){
     tbody.innerHTML = '<tr><td colspan="4" style="color:var(--dim);text-align:center;padding:20px;">Nenhum veículo encontrado.</td></tr>';
     return;
   }
+  const mostrarUnidadeFrota = pcmUnidadesAtivas().length > 1;
+  const thUnidadeFrota = document.getElementById('th-unidade-frota');
+  if(thUnidadeFrota) thUnidadeFrota.style.display = mostrarUnidadeFrota ? '' : 'none';
   tbody.innerHTML = rows.map(([v, d]) => `
     <tr>
+      ${mostrarUnidadeFrota ? `<td>${d._unidadeNome||'—'}</td>` : ''}
       <td style="font-family:var(--font-mono);color:var(--brand-2);">${v}</td>
       <td>${d.placa || '<span style="color:var(--dim)">—</span>'}</td>
       <td>${d.operacao ? `<span class="${opClass(d.operacao)}">${d.operacao}</span>` : '<span style="color:var(--dim)">—</span>'}</td>
@@ -6069,7 +6727,16 @@ function openFrotaModal(veiculoId){
   document.getElementById('fm-veiculo').disabled = !!veiculoId;
   const d = veiculoId ? (frota[veiculoId] || {}) : {};
   document.getElementById('fm-placa').value = d.placa || '';
-  document.getElementById('fm-operacao').value = d.operacao || '';
+  // Popula o select de Operação com todas as operações conhecidas pelo sistema
+  // (inclui as recém-importadas, ex: "10 - LINHA URBANA"), garantindo que o
+  // valor atual do veículo sempre apareça como opção, mesmo que ainda não
+  // tenha sido usado em nenhuma OS.
+  const opSel = document.getElementById('fm-operacao');
+  const opcoes = pcmOperacoesConhecidas();
+  if(d.operacao && !opcoes.includes(d.operacao)) opcoes.push(d.operacao);
+  opcoes.sort();
+  opSel.innerHTML = '<option value="">Selecione</option>' + opcoes.map(op => `<option value="${op}">${op}</option>`).join('');
+  opSel.value = d.operacao || '';
   document.getElementById('fm-error').style.display = 'none';
   document.getElementById('frota-modal-overlay').classList.add('open');
 }
@@ -6101,7 +6768,11 @@ document.getElementById('frota-modal-save').addEventListener('click', () => {
   const errEl = document.getElementById('fm-error');
   if(!v || !op){ errEl.style.display='block'; return; }
   errEl.style.display = 'none';
-  frota[v] = { placa, operacao: op };
+  // Ao editar um veículo já existente, mantém a unidade original dele; ao criar um novo,
+  // usa a unidade principal do usuário.
+  const unidadeExistente = frota[v] ? frota[v]._unidadeId : null;
+  const unidadeAlvo = unidadeExistente || pcmUnidadePrincipal();
+  frota[v] = { placa, operacao: op, _unidadeId: unidadeAlvo, _unidadeNome: pcmNomeUnidade(unidadeAlvo) };
   saveFrota(frota);
   closeFrotaModal();
   renderFrota();
@@ -6143,12 +6814,23 @@ function loadOverrides(){
   }catch(e){ return {}; }
 }
 function saveOverrides(){
+  // 'overrides' é o dicionário COMBINADO (chaves de registros de qualquer unidade ativa).
+  // A unidade de cada chave é a mesma do registro original em DATA (via keyForRecord).
   try{ localStorage.setItem(OVERRIDES_KEY, JSON.stringify(overrides)); }catch(e){}
-  if(window._db){
-    window._db.collection('pcm').doc(pcmDocId('overrides'))
-      .set({ data: overrides, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(e => console.warn('Firestore saveOverrides:', e));
-  }
+  if(!window._db) return;
+  const porUnidade = {};
+  Object.entries(overrides).forEach(([chave, updates]) => {
+    const original = ORIGINAL_DATA.find(r => keyForRecord(r) === chave);
+    const uid = original ? original._unidadeId : pcmUnidadePrincipal();
+    if(!porUnidade[uid]) porUnidade[uid] = {};
+    porUnidade[uid][chave] = updates;
+  });
+  Object.entries(porUnidade).forEach(([uid, dados]) => {
+    pcmCacheBase.overrides[uid] = dados;
+    window._db.collection('pcm').doc(pcmDocIdParaUnidade('overrides', uid))
+      .set({ data: dados, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e => console.warn('Firestore saveOverrides', uid, ':', e));
+  });
 }
 
 overrides = loadOverrides();
@@ -6167,12 +6849,22 @@ function loadDeletedKeys(){
   }catch(e){ return {}; }
 }
 function saveDeletedKeys(){
+  // Mesma lógica de saveOverrides: cada chave pertence à unidade do registro original em DATA.
   try{ localStorage.setItem(DELETED_KEYS_KEY, JSON.stringify(deletedKeys)); }catch(e){}
-  if(window._db){
-    window._db.collection('pcm').doc(pcmDocId('deletedKeys'))
-      .set({ data: deletedKeys, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(e => console.warn('Firestore saveDeletedKeys:', e));
-  }
+  if(!window._db) return;
+  const porUnidade = {};
+  Object.keys(deletedKeys).forEach(chave => {
+    const original = ORIGINAL_DATA.find(r => keyForRecord(r) === chave);
+    const uid = original ? original._unidadeId : pcmUnidadePrincipal();
+    if(!porUnidade[uid]) porUnidade[uid] = {};
+    porUnidade[uid][chave] = true;
+  });
+  Object.entries(porUnidade).forEach(([uid, dados]) => {
+    pcmCacheBase.deletedKeys[uid] = dados;
+    window._db.collection('pcm').doc(pcmDocIdParaUnidade('deletedKeys', uid))
+      .set({ data: dados, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e => console.warn('Firestore saveDeletedKeys', uid, ':', e));
+  });
 }
 deletedKeys = loadDeletedKeys();
 
@@ -6182,11 +6874,13 @@ function keyForRecord(r){
 
 // Apply overrides to DATA records when building allRows
 function allRows(){
+  const unidadesAtivas = pcmUnidadesAtivas();
   const dataWithOverrides = DATA
+    .filter(r => unidadesAtivas.includes(r._unidadeId)) // só das unidades ativas no momento
     .filter(r => !deletedKeys[keyForRecord(r)])
     .map(r => {
       const key = keyForRecord(r);
-      return overrides[key] ? {...r, ...overrides[key]} : r;
+      return overrides[key] ? {...r, ...overrides[key], _unidadeId: r._unidadeId, _unidadeNome: r._unidadeNome} : r;
     });
   return dataWithOverrides.concat(manualRecords);
 }
@@ -6611,6 +7305,8 @@ function mesclarGrupoOS(group, groupEl){
     hodometro: hodoEntry ? hodoEntry.hodometro : null,
     kml: hodoEntry ? hodoEntry.kml : null,
     origin: 'manual',
+    _unidadeId: pcmUnidadePrincipal(),
+    _unidadeNome: pcmNomeUnidade(pcmUnidadePrincipal()),
   };
 
   // Remove os registros originais (manuais direto do array; de planilha via deletedKeys)
@@ -6884,6 +7580,14 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
 const HODO_KEY = 'pcm_hodometro_v2';
 let hodoData = {}; // { veiculo: [ { hodometro, kml, kmRodado, litros, dataHora, ts, operacao }, ... ] } — histórico por veículo, mais recente por último
 
+// Sanitiza um código de veículo para virar ID de documento no Firestore (não pode conter "/",
+// nem ser vazio). Os códigos do PCM são normalmente só números ou placas, então isso raramente
+// muda alguma coisa — é só uma proteção.
+function pcmSafeVeiculoDocId(v){
+  const limpo = String(v).trim().replace(/\//g, '_');
+  return limpo || '_vazio';
+}
+
 function loadHodoData(){
   try{
     const raw = localStorage.getItem(HODO_KEY);
@@ -6908,12 +7612,46 @@ function loadHodoData(){
   }catch(e){ hodoData = {}; }
 }
 function saveHodoData(){
+  // 'hodoData' é o objeto COMBINADO { veiculo: [entradas] } de todas as unidades ativas —
+  // cada entrada já vem marcada com _unidadeId. Separa por unidade e grava CADA VEÍCULO no
+  // seu próprio documento (subcoleção pcm/hodometro_<unidade>/veiculos/<veiculo>), em vez de
+  // um único documento gigante por unidade — isso evita estourar o limite de 1MB por documento
+  // do Firestore quando o abastecimento somado de todos os veículos de um Local cresce muito
+  // (era exatamente esse o erro: "hodometro_U_..._7907 ... exceeds the maximum allowed size").
   try{ localStorage.setItem(HODO_KEY, JSON.stringify(hodoData)); }catch(e){}
-  if(window._db){
-    window._db.collection('pcm').doc(pcmDocId('hodometro'))
-      .set({ data: hodoData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(e => console.warn('Firestore saveHodoData:', e));
-  }
+  if(!window._db) return;
+  const porUnidade = {};
+  Object.entries(hodoData).forEach(([veiculo, historico]) => {
+    historico.forEach(entry => {
+      const uid = entry._unidadeId || pcmUnidadePrincipal();
+      if(!porUnidade[uid]) porUnidade[uid] = {};
+      if(!porUnidade[uid][veiculo]) porUnidade[uid][veiculo] = [];
+      const { _unidadeId, _unidadeNome, ...limpo } = entry;
+      porUnidade[uid][veiculo].push(limpo);
+    });
+  });
+  // Confere também as unidades/veículos que já estavam em cache (mesmo sem nenhuma entrada
+  // nova agora) — é o único jeito de notar quando um veículo ficou com histórico vazio (todos
+  // os registros dele foram excluídos) e remover o documento correspondente na subcoleção.
+  pcmCacheBase.hodometro = pcmCacheBase.hodometro || {};
+  const unidadesAConferir = new Set([...Object.keys(porUnidade), ...Object.keys(pcmCacheBase.hodometro)]);
+  unidadesAConferir.forEach(uid => {
+    const dadosNovos   = porUnidade[uid] || {};
+    const dadosAntigos = pcmCacheBase.hodometro[uid] || {};
+    const veiculosAConferir = new Set([...Object.keys(dadosNovos), ...Object.keys(dadosAntigos)]);
+    pcmCacheBase.hodometro[uid] = dadosNovos;
+    const veiculosRef = window._db.collection('pcm').doc(pcmDocIdParaUnidade('hodometro', uid)).collection('veiculos');
+    veiculosAConferir.forEach(veiculo => {
+      const hist = dadosNovos[veiculo];
+      const docId = pcmSafeVeiculoDocId(veiculo);
+      if(hist && hist.length){
+        veiculosRef.doc(docId).set({ veiculo: String(veiculo), historico: hist, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+          .catch(e => console.warn('Firestore saveHodoData', uid, veiculo, ':', e));
+      } else {
+        veiculosRef.doc(docId).delete().catch(e => console.warn('Firestore saveHodoData (remover vazio)', uid, veiculo, ':', e));
+      }
+    });
+  });
 }
 
 // Parse a pt-BR formatted date/time string (e.g. "04/08/2026 14:30:00") back into a Date.
@@ -6965,14 +7703,20 @@ function renderHodoTab(){
     veiculo:  v,
     operacao: fd.operacao || '',
     placa:    fd.placa    || '',
+    _unidadeNome: fd._unidadeNome || '',
     ...(pickClosestHodoEntry(hodoData[v] || [], null) || {})
   })).filter(r =>
     !q || r.veiculo.includes(q) || (r.operacao||'').toLowerCase().includes(q) || (r.placa||'').toLowerCase().includes(q)
   ).sort((a,b) => String(a.veiculo).localeCompare(String(b.veiculo), undefined, {numeric:true}));
 
+  const mostrarUnidadeHodo = pcmUnidadesAtivas().length > 1;
+  const thUnidadeHodo = document.getElementById('th-unidade-hodo');
+  if(thUnidadeHodo) thUnidadeHodo.style.display = mostrarUnidadeHodo ? '' : 'none';
+
   document.getElementById('hodo-tbody').innerHTML = rows.map(r => {
     const hasData = !!(hodoData[r.veiculo] && hodoData[r.veiculo].length);
     return `<tr style="${!hasData ? 'opacity:.45' : ''}">
+      ${mostrarUnidadeHodo ? `<td>${r._unidadeNome||'—'}</td>` : ''}
       <td class="hodo-val hodo-veiculo-link" data-veiculo="${r.veiculo}" title="Ver histórico de abastecimento">${r.veiculo}</td>
       <td>${r.operacao ? `<span class="${opClass(r.operacao)}">${r.operacao}</span>` : '<span style="color:var(--dim)">—</span>'}</td>
       <td class="hodo-val">${hasData ? Number(r.hodometro).toLocaleString('pt-BR') + ' km' : '<span style="color:var(--dim)">—</span>'}</td>
@@ -7119,7 +7863,11 @@ function mergeHodoEntries(parsed, successMsg){
   parsed.forEach(r => {
     if(!hodoData[r.veiculo]) hodoData[r.veiculo] = [];
     const isDup = hodoData[r.veiculo].some(e => e.hodometro === r.hodometro && e.dataHora === r.dataHora);
-    if(!isDup) hodoData[r.veiculo].push(r);
+    if(!isDup){
+      const veiculoInfo = frota[String(r.veiculo)];
+      const unidadeEntrada = (veiculoInfo && veiculoInfo._unidadeId) || pcmUnidadePrincipal();
+      hodoData[r.veiculo].push({ ...r, _unidadeId: unidadeEntrada, _unidadeNome: pcmNomeUnidade(unidadeEntrada) });
+    }
   });
   saveHodoData();
   const now = new Date().toLocaleString('pt-BR');
@@ -7307,7 +8055,9 @@ document.getElementById('hm-save-btn').addEventListener('click', () => {
   const operacao = getOperacao(veiculo);
 
   if(!hodoData[veiculo]) hodoData[veiculo] = [];
-  hodoData[veiculo].push({ veiculo, operacao, hodometro, litros, kml, kmRodado, dataHora, ts });
+  const veiculoInfo = frota[String(veiculo)];
+  const unidadeEntrada = (veiculoInfo && veiculoInfo._unidadeId) || pcmUnidadePrincipal();
+  hodoData[veiculo].push({ veiculo, operacao, hodometro, litros, kml, kmRodado, dataHora, ts, _unidadeId: unidadeEntrada, _unidadeNome: pcmNomeUnidade(unidadeEntrada) });
   saveHodoData();
   addLog('hodo', `Hodômetro atualizado manualmente: ${veiculo}`, `${hodometro.toLocaleString('pt-BR')} km · ${kml ? kml.toFixed(2)+' km/L' : '—'}`);
 
@@ -7363,18 +8113,29 @@ function pruneLog(){
 
 let _persistLogTimer = null;
 function persistLog(){
+  // 'logEntries' é o array COMBINADO de todas as unidades ativas — cada entrada já
+  // vem marcada com _unidadeId desde a criação (addLog). Separa por unidade antes de gravar.
   try{ localStorage.setItem(LOG_KEY, JSON.stringify(logEntries)); }catch(e){}
-  if(window._db){
-    // Debounce: várias chamadas seguidas (ex.: fechamento em massa de OS)
-    // resultam em UMA única escrita no Firestore, evitando estourar a fila
-    // de writes pendentes (resource-exhausted).
-    clearTimeout(_persistLogTimer);
-    _persistLogTimer = setTimeout(()=>{
-      window._db.collection('pcm').doc(pcmDocId('log'))
-        .set({ entries: logEntries, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-        .catch(e => console.warn('Firestore log:', e));
-    }, 600);
-  }
+  if(!window._db) return;
+  // Debounce: várias chamadas seguidas (ex.: fechamento em massa de OS)
+  // resultam em UMA única escrita no Firestore por unidade, evitando estourar a fila
+  // de writes pendentes (resource-exhausted).
+  clearTimeout(_persistLogTimer);
+  _persistLogTimer = setTimeout(()=>{
+    const porUnidade = {};
+    logEntries.forEach(e => {
+      const uid = e._unidadeId || pcmUnidadePrincipal();
+      if(!porUnidade[uid]) porUnidade[uid] = [];
+      const { _unidadeId, _unidadeNome, ...limpo } = e;
+      porUnidade[uid].push(limpo);
+    });
+    Object.entries(porUnidade).forEach(([uid, entradas]) => {
+      pcmCacheBase.log[uid] = entradas;
+      window._db.collection('pcm').doc(pcmDocIdParaUnidade('log', uid))
+        .set({ entries: entradas, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+        .catch(e2 => console.warn('Firestore log', uid, ':', e2));
+    });
+  }, 600);
 }
 
 function addLog(cat, title, detail){
@@ -7384,6 +8145,8 @@ function addLog(cat, title, detail){
     cat,
     title,
     detail: detail || '',
+    _unidadeId: pcmUnidadePrincipal(),
+    _unidadeNome: pcmNomeUnidade(pcmUnidadePrincipal()),
   };
   logEntries.unshift(entry); // newest first
   persistLog();
@@ -7430,9 +8193,14 @@ function renderLogTab(){
       `Retenção: ${LOG_EXPIRY_DAYS} dias · próxima expiração: ${expiry.toLocaleDateString('pt-BR')}`;
   }
 
+  const mostrarUnidadeLog = pcmUnidadesAtivas().length > 1;
+  const thUnidadeLog = document.getElementById('th-unidade-log');
+  if(thUnidadeLog) thUnidadeLog.style.display = mostrarUnidadeLog ? '' : 'none';
+
   document.getElementById('log-tbody').innerHTML = filtered.length
     ? filtered.map(e => `
       <tr>
+        ${mostrarUnidadeLog ? `<td>${e._unidadeNome||'—'}</td>` : ''}
         <td class="log-ts">${fmtTs(e.ts)}</td>
         <td><span class="log-tag ${e.cat}">${catLabel(e.cat)}</span></td>
         <td class="log-detail">
@@ -7440,7 +8208,7 @@ function renderLogTab(){
           ${e.detail ? `<div class="sub">${e.detail}</div>` : ''}
         </td>
       </tr>`).join('')
-    : '<tr><td colspan="3" style="color:var(--dim);text-align:center;padding:24px;">Nenhum evento encontrado.</td></tr>';
+    : `<tr><td colspan="${mostrarUnidadeLog ? 4 : 3}" style="color:var(--dim);text-align:center;padding:24px;">Nenhum evento encontrado.</td></tr>`;
 }
 
 // Log tab listeners
@@ -7477,7 +8245,7 @@ addLog('sistema', 'App iniciado', `v10.31 · ${new Date().toLocaleString('pt-BR'
 // SOLICITAÇÕES DE REPARO
 // ════════════════════════════════════════════════════════
 const SOL_KEY = 'pcm_solicitacoes_v1';
-let solRecords = [];   // [{ id, num, data, veiculo, operacao, descricao, motivo, situacao, funcionario, motorista, lider, observacao, origem_reclamacao, createdAt }]
+let solRecords = [];   // [{ id, num, data, veiculo, operacao, descricao, motivo, situacao, funcionario, observacao, origem_reclamacao, createdAt }]
 let solNextId  = 1;
 let solEditId  = null; // null = nova, número = edição
 let solSortCol = 'data';
@@ -7502,34 +8270,46 @@ function saveSol(srModificada){
   if(!window._db) return;
 
   if(srModificada){
-    // Caminho novo: grava só o documento que mudou na subcoleção
+    // Caminho novo: grava só o documento que mudou, na subcoleção DA UNIDADE DELE
+    // (srModificada._unidadeId, ou a unidade principal se for um registro novo sem marca ainda).
     const docId = String(srModificada.id);
+    const uid = srModificada._unidadeId || pcmUnidadePrincipal();
+    const { _unidadeId, _unidadeNome, ...limpo } = srModificada;
     window._db
-      .collection('pcm').doc(pcmDocId('solicitacoes'))
+      .collection('pcm').doc(pcmDocIdParaUnidade('solicitacoes', uid))
       .collection('registros').doc(docId)
-      .set({ ...srModificada, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(e => console.warn('Firestore Solicitações save (doc):', e));
+      .set({ ...limpo, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e => console.warn('Firestore Solicitações save (doc):', uid, e));
   } else {
-    // Fallback de compatibilidade: sem SR específica, grava tudo em lote
-    // (usado apenas pela migração inicial e pelo import em massa)
-    const db   = window._db;
-    const colRef = db.collection('pcm').doc(pcmDocId('solicitacoes')).collection('registros');
-    const MAX_BATCH = 500;
-    const chunks = [];
-    for(let i = 0; i < solRecords.length; i += MAX_BATCH){
-      chunks.push(solRecords.slice(i, i + MAX_BATCH));
-    }
-    chunks.reduce((p, chunk) => p.then(() => {
-      const batch = db.batch();
-      chunk.forEach(sr => {
-        batch.set(
-          colRef.doc(String(sr.id)),
-          { ...sr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }
-        );
-      });
-      return batch.commit();
-    }), Promise.resolve())
-    .catch(e => console.warn('Firestore Solicitações save (batch):', e));
+    // Fallback de compatibilidade: sem SR específica, grava tudo em lote,
+    // separado por unidade (usado apenas pela migração inicial e pelo import em massa)
+    const db = window._db;
+    const porUnidade = {};
+    solRecords.forEach(sr => {
+      const uid = sr._unidadeId || pcmUnidadePrincipal();
+      if(!porUnidade[uid]) porUnidade[uid] = [];
+      const { _unidadeId, _unidadeNome, ...limpo } = sr;
+      porUnidade[uid].push(limpo);
+    });
+    Object.entries(porUnidade).forEach(([uid, lista]) => {
+      const colRef = db.collection('pcm').doc(pcmDocIdParaUnidade('solicitacoes', uid)).collection('registros');
+      const MAX_BATCH = 500;
+      const chunks = [];
+      for(let i = 0; i < lista.length; i += MAX_BATCH){
+        chunks.push(lista.slice(i, i + MAX_BATCH));
+      }
+      chunks.reduce((p, chunk) => p.then(() => {
+        const batch = db.batch();
+        chunk.forEach(sr => {
+          batch.set(
+            colRef.doc(String(sr.id)),
+            { ...sr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }
+          );
+        });
+        return batch.commit();
+      }), Promise.resolve())
+      .catch(e => console.warn('Firestore Solicitações save (batch)', uid, ':', e));
+    });
   }
 }
 
@@ -7550,7 +8330,7 @@ loadSol();
 // ════════════════════════════════════════════════════════
 async function pcmMigrarSolicitacoesParaSubcolecao(){
   if(!window._db){ console.error('Firestore não inicializado.'); return; }
-  const docRaiz = window._db.collection('pcm').doc(pcmDocId('solicitacoes'));
+  const docRaiz = window._db.collection('pcm').doc(pcmDocIdParaUnidade('solicitacoes', pcmUnidadePrincipal()));
   const snap = await docRaiz.get();
   if(!snap.exists || !snap.data().records || !snap.data().records.length){
     console.log('PCM Migração: nada a migrar (documento raiz sem campo records).');
@@ -7576,7 +8356,7 @@ async function pcmMigrarSolicitacoesParaSubcolecao(){
 
 async function pcmLimparDocRaizSolicitacoes(){
   if(!window._db){ console.error('Firestore não inicializado.'); return; }
-  await window._db.collection('pcm').doc(pcmDocId('solicitacoes'))
+  await window._db.collection('pcm').doc(pcmDocIdParaUnidade('solicitacoes', pcmUnidadePrincipal()))
     .set({ records: firebase.firestore.FieldValue.delete(), updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
   console.log('PCM Migração: campo records removido do documento raiz.');
 }
@@ -7690,12 +8470,17 @@ function solApplyFilters(){
 
   const search   = (document.getElementById('sol-search')?.value||'').toLowerCase();
   const situacao = (document.getElementById('sol-filter-situacao')?.value||'');
+  const empFilter = (document.getElementById('sol-filter-empresa')?.value||'');
 
   let rows = solRecords.filter(r => {
     if(situacao && r.situacao !== situacao) return false;
+    if(empFilter){
+      const empresaDoRegistro = pcmEmpresaDaSR(r);
+      if(!empresaDoRegistro || empresaDoRegistro.id !== empFilter) return false;
+    }
     if(search){
       const hay = [r.num, r.veiculo, r.operacao, r.descricao, r.motivo, r.situacao,
-                   r.funcionario, r.motorista, r.lider, r.observacao].join(' ').toLowerCase();
+                   r.funcionario, r.observacao].join(' ').toLowerCase();
       if(!hay.includes(search)) return false;
     }
     return true;
@@ -7748,7 +8533,7 @@ function solRenderPagina(){
 function solRenderTabela(rows){
   const tbody = document.getElementById('sol-tbody');
   if(!rows.length){
-    tbody.innerHTML=`<tr><td colspan="12" class="gns-empty">Nenhuma solicitação encontrada.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="13" class="gns-empty">Nenhuma solicitação encontrada.</td></tr>`;
     syncSolCheckAll([]);
     return;
   }
@@ -7759,13 +8544,12 @@ function solRenderTabela(rows){
       <td><span class="gns-num">${r.num||'—'}</span></td>
       <td style="font-family:var(--font-mono);font-size:11.5px;">${fmtDateBR(r.data)}</td>
       <td>${r.veiculo||'—'}</td>
+      <td>${esc(pcmNomeEmpresaOuTextoDaSR(r)) || '—'}</td>
       <td>${r.operacao||'—'}</td>
       <td title="${esc(r.descricao||'')}">${(()=>{ const p=(r.descricao||'').trim().split(/\s+/).filter(Boolean); return p.length ? (p.length>10 ? esc(p.slice(0,10).join(' '))+'+' : esc(p.join(' '))) : '—'; })()}</td>
       <td>${esc(r.motivo)||'—'}</td>
       <td>${r.situacao ? `<span class="${situacaoClass(r.situacao)}">${esc(r.situacao)}</span>` : '—'}</td>
       <td>${esc(r.funcionario)||'—'}</td>
-      <td>${r.motorista||'—'}</td>
-      <td>${r.lider||'—'}</td>
       <td>
         <button class="gns-act-btn" onclick="solEditOpen(${r.id})">✏️</button>
         <button class="gns-act-btn danger" onclick="solDelete(${r.id})">🗑</button>
@@ -7790,7 +8574,7 @@ function solRenderTabela(rows){
 }
 
 // Alias: qualquer código que chame renderSolTab() continua funcionando
-function renderSolTab(){ solApplyFilters(); }
+function renderSolTab(){ fillSelectEmpresas('sol-filter-empresa'); solApplyFilters(); }
 
 // ── Seleção em massa: sincroniza checkbox "selecionar todas" ─
 function syncSolCheckAll(rows){
@@ -7825,27 +8609,74 @@ document.getElementById('sol-check-all')?.addEventListener('change', function(){
   solRenderPagina();
 });
 
-document.getElementById('sol-bulk-del-btn')?.addEventListener('click', ()=>{
+document.getElementById('sol-bulk-del-btn')?.addEventListener('click', async ()=>{
   if(pcmBloquear('solicitacoes','excluir')) return;
   if(solSelIds.size === 0) return;
   const selecionadas = solRecords.filter(r => solSelIds.has(r.id));
   if(!selecionadas.length) return;
-  const nomes = selecionadas.map(r => r.num||'#'+r.id).join(', ');
+  const nomes = selecionadas.length <= 30
+    ? selecionadas.map(r => r.num||'#'+r.id).join(', ')
+    : `${selecionadas.length} solicitações (lista grande demais para exibir aqui)`;
   if(!confirm(`Excluir ${selecionadas.length} solicitação(ões) selecionada(s)? Esta ação não pode ser desfeita.\n\n${nomes}`)) return;
+
   const idsParaExcluir = new Set(selecionadas.map(r => r.id));
-  solRecords = solRecords.filter(r => !idsParaExcluir.has(r.id));
-  // Atualiza cache local
-  try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
-  // Apaga cada documento individual da subcoleção via batch
+  const btn = document.getElementById('sol-bulk-del-btn');
+  if(btn){ btn.disabled = true; btn.dataset.origText = btn.innerHTML; btn.innerHTML = '⏳ Excluindo…'; }
+
+  // O Firestore limita cada WriteBatch a 500 operações — com seleções grandes (milhares
+  // de SRs) um único batch estoura ("Transaction too big") e falha inteiro, sem excluir
+  // nada. Por isso quebramos em lotes de até 400 (folga sob o limite de 500) por unidade,
+  // e só removemos do estado local os IDs cujo lote realmente confirmou sucesso — os que
+  // falharem continuam no sistema e o usuário é avisado, em vez de "sumirem" da tela e
+  // reaparecerem sozinhos quando o Firestore sincronizar de novo.
+  const LOTE = 400;
+  let idsExcluidosComSucesso = new Set();
+  let houveErro = false;
+
   if(window._db){
-    const colRef = window._db.collection('pcm').doc(pcmDocId('solicitacoes')).collection('registros');
-    const batch  = window._db.batch();
-    idsParaExcluir.forEach(id => batch.delete(colRef.doc(String(id))));
-    batch.commit().catch(e => console.warn('Firestore Solicitações bulk delete:', e));
+    const idsPorUnidade = {};
+    selecionadas.forEach(r => {
+      const uid = r._unidadeId || pcmUnidadePrincipal();
+      if(!idsPorUnidade[uid]) idsPorUnidade[uid] = [];
+      idsPorUnidade[uid].push(r.id);
+    });
+
+    for(const [uid, ids] of Object.entries(idsPorUnidade)){
+      const colRef = window._db.collection('pcm').doc(pcmDocIdParaUnidade('solicitacoes', uid)).collection('registros');
+      for(let i = 0; i < ids.length; i += LOTE){
+        const fatia = ids.slice(i, i + LOTE);
+        const batch = window._db.batch();
+        fatia.forEach(id => batch.delete(colRef.doc(String(id))));
+        try{
+          await batch.commit();
+          fatia.forEach(id => idsExcluidosComSucesso.add(id));
+        }catch(e){
+          houveErro = true;
+          console.warn('Firestore Solicitações bulk delete', uid, ':', e);
+        }
+      }
+    }
+  } else {
+    // Sem Firestore conectado (ambiente offline/local): considera tudo excluído localmente.
+    idsExcluidosComSucesso = idsParaExcluir;
   }
-  addLog('sistema', `${selecionadas.length} solicitação(ões) de reparo excluída(s) em lote`, nomes);
-  if(solEditId !== null && idsParaExcluir.has(solEditId)) solResetForm();
-  solSelIds.clear();
+
+  // Só remove do estado local (e do cache) o que foi de fato confirmado no Firestore.
+  solRecords = solRecords.filter(r => !idsExcluidosComSucesso.has(r.id));
+  try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
+
+  const qtdExcluida = idsExcluidosComSucesso.size;
+  const qtdFalhou = selecionadas.length - qtdExcluida;
+  if(qtdExcluida > 0){
+    addLog('sistema', `${qtdExcluida} solicitação(ões) de reparo excluída(s) em lote`, nomes);
+  }
+  if(houveErro){
+    alert(`Atenção: ${qtdExcluida} solicitação(ões) foram excluídas, mas ${qtdFalhou} falharam ao excluir (erro do Firestore) e continuam no sistema. Tente novamente em lotes menores ou verifique sua conexão.`);
+  }
+
+  if(solEditId !== null && idsExcluidosComSucesso.has(solEditId)) solResetForm();
+  solSelIds = new Set([...solSelIds].filter(id => !idsExcluidosComSucesso.has(id)));
+  if(btn){ btn.disabled = false; btn.innerHTML = btn.dataset.origText || '🗑 Excluir selecionadas (<span id="sol-sel-count">0</span>)'; }
   renderSolTab();
 });
 
@@ -7880,6 +8711,7 @@ document.getElementById('sol-search').addEventListener('keydown', e => {
 
 // ── Filtro de situação ────────────────────────────────────
 document.getElementById('sol-filter-situacao').addEventListener('change', solApplyFilters);
+document.getElementById('sol-filter-empresa').addEventListener('change', solApplyFilters);
 
 // ── Paginação SR ──────────────────────────────────────────
 document.getElementById('sol-page-prev').addEventListener('click', () => {
@@ -7937,6 +8769,8 @@ function solResetForm(){
   document.getElementById('sol-submit-btn').textContent = 'Salvar Solicitação';
   document.getElementById('sol-drawer-import-link').style.display = '';
   document.getElementById('sol-num').value = solNextNum();   // auto next number
+  document.getElementById('sol-num-relatorio-field').style.display = 'none';
+  document.getElementById('sol-num-relatorio').value = '';
   document.getElementById('sol-data').value = new Date().toISOString().slice(0,10);
   document.getElementById('sol-veiculo').value = '';
   document.getElementById('sol-operacao').value = '';
@@ -7944,8 +8778,6 @@ function solResetForm(){
   document.getElementById('sol-motivo').value = '';
   document.getElementById('sol-situacao').value = '';
   document.getElementById('sol-funcionario').value = '';
-  document.getElementById('sol-motorista').value = '';
-  document.getElementById('sol-lider').value = '';
   document.getElementById('sol-observacao').value = '';
   document.getElementById('sol-form-error').style.display = 'none';
 }
@@ -7960,6 +8792,8 @@ function solEditOpen(id){
   document.getElementById('sol-submit-btn').textContent = 'Salvar alterações';
   document.getElementById('sol-drawer-import-link').style.display = 'none';
   document.getElementById('sol-num').value = r.num || '';
+  document.getElementById('sol-num-relatorio-field').style.display = r.numRelatorio ? '' : 'none';
+  document.getElementById('sol-num-relatorio').value = r.numRelatorio || '';
   document.getElementById('sol-data').value = r.data || '';
   document.getElementById('sol-veiculo').value = r.veiculo || '';
   document.getElementById('sol-operacao').value = r.operacao || '';
@@ -7967,8 +8801,6 @@ function solEditOpen(id){
   document.getElementById('sol-motivo').value = r.motivo || '';
   document.getElementById('sol-situacao').value = r.situacao || '';
   document.getElementById('sol-funcionario').value = r.funcionario || '';
-  document.getElementById('sol-motorista').value = r.motorista || '';
-  document.getElementById('sol-lider').value = r.lider || '';
   document.getElementById('sol-observacao').value = r.observacao || '';
   document.getElementById('sol-form-error').style.display = 'none';
   openSolDrawer();
@@ -7983,13 +8815,14 @@ function solDelete(id){
   solRecords = solRecords.filter(x => x.id !== id);
   // Atualiza cache local
   try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
-  // Apaga o documento individual da subcoleção
+  // Apaga o documento individual da subcoleção (na unidade a que ele pertence)
   if(window._db){
+    const uid = r._unidadeId || pcmUnidadePrincipal();
     window._db
-      .collection('pcm').doc(pcmDocId('solicitacoes'))
+      .collection('pcm').doc(pcmDocIdParaUnidade('solicitacoes', uid))
       .collection('registros').doc(String(id))
       .delete()
-      .catch(e => console.warn('Firestore Solicitações delete:', e));
+      .catch(e => console.warn('Firestore Solicitações delete:', uid, e));
   }
   addLog('sistema', `Solicitação de reparo excluída: ${r.num||'#'+id}`, `Veículo ${r.veiculo||'—'}`);
   if(solEditId === id) solResetForm();
@@ -8006,12 +8839,11 @@ document.getElementById('sol-submit-btn').addEventListener('click', () => {
   const data      = document.getElementById('sol-data').value;
   const veiculo   = document.getElementById('sol-veiculo').value.trim();
   const operacao  = document.getElementById('sol-operacao').value.trim() || getOperacao(veiculo) || '';
+  const empresaId = (pcmEmpresaDoVeiculo(veiculo) || {}).id || '';
   const descricao = document.getElementById('sol-descricao').value.trim();
   const motivo    = document.getElementById('sol-motivo').value.trim();
   const situacao  = document.getElementById('sol-situacao').value.trim();
   const funcionario = document.getElementById('sol-funcionario').value.trim();
-  const motorista = document.getElementById('sol-motorista').value.trim();
-  const lider     = document.getElementById('sol-lider').value.trim();
   const observacao= document.getElementById('sol-observacao').value.trim();
 
   if(!data)    { errEl.textContent='Informe a data.'; errEl.style.display=''; return; }
@@ -8021,12 +8853,12 @@ document.getElementById('sol-submit-btn').addEventListener('click', () => {
   if(solEditId !== null){
     const idx = solRecords.findIndex(r => r.id === solEditId);
     if(idx >= 0){
-      solRecords[idx] = { ...solRecords[idx], num, data, veiculo, operacao, descricao, motivo, situacao, funcionario, motorista, lider, observacao };
+      solRecords[idx] = { ...solRecords[idx], num, data, veiculo, operacao, empresaId, descricao, motivo, situacao, funcionario, observacao };
       srSalva = solRecords[idx];
       addLog('os-edit', `Solicitação de reparo editada: ${num}`, `Veículo ${veiculo} · ${fmtDateBR(data)}`);
     }
   } else {
-    const rec = { id:solNextId++, num, data, veiculo, operacao, descricao, motivo, situacao, funcionario, motorista, lider, observacao, createdAt:new Date().toISOString() };
+    const rec = { id:solNextId++, num, data, veiculo, operacao, empresaId, descricao, motivo, situacao, funcionario, observacao, createdAt:new Date().toISOString(), _unidadeId: pcmUnidadePrincipal(), _unidadeNome: pcmNomeUnidade(pcmUnidadePrincipal()) };
     solRecords.push(rec);
     srSalva = rec;
     addLog('os-nova', `Solicitação de reparo criada: ${num}`, `Veículo ${veiculo} · ${fmtDateBR(data)}`);
@@ -8043,8 +8875,8 @@ document.getElementById('sol-cancel-btn').addEventListener('click', () => { solR
 
 // ── Export CSV ────────────────────────────────────────────
 document.getElementById('sol-export-btn').addEventListener('click', () => {
-  const header = ['Nº Solicitação','Data','Veículo','Operação','Descrição','Motivo','Situação','Funcionário','Motorista','Líder Requisitante','Observação'];
-  const rows = solRecords.map(r => [r.num, fmtDateBR(r.data), r.veiculo, r.operacao||'', r.descricao||'', r.motivo||'', r.situacao||'', r.funcionario||'', r.motorista||'', r.lider||'', r.observacao||'']);
+  const header = ['Nº Solicitação','Data','Veículo','Operação','Descrição','Motivo','Situação','Funcionário','Observação'];
+  const rows = solRecords.map(r => [r.num, fmtDateBR(r.data), r.veiculo, r.operacao||'', r.descricao||'', r.motivo||'', r.situacao||'', r.funcionario||'', r.observacao||'']);
   const csv = [header, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
   const url  = URL.createObjectURL(blob);
@@ -8070,21 +8902,25 @@ function normalizeSituacaoSR(raw){
 }
 
 function buildSolQueueRecord(fields){
-  const { data, veiculo, motivo, situacao, funcionario, motorista, descricao, origem_reclamacao } = fields;
+  const { data, veiculo, motivo, situacao, funcionario, descricao, origem_reclamacao, numRelatorio, empresaTexto } = fields;
   const operacao = veiculo ? (getOperacao(veiculo) || '') : '';
+  // Empresa: usa o vínculo fino da Frota quando existir (Vínculo Empresa × Frota);
+  // senão, usa o próprio Local do veículo — o código bruto da coluna A do relatório
+  // de SR não é usado pra relacionar empresa. Se o veículo nem estiver cadastrado
+  // na Frota, fica sem Empresa.
+  const empVeiculo = veiculo ? pcmEmpresaOuLocalDoVeiculo(veiculo) : null;
+  const empresaId = empVeiculo ? empVeiculo.id : '';
   return {
-    data, veiculo, operacao,
+    data, veiculo, operacao, empresaId,
     descricao: descricao || '',
     motivo: motivo || '',
     situacao: normalizeSituacaoSR(situacao),
     funcionario: funcionario || '',
-    motorista: motorista || '',
-    lider: '',
     observacao: '',
+    numRelatorio: numRelatorio || origem_reclamacao || null,  // nº original do relatório — fica oculto, visível só ao abrir a SR
     origem_reclamacao: origem_reclamacao || null,
   };
 }
-
 function renderSolQueue(){
   const wrap = document.getElementById('sol-import-queue-wrap');
   document.getElementById('sol-queue-count').textContent = solImportQueue.length;
@@ -8099,7 +8935,6 @@ function renderSolQueue(){
       <td>${esc(r.motivo)||'—'}</td>
       <td>${esc(r.situacao)||'—'}</td>
       <td>${esc(r.funcionario)||'—'}</td>
-      <td>${esc(r.motorista)||'—'}</td>
       <td style="max-width:200px;white-space:normal;color:var(--dim);font-size:11px;">${esc(r.descricao)||''}</td>
       <td><button class="icon-btn" onclick="removeFromSolQueue(${i})">✕</button></td>
     </tr>`).join('');
@@ -8123,7 +8958,7 @@ document.getElementById('sol-imp-commit-btn').addEventListener('click', async ()
   const novasRecs = [];
   solImportQueue.forEach(r => {
     const num = solNextNum();
-    const rec = { id:solNextId++, num, ...r, createdAt:new Date().toISOString() };
+    const rec = { id:solNextId++, num, ...r, createdAt:new Date().toISOString(), _unidadeId: pcmUnidadePrincipal(), _unidadeNome: pcmNomeUnidade(pcmUnidadePrincipal()) };
     solRecords.push(rec);
     novasRecs.push(rec);
   });
@@ -8133,15 +8968,16 @@ document.getElementById('sol-imp-commit-btn').addEventListener('click', async ()
   // Atualiza cache local
   try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
 
-  // Grava cada nova SR como documento individual na subcoleção, em lotes de ≤500
+  // Grava cada nova SR como documento individual na subcoleção da unidade principal, em lotes de ≤500
   if(window._db){
-    const colRef = window._db.collection('pcm').doc(pcmDocId('solicitacoes')).collection('registros');
+    const colRef = window._db.collection('pcm').doc(pcmDocIdParaUnidade('solicitacoes', pcmUnidadePrincipal())).collection('registros');
     const MAX_BATCH = 500;
     try{
       for(let i = 0; i < novasRecs.length; i += MAX_BATCH){
         const batch = window._db.batch();
         novasRecs.slice(i, i + MAX_BATCH).forEach(sr => {
-          batch.set(colRef.doc(String(sr.id)), { ...sr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+          const { _unidadeId, _unidadeNome, ...limpo } = sr;
+          batch.set(colRef.doc(String(sr.id)), { ...limpo, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
         });
         await batch.commit();
       }
@@ -8213,9 +9049,10 @@ function processSolImportRows(rawRows){
       motivo: (row.motivo || '').trim(),
       situacao: (row.situacao || '').trim(),
       funcionario: (row.funcionario || '').trim(),
-      motorista: (row.motorista || '').trim(),
       descricao: (row.descricao || '').trim(),
       origem_reclamacao: row.origem_reclamacao || null,
+      numRelatorio: row.numRelatorio || null,
+      empresaTexto: row.empresaTexto || null,
     };
 
     if(isSolDuplicate(rec)){ skipped++; return; }
@@ -8251,7 +9088,6 @@ function processSolImportRowsGeneric(rawRows){
       motivo:      norm['motivo'] || '',
       situacao:    norm['situacao'] || norm['situa_ao'] || '',
       funcionario: norm['funcionario'] || norm['funciona_rio'] || norm['cracha'] || '',
-      motorista:   norm['motorista'] || '',
       descricao:   norm['descricao'] || norm['observacao'] || norm['observa_ao'] || norm['obs'] || '',
     };
   });
@@ -8261,9 +9097,9 @@ function processSolImportRowsGeneric(rawRows){
 // ── Parser dedicado ao relatório de Solicitação de Reparo (blocos "DD/MM/AAAA",
 //    cabeçalho de colunas "Emp.;Veículo;Reclamação;Horário;Motivo;Situação;O.S;
 //    Emp.;Crachá;Desc. Serviço;Funcionario;Obs. Reclamação;", metadados no topo
-//    e totais no rodapé). Mapeamento: col. B → veículo, col. E (Motivo) → Motivo,
-//    col. F (Situação) → Situação, col. I (Crachá) → Funcionário, col. K
-//    (Funcionario) → Motorista, col. L (Obs. Reclamação) → Descrição. ──
+//    e totais no rodapé). Mapeamento: col. A (Emp.) → Empresa, col. B → veículo,
+//    col. E (Motivo) → Motivo, col. F (Situação) → Situação, col. H+I → Funcionário,
+//    col. L (Obs. Reclamação) → Descrição. ──
 function parseRelatorioSR(text){
   const table = parseDelimitedText(text, ';');
   const rows = [];
@@ -8273,8 +9109,11 @@ function parseRelatorioSR(text){
     const col0 = (r[0] || '').trim();
     if(!col0 && r.length <= 1) continue; // linha vazia
 
-    // Linha de data isolada, ex.: "03/09/2026" — início de um bloco do dia
-    if(r.length === 1 && /^\d{2}\/\d{2}\/\d{4}$/.test(col0)){
+    // Linha de data isolada, ex.: "03/09/2026" — início de um bloco do dia.
+    // Algumas exportações trazem colunas extras vazias na mesma linha (ex.:
+    // "03/09/2026;;;;;;;;;;;"), então checa o formato da coluna A e que o
+    // resto da linha está vazio, em vez de exigir r.length === 1.
+    if(/^\d{2}\/\d{2}\/\d{4}$/.test(col0) && r.slice(1).every(c => !(c||'').trim())){
       currentDate = col0;
       continue;
     }
@@ -8287,14 +9126,17 @@ function parseRelatorioSR(text){
     const col2 = (r[2] || '').trim();
     // Linha de dado válido: col. A = código de empresa numérico, col. C (Reclamação) numérica
     if(/^\d+$/.test(col0) && /^\d+$/.test(col2) && r.length >= 12){
+      const colH = (r[7] || '').trim();  // col. H (2ª "Emp.")
+      const colI = (r[8] || '').trim();  // col. I (Crachá)
       rows.push({
         data: currentDate,
         veiculo: (r[1] || '').trim(),
         motivo: (r[4] || '').trim(),
         situacao: (r[5] || '').trim(),
-        funcionario: (r[8] || '').trim(),               // col. I (Crachá) → Funcionário
-        motorista: (r[10] || '').trim(),                 // col. K (Funcionario) → Motorista
+        funcionario: [colH, colI].filter(Boolean).join(' - '),  // col. H - col. I → Funcionário
         descricao: smartCaseText((r[11] || '').trim().replace(/[ \t]+\n/g,'\n').replace(/\n{2,}/g,'\n')), // col. L (Obs. Reclamação) → Descrição
+        numRelatorio: col2,      // col. C (Reclamação) — número original do relatório, fica oculto (interno)
+        empresaTexto: col0,      // col. A (Emp.) — código de empresa cru do relatório, ex: "027"
         origem_reclamacao: col2,
       });
     }
@@ -8378,12 +9220,22 @@ function loadGns(){
 }
 
 function saveGns(){
+  // 'gnsRecords' é o array COMBINADO de todas as unidades ativas.
   try{ localStorage.setItem(GNS_KEY, JSON.stringify(gnsRecords)); }catch(e){}
-  if(window._db){
-    window._db.collection('pcm').doc(pcmDocId('gns'))
-      .set({ records: gnsRecords, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
-      .catch(e => console.warn('Firestore GNS save:', e));
-  }
+  if(!window._db) return;
+  const porUnidade = {};
+  gnsRecords.forEach(r => {
+    const uid = r._unidadeId || pcmUnidadePrincipal();
+    if(!porUnidade[uid]) porUnidade[uid] = [];
+    const { _unidadeId, _unidadeNome, ...limpo } = r;
+    porUnidade[uid].push(limpo);
+  });
+  Object.entries(porUnidade).forEach(([uid, registros]) => {
+    pcmCacheBase.gns[uid] = registros;
+    window._db.collection('pcm').doc(pcmDocIdParaUnidade('gns', uid))
+      .set({ records: registros, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e => console.warn('Firestore GNS save', uid, ':', e));
+  });
 }
 
 loadGns();
@@ -8506,9 +9358,13 @@ function renderGnsTab(){
 
   document.getElementById('gns-count').innerHTML = `<b>${rows.length}</b> reg.`;
 
+  const mostrarUnidade = pcmUnidadesAtivas().length > 1;
+  const thUnidadeGns = document.getElementById('th-unidade-gns');
+  if(thUnidadeGns) thUnidadeGns.style.display = mostrarUnidade ? '' : 'none';
+
   const tbody = document.getElementById('gns-tbody');
   if(!rows.length){
-    tbody.innerHTML=`<tr><td colspan="8" class="gns-empty">Nenhum GNS registrado ainda.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="${mostrarUnidade ? 9 : 8}" class="gns-empty">Nenhum GNS registrado ainda.</td></tr>`;
     return;
   }
 
@@ -8520,6 +9376,7 @@ function renderGnsTab(){
       ? `<span class="gns-days ${diasCls}">${dias}d</span>`
       : '—';
     return `<tr>
+      ${mostrarUnidade ? `<td>${r._unidadeNome||'—'}</td>` : ''}
       <td><span class="gns-num">${r.num||'—'}</span></td>
       <td><span class="gns-os">${r.os||'—'}</span></td>
       <td>${r.veiculo||'—'}</td>
@@ -8679,7 +9536,7 @@ document.getElementById('gns-submit-btn').addEventListener('click', () => {
       addLog('os-edit', `GNS editado: ${num}`, `OS ${osNum} · ${veiculo} · Status: ${status}`);
     }
   } else {
-    const rec = { id:gnsNextId++, os:osNum, num, veiculo, dataEntrada:dataEnt, dataLib, status, obs, createdAt:new Date().toISOString() };
+    const rec = { id:gnsNextId++, os:osNum, num, veiculo, dataEntrada:dataEnt, dataLib, status, obs, createdAt:new Date().toISOString(), _unidadeId: pcmUnidadePrincipal(), _unidadeNome: pcmNomeUnidade(pcmUnidadePrincipal()) };
     gnsRecords.push(rec);
     addLog('os-nova', `GNS criado: ${num}`, `OS ${osNum} · ${veiculo} · Entrada: ${fmtDateBR(dataEnt)}`);
   }
@@ -9605,6 +10462,60 @@ function recalcularHodometros(){
   return changed;
 }
 
+// Recalcula Operação e Empresa de toda Solicitação de Reparo (SR) a partir do
+// número de frota (r.veiculo), usando o cadastro atual da Frota — mesmo espírito
+// do recalcularHodometros para OS, mas para as SRs. Operação vem de getOperacao(veiculo);
+// Empresa vem de pcmEmpresaOuLocalDoVeiculo(veiculo) e passa a ser GRAVADA em r.empresaId
+// (novo campo persistido na SR, além de já aparecer calculada na tela). Retorna a
+// lista de SRs que mudaram, para o chamador decidir como persistir no Firestore.
+function recalcularOperacaoEmpresaSR(){
+  const alteradas = [];
+  solRecords.forEach(r => {
+    const novaOperacao = getOperacao(r.veiculo) || '';
+    const empresaResolvida = pcmEmpresaOuLocalDoVeiculo(r.veiculo);
+    const novoEmpresaId = empresaResolvida ? empresaResolvida.id : '';
+    const mudouOperacao = (r.operacao || '') !== novaOperacao;
+    const mudouEmpresa = (r.empresaId || '') !== novoEmpresaId;
+    if(mudouOperacao || mudouEmpresa){
+      r.operacao = novaOperacao;
+      r.empresaId = novoEmpresaId;
+      alteradas.push(r);
+    }
+  });
+  return alteradas;
+}
+
+// Persiste no Firestore as SRs alteradas pelo recálculo, em lotes de até 400
+// operações por unidade (o WriteBatch do Firestore tem limite de 500 — ver o mesmo
+// cuidado tomado na exclusão em massa de SR). Atualiza também o cache local.
+async function salvarRecalculoSR(alteradas){
+  try{ localStorage.setItem(SOL_KEY, JSON.stringify(solRecords)); }catch(e){}
+  if(!window._db || !alteradas.length) return;
+  const LOTE = 400;
+  const porUnidade = {};
+  alteradas.forEach(r => {
+    const uid = r._unidadeId || pcmUnidadePrincipal();
+    if(!porUnidade[uid]) porUnidade[uid] = [];
+    porUnidade[uid].push(r);
+  });
+  for(const [uid, lista] of Object.entries(porUnidade)){
+    const colRef = window._db.collection('pcm').doc(pcmDocIdParaUnidade('solicitacoes', uid)).collection('registros');
+    for(let i = 0; i < lista.length; i += LOTE){
+      const fatia = lista.slice(i, i + LOTE);
+      const batch = window._db.batch();
+      fatia.forEach(r => {
+        const { _unidadeId, _unidadeNome, ...limpo } = r;
+        batch.set(colRef.doc(String(r.id)), { ...limpo, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      });
+      try{
+        await batch.commit();
+      }catch(e){
+        console.warn('Firestore recálculo SR (batch):', uid, e);
+      }
+    }
+  }
+}
+
 // ════════════════════════════════════════════════════════
 // GARANTE CHAVE DE ERRO POR LINHA — toda linha com Setor+Categoria
 // definidos precisa ter uma Chave de Erro; gera automaticamente (via
@@ -9672,17 +10583,26 @@ function garantirChavesPorLinha(){
   return atualizadas;
 }
 
-document.getElementById('btn-recalcular').addEventListener('click', () => {
-  if(!confirm('Identificar/atualizar Setor e Categoria de registros não classificados, garantir uma Chave de Erro para toda linha já classificada, reprocessar reincidências (todas as chaves, corretiva + preventiva) e atualizar o hodômetro de todos os registros?')) return;
+document.getElementById('btn-recalcular').addEventListener('click', async () => {
+  if(!confirm('Identificar/atualizar Setor e Categoria de registros não classificados, garantir uma Chave de Erro para toda linha já classificada, reprocessar reincidências (todas as chaves, corretiva + preventiva), atualizar o hodômetro de todos os registros, e recalcular Operação/Empresa de todas as Solicitações de Reparo com base no veículo?')) return;
+  const btn = document.getElementById('btn-recalcular');
+  btn.disabled = true;
+  const origText = btn.innerHTML;
+  btn.innerHTML = '⏳ Recalculando…';
   const { classificados, naoEncontrados } = autoClassificarSetores();
   const chavesGeradas = garantirChavesPorLinha();
   const reincChanged = recalcularReincidencias();
   const hodoChanged  = recalcularHodometros();
   saveManualRecords(manualRecords);
+  const srAlteradas = recalcularOperacaoEmpresaSR();
+  await salvarRecalculoSR(srAlteradas);
   addLog('recalculo', 'Recálculo de base executado',
-    `${classificados} chave(s) de erro classificada(s) automaticamente${naoEncontrados ? ` · ${naoEncontrados} sem correspondência` : ''} · ${chavesGeradas} linha(s) receberam chave de erro obrigatória · ${reincChanged} reincidência(s) atualizada(s) · ${hodoChanged} hodômetro(s) atualizado(s)`);
+    `${classificados} chave(s) de erro classificada(s) automaticamente${naoEncontrados ? ` · ${naoEncontrados} sem correspondência` : ''} · ${chavesGeradas} linha(s) receberam chave de erro obrigatória · ${reincChanged} reincidência(s) atualizada(s) · ${hodoChanged} hodômetro(s) atualizado(s) · ${srAlteradas.length} SR(s) com Operação/Empresa recalculada(s)`);
   renderAll();
-  alert(`✅ Recálculo concluído.\n${classificados} chave(s) de erro classificada(s) automaticamente.${naoEncontrados ? `\n${naoEncontrados} registro(s) sem correspondência confiável (revise manualmente).` : ''}\n${chavesGeradas} linha(s) sem chave de erro receberam uma automaticamente.\n${reincChanged} reincidência(s) atualizada(s).\n${hodoChanged} hodômetro(s) atualizado(s).`);
+  renderSolTab();
+  btn.disabled = false;
+  btn.innerHTML = origText;
+  alert(`✅ Recálculo concluído.\n${classificados} chave(s) de erro classificada(s) automaticamente.${naoEncontrados ? `\n${naoEncontrados} registro(s) sem correspondência confiável (revise manualmente).` : ''}\n${chavesGeradas} linha(s) sem chave de erro receberam uma automaticamente.\n${reincChanged} reincidência(s) atualizada(s).\n${hodoChanged} hodômetro(s) atualizado(s).\n${srAlteradas.length} Solicitação(ões) de Reparo com Operação/Empresa recalculada(s).`);
 });
 
 // ---- Preview de reincidência no formulário ----
@@ -9837,7 +10757,7 @@ document.getElementById('imp-clear-queue-btn').addEventListener('click', ()=>{
 document.getElementById('imp-commit-btn').addEventListener('click', ()=>{
   if(pcmBloquear('importar','criar')) return;
   if(importQueue.length===0) return;
-  importQueue.forEach(r=>{ r._id=nextManualId++; });
+  importQueue.forEach(r=>{ r._id=nextManualId++; r._unidadeId = pcmUnidadePrincipal(); r._unidadeNome = pcmNomeUnidade(pcmUnidadePrincipal()); });
   manualRecords.push(...importQueue);
   saveManualRecords(manualRecords);
   const n = importQueue.length;
@@ -10157,6 +11077,472 @@ function parseRelatorioOS(text){
 }
 
 // ── CSV parser ───────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+// IMPORTAÇÃO DE FROTA — relatório "Equipamentos" (aba Frota)
+// ════════════════════════════════════════════════════════
+// Formato esperado: várias linhas de cabeçalho "Chave:;Valor;" (Empresa, Local,
+// Data de Referência etc.), uma linha em branco, depois a linha de cabeçalho da
+// tabela "Empresa;Nr. Ordem;Placa" e uma linha por veículo. Encoding ISO-8859-1,
+// delimitador ";", quebra de linha \r\n — mesmo padrão dos demais relatórios do sistema.
+//
+// O "Nr. Ordem" do relatório é o mesmo código usado como "Veículo" em toda a
+// Frota do PCM. O cabeçalho da tabela pode vir em variações (o sistema de
+// origem já mudou de formato mais de uma vez), então a leitura é genérica:
+// acha o índice de cada coluna conhecida pelo NOME (Empresa, Nr. Ordem,
+// Local, Tipo Serviço, Placa) em vez de depender de uma ordem/quantidade fixa
+// de colunas. Só Empresa, Nr. Ordem e Placa são obrigatórias — Local e Tipo
+// Serviço são lidas quando existem, e ficam em branco quando não vêm.
+let frotaImportQueue = []; // [{veiculo, placa, empresaRelatorio, local, tipoServico, operacaoSugerida}]
+
+function parseRelatorioFrota(text){
+  const linhas = text.split(/\r?\n/);
+  let idxCabecalho = -1;
+  let colEmpresaIdx = -1, colVeiculoIdx = -1, colLocalIdx = -1, colTipoServicoIdx = -1, colPlacaIdx = -1;
+  for(let i = 0; i < linhas.length; i++){
+    const partes = linhas[i].split(';').map(p => p.trim().toLowerCase());
+    const eIdx = partes.findIndex(p => p === 'empresa');
+    const vIdx = partes.findIndex(p => p.replace(/\./g,'').startsWith('nr'));
+    const pIdx = partes.findIndex(p => p === 'placa');
+    if(eIdx === -1 || vIdx === -1 || pIdx === -1) continue; // precisa das 3 colunas obrigatórias
+    idxCabecalho = i;
+    colEmpresaIdx = eIdx;
+    colVeiculoIdx = vIdx;
+    colPlacaIdx = pIdx;
+    colLocalIdx = partes.findIndex(p => p === 'local');
+    colTipoServicoIdx = partes.findIndex(p => p.startsWith('tipo'));
+    break;
+  }
+  if(idxCabecalho === -1) return null; // não achou um cabeçalho reconhecível
+
+  // Campos do relatório vêm entre aspas (ex: "141408") — remove as aspas
+  // externas antes de usar o valor como chave de veículo ou texto.
+  const semAspas = v => (v || '').trim().replace(/^"|"$/g, '').trim();
+
+  const registros = [];
+  for(let i = idxCabecalho + 1; i < linhas.length; i++){
+    const linha = linhas[i];
+    if(!linha || !linha.trim()) continue;
+    const partes = linha.split(';');
+    const empresa = semAspas(partes[colEmpresaIdx]);
+    const veiculo = semAspas(partes[colVeiculoIdx]);
+    const placa   = semAspas(partes[colPlacaIdx]);
+    const local = colLocalIdx >= 0 ? semAspas(partes[colLocalIdx]) : '';
+    const tipoServico = colTipoServicoIdx >= 0 ? semAspas(partes[colTipoServicoIdx]) : '';
+    if(!veiculo) continue;
+    registros.push({ empresaRelatorio: empresa, veiculo, placa, local, tipoServico });
+  }
+  return registros;
+}
+
+// A partir do nome da empresa do relatório (ex: "080 - EXPRESSO PLANALTO RIO
+// VERDE"), tenta achar, entre as operações já usadas na Frota atual, uma que
+// comece com o mesmo prefixo numérico (ex: "080 - COMIGO"). Retorna '' se não
+// achar nenhuma correspondência — o usuário escolhe manualmente nesse caso.
+// Usado só como reserva para relatórios do formato antigo, sem coluna "Tipo
+// Serviço".
+function pcmOperacaoSugeridaPorEmpresa(empresaRelatorio){
+  const prefixo = (empresaRelatorio.match(/^(\d+)/) || [])[1];
+  if(!prefixo) return '';
+  const operacoesExistentes = [...new Set(Object.values(frota).map(f => f.operacao).filter(Boolean))];
+  const match = operacoesExistentes.find(op => op.startsWith(prefixo + ' '));
+  return match || '';
+}
+
+// Ponto único de sugestão de Operação para um registro do relatório: o "Tipo
+// Serviço" do relatório JÁ É a Operação do veículo (ex: "J5 - COMIGO", "10 -
+// LINHA URBANA"), então é usado direto, sem tentar casar com uma lista de
+// operações já cadastradas. Só cai para o método antigo (prefixo da empresa)
+// quando o relatório é do formato antigo, sem essa coluna.
+function pcmOperacaoSugerida(registro){
+  return registro.tipoServico || pcmOperacaoSugeridaPorEmpresa(registro.empresaRelatorio);
+}
+
+// A partir do texto de "Local" do relatório (ex: "801 - GARAGEM RIO VERDE"),
+// tenta achar o Local (unidade) já cadastrado correspondente. Compara primeiro
+// o nome inteiro (ignorando acentos/maiúsculas), e se não achar, tenta pelo
+// prefixo numérico do código (ex: "801"). Retorna '' se não achar nenhum —
+// nesse caso o usuário escolhe manualmente no combo da pré-visualização.
+// IMPORTANTE: antes desta função, a importação sempre gravava tudo na unidade
+// atualmente logada (pcmUnidadePrincipal()), ignorando essa coluna do relatório
+// — por isso um relatório de um Local podia ser importado inteiro no Local errado.
+function pcmNormalizaTexto(s){
+  return (s || '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function pcmUnidadeIdPorLocalRelatorio(localTexto){
+  if(!localTexto) return '';
+  const alvo = pcmNormalizaTexto(localTexto);
+  const porNomeExato = pcmUnidades.find(u => pcmNormalizaTexto(u.nome) === alvo);
+  if(porNomeExato) return porNomeExato.id;
+  const prefixo = (localTexto.match(/^(\d+)/) || [])[1];
+  if(prefixo){
+    const porPrefixo = pcmUnidades.find(u => pcmNormalizaTexto(u.nome).startsWith(prefixo + ' '));
+    if(porPrefixo) return porPrefixo.id;
+  }
+  return '';
+}
+
+function handleFrotaImportFile(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    const registros = parseRelatorioFrota(e.target.result);
+    if(!registros){
+      alert('Não foi possível reconhecer este arquivo como um relatório de Equipamentos (o cabeçalho precisa ter pelo menos as colunas Empresa, Nr. Ordem e Placa).');
+      return;
+    }
+    if(!registros.length){ alert('Relatório sem veículos.'); return; }
+    processFrotaImportRows(registros);
+  };
+  // Mesmo padrão de encoding dos demais relatórios exportados por este sistema.
+  reader.readAsText(file, 'ISO-8859-1');
+}
+
+function processFrotaImportRows(registros){
+  const existentesArea = document.getElementById('frota-import-summary');
+  const jaExistentes = [];
+  const novos = [];
+
+  registros.forEach(r => {
+    if(frota[r.veiculo]){
+      jaExistentes.push(r);
+    } else {
+      const unidadeEncontrada = pcmUnidadeIdPorLocalRelatorio(r.local);
+      novos.push({
+        ...r,
+        operacaoSugerida: pcmOperacaoSugerida(r),
+        unidadeMatchEncontrado: !!unidadeEncontrada,
+        // Sem correspondência do Local do relatório: cai para a unidade atualmente logada
+        // como ponto de partida, mas fica marcado com aviso para o usuário conferir/trocar.
+        unidadeIdEscolhida: unidadeEncontrada || pcmUnidadePrincipal(),
+      });
+    }
+  });
+
+  frotaImportQueue = novos;
+
+  if(jaExistentes.length){
+    existentesArea.style.display = '';
+    existentesArea.innerHTML = `
+      <div style="background:rgba(var(--amber-rgb,255,180,0),.08);border:1px solid rgba(var(--amber-rgb,255,180,0),.3);border-radius:6px;padding:10px 14px;font-size:12.5px;">
+        <b>${jaExistentes.length}</b> veículo(s) já existiam na Frota e foram ignorados (nada foi alterado neles):
+        <div style="font-family:var(--font-mono);font-size:11.5px;color:var(--dim);margin-top:6px;max-height:120px;overflow-y:auto;">
+          ${jaExistentes.map(r => `${r.veiculo} (${r.placa || '—'})`).join(', ')}
+        </div>
+      </div>`;
+  } else {
+    existentesArea.style.display = 'none';
+    existentesArea.innerHTML = '';
+  }
+
+  renderFrotaImportPreview();
+}
+
+function renderFrotaImportPreview(){
+  const wrap  = document.getElementById('frota-import-preview-wrap');
+  const tbody = document.getElementById('frota-import-preview-tbody');
+  const countEl = document.getElementById('frota-import-count');
+
+  if(!frotaImportQueue.length){
+    wrap.style.display = 'none';
+    tbody.innerHTML = '';
+    countEl.textContent = '0';
+    return;
+  }
+
+  wrap.style.display = '';
+  countEl.textContent = frotaImportQueue.length;
+  const operacoesExistentes = [...new Set(Object.values(frota).map(f => f.operacao).filter(Boolean))].sort();
+
+  tbody.innerHTML = frotaImportQueue.map((r, idx) => {
+    // O Tipo Serviço do relatório já é usado como Operação sugerida — garante
+    // que ele apareça como opção no combo mesmo que ainda não exista em
+    // nenhum veículo já cadastrado na Frota.
+    const opcoes = r.operacaoSugerida && !operacoesExistentes.includes(r.operacaoSugerida)
+      ? [r.operacaoSugerida, ...operacoesExistentes]
+      : operacoesExistentes;
+    const semLocalCorrespondente = r.local && !r.unidadeMatchEncontrado;
+    return `
+    <tr>
+      <td style="font-family:var(--font-mono);">${r.veiculo}</td>
+      <td style="font-family:var(--font-mono);">${r.placa || '—'}</td>
+      <td>${r.empresaRelatorio || '—'}</td>
+      <td style="font-family:var(--font-mono);font-size:11.5px;color:var(--dim);">${r.local || '—'}</td>
+      <td>
+        <select class="frota-import-local-select" data-idx="${idx}" style="width:100%;${semLocalCorrespondente ? 'border-color:var(--amber,#ffb400);' : ''}">
+          ${pcmUnidades.map(u => `<option value="${u.id}" ${u.id === r.unidadeIdEscolhida ? 'selected' : ''}>${u.nome}</option>`).join('')}
+        </select>
+        ${semLocalCorrespondente ? `<div style="font-size:10.5px;color:var(--amber,#ffb400);margin-top:2px;">⚠️ Nenhum Local cadastrado bate com "${r.local}" — confira o destino</div>` : ''}
+      </td>
+      <td style="font-family:var(--font-mono);font-size:11.5px;color:var(--dim);">${r.tipoServico || '—'}</td>
+      <td>
+        <select class="frota-import-op-select" data-idx="${idx}" style="width:100%;">
+          <option value="">— sem operação —</option>
+          ${opcoes.map(op => `<option value="${op}" ${op === r.operacaoSugerida ? 'selected' : ''}>${op}</option>`).join('')}
+        </select>
+      </td>
+    </tr>
+  `;
+  }).join('');
+
+  tbody.querySelectorAll('.frota-import-op-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      frotaImportQueue[Number(sel.dataset.idx)].operacaoSugerida = sel.value;
+    });
+  });
+  tbody.querySelectorAll('.frota-import-local-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      frotaImportQueue[Number(sel.dataset.idx)].unidadeIdEscolhida = sel.value;
+    });
+  });
+}
+
+function confirmarImportacaoFrota(){
+  if(!frotaImportQueue.length) return;
+  frotaImportQueue.forEach(r => {
+    // Cada linha usa o Local de destino escolhido no combo da pré-visualização
+    // (pré-preenchido a partir da coluna "Local" do relatório) — não mais uma
+    // única unidade fixa (a antiga lógica gravava tudo na unidade logada, mesmo
+    // quando o relatório era de outro Local).
+    const unidadeAlvo = r.unidadeIdEscolhida || pcmUnidadePrincipal();
+    frota[r.veiculo] = {
+      placa: r.placa || '',
+      operacao: r.operacaoSugerida || '',
+      _unidadeId: unidadeAlvo,
+      _unidadeNome: pcmNomeUnidade(unidadeAlvo),
+    };
+  });
+  const n = frotaImportQueue.length;
+  saveFrota(frota);
+  addLog('frota-import', `Importação de ${n} veículo(s) da Frota`, `Relatório de Equipamentos — ${n} veículo(s) novo(s) adicionado(s)`);
+  frotaImportQueue = [];
+  renderFrotaImportPreview();
+  document.getElementById('frota-import-summary').style.display = 'none';
+  document.getElementById('frota-csv-input').value = '';
+  renderFrota();
+  alert(`✅ ${n} veículo(s) importado(s) com sucesso!`);
+}
+
+document.getElementById('frota-import-toggle-btn').addEventListener('click', () => {
+  if(pcmBloquear('frota','criar')) return;
+  const area = document.getElementById('frota-import-area');
+  area.style.display = area.style.display === 'none' ? '' : 'none';
+});
+const frotaCsvDrop  = document.getElementById('frota-csv-drop');
+const frotaCsvInput = document.getElementById('frota-csv-input');
+frotaCsvDrop.addEventListener('click',    () => { if(pcmBloquear('frota','criar')) return; frotaCsvInput.click(); });
+frotaCsvDrop.addEventListener('dragover', e => { e.preventDefault(); frotaCsvDrop.classList.add('drag-over'); });
+frotaCsvDrop.addEventListener('dragleave',  () => frotaCsvDrop.classList.remove('drag-over'));
+frotaCsvDrop.addEventListener('drop', e => {
+  e.preventDefault(); frotaCsvDrop.classList.remove('drag-over');
+  if(pcmBloquear('frota','criar')) return;
+  const file = e.dataTransfer.files[0];
+  if(file) handleFrotaImportFile(file);
+});
+frotaCsvInput.addEventListener('change', e => {
+  if(pcmBloquear('frota','criar')) return;
+  const file = e.target.files[0];
+  if(file) handleFrotaImportFile(file);
+});
+document.getElementById('frota-import-cancel-btn').addEventListener('click', () => {
+  frotaImportQueue = [];
+  renderFrotaImportPreview();
+  document.getElementById('frota-import-summary').style.display = 'none';
+  document.getElementById('frota-csv-input').value = '';
+});
+document.getElementById('frota-import-commit-btn').addEventListener('click', () => {
+  if(pcmBloquear('frota','criar')) return;
+  confirmarImportacaoFrota();
+});
+
+// ══════════════ VÍNCULO EMPRESA × FROTA (painel restrito a admins) ══════════════
+// Diferente da importação da aba Frota (que só sugere uma Operação em texto livre),
+// este painel registra o veículo numa EMPRESA de verdade (frota[veiculo].empresaId),
+// usando o cadastro de Administração → Cadastro de Empresas como fonte da verdade.
+// Isso serve de base para, no futuro, isolar dados por empresa.
+let vinculoImportQueue = []; // [{veiculo, placa, empresaRelatorio, empresaIdEscolhida, operacaoEscolhida, jaExistia}]
+
+// A partir do texto de empresa do relatório (ex: "080 - EXPRESSO PLANALTO RIO
+// VERDE"), acha a empresa CADASTRADA (Administração → Cadastro de Empresas) cujo
+// prefixo numérico de operação bate com o prefixo do relatório (ex: "080 - COMIGO"
+// pertence à empresa "Expresso Planalto"). Retorna o objeto da empresa ou null.
+// Extrai o prefixo numérico de um texto de código/operação e devolve como inteiro
+// (sem zeros à esquerda), para comparar códigos como "027" e "27" como equivalentes —
+// alguns relatórios (ex.: SR) exportam o código de empresa sem zero à esquerda.
+function pcmCodigoNumerico(texto){
+  const m = (texto || '').match(/^(\d+)/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+function pcmResolverEmpresaPorTexto(empresaTexto, unidadeId){
+  const prefixo = pcmCodigoNumerico(empresaTexto);
+  if(prefixo === null) return null;
+  const lista = pcmEmpresasCache[unidadeId] || [];
+  return lista.find(emp => (emp.operacoes || []).some(op => pcmCodigoNumerico(op) === prefixo)) || null;
+}
+
+// Mesma lógica de pcmResolverEmpresaPorTexto, mas varre TODOS os Locais/unidades
+// cadastrados (não uma unidade fixa) — usada na importação de SR, onde o código de
+// empresa da coluna A do relatório (ex: "027") não vem amarrado a uma unidade
+// específica de antemão. Retorna a empresa cadastrada + a unidade em que ela está,
+// ou null se nenhum Local tiver uma empresa com esse prefixo.
+function pcmResolverEmpresaPorTextoEmQualquerUnidade(empresaTexto){
+  const prefixo = pcmCodigoNumerico(empresaTexto);
+  if(prefixo === null) return null;
+  for(const [uid, lista] of Object.entries(pcmEmpresasCache)){
+    const emp = (lista || []).find(e => (e.operacoes || []).some(op => pcmCodigoNumerico(op) === prefixo));
+    if(emp) return { empresa: emp, unidadeId: uid };
+  }
+  return null;
+}
+
+function handleVinculoImportFile(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    const registros = parseRelatorioFrota(e.target.result);
+    if(!registros){
+      alert('Não foi possível reconhecer este arquivo como um relatório de Equipamentos (o cabeçalho precisa ter pelo menos as colunas Empresa, Nr. Ordem e Placa).');
+      return;
+    }
+    if(!registros.length){ alert('Relatório sem veículos.'); return; }
+    processVinculoImportRows(registros);
+  };
+  reader.readAsText(file, 'ISO-8859-1');
+}
+
+function processVinculoImportRows(registros){
+  const unidadeAlvo = pcmUnidadePrincipal();
+  vinculoImportQueue = registros.map(r => {
+    const existente = frota[r.veiculo] || null;
+    const matched = pcmResolverEmpresaPorTexto(r.empresaRelatorio, unidadeAlvo);
+    // Quando o relatório não permite reconhecer a empresa automaticamente (matched=null),
+    // preservamos o empresaId já gravado no veículo como sugestão — mas marcamos
+    // "herdada" para a prévia destacar visualmente a linha e o usuário CONFERIR antes de
+    // confirmar, em vez de reforçar silenciosamente um vínculo que pode estar errado
+    // (ex: veículo de uma empresa nova, sem operação cadastrada ainda, que herdaria por
+    // engano o empresaId de um cadastro antigo/incorreto).
+    const empresaIdEscolhida = matched ? matched.id : (existente ? existente.empresaId || '' : '');
+    const empresaHerdada = !matched && !!(existente && existente.empresaId);
+    const operacoesDaEmpresa = matched ? matched.operacoes : [];
+    const operacaoEscolhida = (existente && operacoesDaEmpresa.includes(existente.operacao))
+      ? existente.operacao
+      : (operacoesDaEmpresa[0] || (existente ? existente.operacao || '' : ''));
+    return { ...r, empresaIdEscolhida, empresaHerdada, operacaoEscolhida, jaExistia: !!existente };
+  });
+  renderVinculoPreview();
+}
+
+function renderVinculoPreview(){
+  const wrap  = document.getElementById('vinculo-import-preview-wrap');
+  const tbody = document.getElementById('vinculo-import-preview-tbody');
+  const countEl = document.getElementById('vinculo-import-count');
+
+  if(!vinculoImportQueue.length){
+    wrap.style.display = 'none';
+    tbody.innerHTML = '';
+    countEl.textContent = '0';
+    return;
+  }
+
+  wrap.style.display = '';
+  countEl.textContent = vinculoImportQueue.length;
+  const unidadeAlvo = pcmUnidadePrincipal();
+  const empresasDaUnidade = pcmEmpresasCache[unidadeAlvo] || [];
+
+  tbody.innerHTML = vinculoImportQueue.map((r, idx) => {
+    const empresaSelecionada = empresasDaUnidade.find(e => e.id === r.empresaIdEscolhida) || null;
+    const operacoesDisponiveis = empresaSelecionada ? empresaSelecionada.operacoes : pcmOperacoesConhecidas();
+    return `
+    <tr${r.empresaHerdada ? ' style="background:rgba(245,166,35,.08);"' : ''}>
+      <td style="font-family:var(--font-mono);">${r.veiculo}</td>
+      <td style="font-family:var(--font-mono);">${r.placa || '—'}</td>
+      <td>${r.empresaRelatorio || '—'}</td>
+      <td style="font-family:var(--font-mono);font-size:11.5px;color:var(--dim);">${r.local || '—'}</td>
+      <td>
+        <select class="vinculo-empresa-select" data-idx="${idx}" style="width:100%;">
+          <option value="">⚠ não vincular</option>
+          ${empresasDaUnidade.map(e => `<option value="${e.id}" ${e.id === r.empresaIdEscolhida ? 'selected' : ''}>${e.nome}</option>`).join('')}
+        </select>
+        ${r.empresaHerdada ? '<div style="font-size:10.5px;color:var(--amber, #f5a623);margin-top:2px;">⚠ não reconhecida no relatório — mantido o cadastro anterior, confira</div>' : ''}
+      </td>
+      <td>
+        <select class="vinculo-operacao-select" data-idx="${idx}" style="width:100%;">
+          <option value="">— sem operação —</option>
+          ${operacoesDisponiveis.map(op => `<option value="${op}" ${op === r.operacaoEscolhida ? 'selected' : ''}>${op}</option>`).join('')}
+        </select>
+      </td>
+      <td style="font-family:var(--font-mono);font-size:11.5px;color:${r.jaExistia ? 'var(--amber, #f5a623)' : 'var(--green)'};">${r.jaExistia ? 'atualizar' : 'novo'}</td>
+    </tr>
+  `;
+  }).join('');
+
+  tbody.querySelectorAll('.vinculo-empresa-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const idx = Number(sel.dataset.idx);
+      vinculoImportQueue[idx].empresaIdEscolhida = sel.value;
+      vinculoImportQueue[idx].empresaHerdada = false; // escolha manual do usuário, não é mais herança silenciosa
+      const emp = empresasDaUnidade.find(e => e.id === sel.value) || null;
+      vinculoImportQueue[idx].operacaoEscolhida = emp ? (emp.operacoes[0] || '') : '';
+      renderVinculoPreview(); // reconstrói a linha para atualizar as opções de Operação
+    });
+  });
+  tbody.querySelectorAll('.vinculo-operacao-select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      vinculoImportQueue[Number(sel.dataset.idx)].operacaoEscolhida = sel.value;
+    });
+  });
+}
+
+function confirmarVinculoImport(){
+  if(!vinculoImportQueue.length) return;
+  const unidadeAlvo = pcmUnidadePrincipal();
+  let vinculados = 0, semEmpresa = 0;
+  vinculoImportQueue.forEach(r => {
+    if(!r.empresaIdEscolhida){ semEmpresa++; return; } // sem empresa escolhida: não mexe no veículo
+    frota[r.veiculo] = {
+      placa: r.placa || (frota[r.veiculo] ? frota[r.veiculo].placa : ''),
+      operacao: r.operacaoEscolhida || '',
+      empresaId: r.empresaIdEscolhida,
+      _unidadeId: unidadeAlvo,
+      _unidadeNome: pcmNomeUnidade(unidadeAlvo),
+    };
+    vinculados++;
+  });
+  saveFrota(frota);
+  addLog('vinculo-frota', `Vínculo Empresa × Frota: ${vinculados} veículo(s)`, semEmpresa ? `${semEmpresa} veículo(s) ficaram sem empresa escolhida e não foram alterados.` : '');
+  vinculoImportQueue = [];
+  renderVinculoPreview();
+  document.getElementById('vinculo-import-summary').style.display = 'none';
+  document.getElementById('vinculo-csv-input').value = '';
+  renderFrota();
+  alert(`✅ ${vinculados} veículo(s) vinculado(s) à empresa correta.${semEmpresa ? ` (${semEmpresa} ficaram sem empresa e não foram alterados.)` : ''}`);
+}
+
+document.getElementById('vinculo-import-cancel-btn').addEventListener('click', () => {
+  vinculoImportQueue = [];
+  renderVinculoPreview();
+  document.getElementById('vinculo-import-summary').style.display = 'none';
+  document.getElementById('vinculo-csv-input').value = '';
+});
+document.getElementById('vinculo-import-commit-btn').addEventListener('click', () => {
+  if(pcmBloquear('frota','criar')) return;
+  confirmarVinculoImport();
+});
+const vinculoCsvDrop  = document.getElementById('vinculo-csv-drop');
+const vinculoCsvInput = document.getElementById('vinculo-csv-input');
+vinculoCsvDrop.addEventListener('click',    () => { if(pcmBloquear('frota','criar')) return; vinculoCsvInput.click(); });
+vinculoCsvDrop.addEventListener('dragover', e => { e.preventDefault(); vinculoCsvDrop.classList.add('drag-over'); });
+vinculoCsvDrop.addEventListener('dragleave',  () => vinculoCsvDrop.classList.remove('drag-over'));
+vinculoCsvDrop.addEventListener('drop', e => {
+  e.preventDefault(); vinculoCsvDrop.classList.remove('drag-over');
+  if(pcmBloquear('frota','criar')) return;
+  const file = e.dataTransfer.files[0];
+  if(file) handleVinculoImportFile(file);
+});
+vinculoCsvInput.addEventListener('change', e => {
+  if(pcmBloquear('frota','criar')) return;
+  const file = e.target.files[0];
+  if(file) handleVinculoImportFile(file);
+});
+
 function parseCSVFile(file){
   const reader = new FileReader();
   reader.onload = e => {
@@ -10610,12 +11996,13 @@ async function pcmMostrarLogin(){
   }
 }
 
-function pcmMostrarApp(){
+async function pcmMostrarApp(){
   document.getElementById('pcm-login-screen').style.display = 'none';
   document.getElementById('pcm-app-shell-wrap').style.display = '';
   pcmAplicarPermissoesNaUI();
   pcmMontarAdminSeNecessario();
   pcmMontarSeletorUnidade();
+  await pcmPrecarregarEmpresasAtivas(); // garante os filtros de Empresa (Painel OS/SR) já prontos antes de renderizar
   initFirestore();
 }
 
@@ -10701,12 +12088,14 @@ async function pcmTentarBootstrap(){
     await pcmAtualizarMapaLogin(usuario, email);
 
     // Monta a sessão diretamente (em vez de esperar o onAuthStateChanged) e libera o listener.
+    const unidadeInicialAdmin = pcmUnidadeInicialDoUsuario(novoUsuario);
     pcmSession = {
       usuarioId: novoUsuario.id,
       usuario: novoUsuario.usuario,
       nome: novoUsuario.nome,
       role: novoUsuario.role,
-      unidadeAtual: pcmUnidadeInicialDoUsuario(novoUsuario),
+      unidadeAtual: unidadeInicialAdmin,
+      unidadesAtivas: [unidadeInicialAdmin],
       unidadeIds: novoUsuario.unidadeIds,
       perfilId: null,
       permissoesEfetivas: pcmCalcularPermissoes(novoUsuario)
@@ -10734,27 +12123,39 @@ async function pcmTentarBootstrap(){
   }
 }
 
-function pcmTrocarUnidade(novaUnidadeId){
+function pcmTrocarUnidades(novasUnidadeIds){
   if(!pcmSession) return;
-  pcmSession.unidadeAtual = novaUnidadeId;
+  if(!novasUnidadeIds.length) return; // precisa de ao menos 1 unidade ativa
+  pcmSession.unidadesAtivas = novasUnidadeIds;
+  pcmSession.unidadeAtual = novasUnidadeIds[0]; // mantém compatibilidade com código legado que ainda lê unidadeAtual
   pcmSalvarSessao();
   location.reload(); // recarrega para os onSnapshot apontarem para os novos documentos
 }
 
-// Monta o seletor de troca de unidade na barra de sessão — só aparece para quem
+// Monta o seletor de unidades ativas na barra de sessão — só aparece para quem
 // tem acesso a mais de uma unidade (super_admin, ou usuário com várias marcadas).
+// Permite marcar VÁRIAS unidades ao mesmo tempo: os dados de todas elas são somados
+// em todas as abas, com a 1ª marcada servindo de "unidade principal" para novos registros.
 function pcmMontarSeletorUnidade(){
   const wrapFixo = document.getElementById('pcm-unidade-atual-wrap');
   const wrapSelect = document.getElementById('pcm-unidade-troca-wrap');
-  const select = document.getElementById('pcm-unidade-troca-select');
-  if(!pcmSession || !wrapFixo || !wrapSelect || !select) return;
+  const checkboxesEl = document.getElementById('pcm-unidade-troca-checkboxes');
+  const labelEl = document.getElementById('pcm-unidade-troca-label');
+  if(!pcmSession || !wrapFixo || !wrapSelect || !checkboxesEl || !labelEl) return;
 
   const unidadesAcessiveis = pcmSession.role === 'super_admin'
     ? pcmUnidades
     : pcmUnidades.filter(un => (pcmSession.unidadeIds || []).includes(un.id));
 
   if(unidadesAcessiveis.length > 1){
-    select.innerHTML = unidadesAcessiveis.map(un => `<option value="${un.id}" ${un.id === pcmSession.unidadeAtual ? 'selected' : ''}>${un.nome}</option>`).join('');
+    const ativasAtuais = pcmUnidadesAtivas();
+    checkboxesEl.innerHTML = unidadesAcessiveis.map(un => `
+      <label style="display:block;padding:2px 0;">
+        <input type="checkbox" class="pcm-unidade-troca-check" value="${un.id}" ${ativasAtuais.includes(un.id) ? 'checked' : ''}> ${un.nome}${un.id === ativasAtuais[0] ? ' <span style="color:var(--text-muted,#888);font-size:11px;">(principal)</span>' : ''}
+      </label>
+    `).join('');
+    const nomesAtivos = ativasAtuais.map(uid => pcmNomeUnidade(uid)).join(' + ');
+    labelEl.textContent = nomesAtivos || '—';
     wrapFixo.style.display = 'none';
     wrapSelect.style.display = '';
   } else {
@@ -10762,7 +12163,22 @@ function pcmMontarSeletorUnidade(){
     wrapSelect.style.display = 'none';
   }
 }
-document.getElementById('pcm-unidade-troca-select').addEventListener('change', (e) => pcmTrocarUnidade(e.target.value));
+document.getElementById('pcm-unidade-troca-btn').addEventListener('click', () => {
+  const menu = document.getElementById('pcm-unidade-troca-menu');
+  menu.style.display = menu.style.display === 'none' ? '' : 'none';
+});
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('pcm-unidade-troca-wrap');
+  const menu = document.getElementById('pcm-unidade-troca-menu');
+  if(menu && menu.style.display !== 'none' && wrap && !wrap.contains(e.target)){
+    menu.style.display = 'none';
+  }
+});
+document.getElementById('pcm-unidade-troca-aplicar').addEventListener('click', () => {
+  const marcadas = Array.from(document.querySelectorAll('.pcm-unidade-troca-check:checked')).map(cb => cb.value);
+  if(!marcadas.length){ alert('Marque ao menos um local.'); return; }
+  pcmTrocarUnidades(marcadas);
+});
 
 document.getElementById('pcm-login-btn').addEventListener('click', pcmTentarLogin);
 ['pcm-login-usuario','pcm-login-senha'].forEach(id => {
@@ -10799,16 +12215,21 @@ async function pcmBoot(){
           pcmMostrarLogin();
           return;
         }
-        // Reaproveita a unidade escolhida numa sessão local anterior (ex: depois
-        // de "trocar unidade", que recarrega a página), se for do mesmo usuário.
+        // Reaproveita a(s) unidade(s) escolhida(s) numa sessão local anterior (ex: depois
+        // de "trocar unidade(s)", que recarrega a página), se for do mesmo usuário.
         pcmCarregarSessao();
-        const unidadeReaproveitada = (pcmSession && pcmSession.usuarioId === u.id) ? pcmSession.unidadeAtual : null;
+        const mesmoUsuario = pcmSession && pcmSession.usuarioId === u.id;
+        const unidadesReaproveitadas = mesmoUsuario && Array.isArray(pcmSession.unidadesAtivas) && pcmSession.unidadesAtivas.length
+          ? pcmSession.unidadesAtivas
+          : null;
+        const unidadeInicial = (mesmoUsuario && pcmSession.unidadeAtual) || pcmUnidadeInicialDoUsuario(u);
         pcmSession = {
           usuarioId: u.id,
           usuario: u.usuario,
           nome: u.nome || u.usuario,
           role: u.role,
-          unidadeAtual: unidadeReaproveitada || pcmUnidadeInicialDoUsuario(u),
+          unidadeAtual: unidadesReaproveitadas ? unidadesReaproveitadas[0] : unidadeInicial,
+          unidadesAtivas: unidadesReaproveitadas || [unidadeInicial],
           unidadeIds: u.unidadeIds || [],
           perfilId: u.perfilId || null,
           permissoesEfetivas: pcmCalcularPermissoes(u)
