@@ -3341,6 +3341,7 @@
             <option value="">Tipo</option>
             <option value="Corretiva">Corretiva</option>
             <option value="Preventiva">Preventiva</option>
+            <option value="Socorro">Socorro</option>
           </select>
           <button type="button" class="pair-add-btn" id="pair-add-btn" title="Adicionar par">+</button>
         </div>
@@ -5018,6 +5019,7 @@ async function initFirestore(){
 
 
 function fmtDate(iso){
+  if(!iso) return '—';
   const [y,m,d] = iso.split('-');
   return `${d}/${m}/${y.slice(2)}`;
 }
@@ -5342,8 +5344,10 @@ function renderKpis(){
 
 function renderPeriodo(){
   const rows = allRows();
-  const dates = rows.map(r=>r.data).sort();
-  document.getElementById('periodo').textContent = `${fmtDate(dates[0])} a ${fmtDate(dates[dates.length-1])}`;
+  const dates = rows.map(r=>r.data).filter(Boolean).sort();
+  document.getElementById('periodo').textContent = dates.length
+    ? `${fmtDate(dates[0])} a ${fmtDate(dates[dates.length-1])}`
+    : '—';
 }
 
 // Popula o seletor de mês do card "Ordens por mês" preservando seleção atual.
