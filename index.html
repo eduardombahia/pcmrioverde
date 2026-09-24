@@ -2137,6 +2137,11 @@
       <div id="catbars"></div>
     </div>
     <div class="card">
+      <h3 class="card-h-row">Top categorias de socorro
+      </h3>
+      <div id="catbarssocorro"></div>
+    </div>
+    <div class="card">
       <h3 class="card-h-row">Top veículos com mais intervenções
       </h3>
       <div id="vehbars"></div>
@@ -5097,6 +5102,7 @@ function renderAll(){
   populateMonthsMonths();
   renderMonths();
   renderCatBars();
+  renderCatBarsSocorro();
   renderVehBars();
   renderTipoDonut();
   renderMkbfBars();
@@ -5438,7 +5444,30 @@ function renderCatBars(){
       <div class="bar-val">${n}</div>
     </div>`).join('');
 }
-document.getElementById('months-month').addEventListener('change', ()=>{ renderMonths(); renderKpis(); renderCatBars(); renderVehBars(); renderTipoDonut(); renderMkbfBars(); });
+
+// Igual ao Top categorias de intervenção, mas restrito às OS do tipo "Socorro" —
+// mostra em quais categorias (Sistema de Partida, Embreagem, Correia, etc.) a
+// frota mais quebra e precisa de socorro mecânico no período.
+function renderCatBarsSocorro(){
+  const monthSel = document.getElementById('months-month');
+  const monthFilter = monthSel ? monthSel.value : '';
+  const rows = allRows().filter(r => r.tipo === 'Socorro' && (!monthFilter || r.data.slice(0,7) === monthFilter));
+  const catCount = {};
+  rows.forEach(r=>{ if(r.categoria) catCount[r.categoria] = (catCount[r.categoria]||0)+1; });
+  const topCats = Object.entries(catCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(topCats.length===0){
+    document.getElementById('catbarssocorro').innerHTML = '<div style="color:var(--dim);font-size:12.5px;">Nenhuma OS de Socorro neste período.</div>';
+    return;
+  }
+  const maxCatSocorro = topCats[0][1];
+  document.getElementById('catbarssocorro').innerHTML = topCats.map(([name,n])=>`
+    <div class="bar-row">
+      <div class="bar-label">${name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(n/maxCatSocorro*100).toFixed(0)}%;background:var(--RedJohn);"></div></div>
+      <div class="bar-val">${n}</div>
+    </div>`).join('');
+}
+document.getElementById('months-month').addEventListener('change', ()=>{ renderMonths(); renderKpis(); renderCatBars(); renderCatBarsSocorro(); renderVehBars(); renderTipoDonut(); renderMkbfBars(); });
 
 // "Intervenções" = número de ordens de serviço distintas (OS) por veículo —
 // evita contar múltiplas vezes uma OS que tenha várias chaves de erro.
