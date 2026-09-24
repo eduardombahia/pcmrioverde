@@ -5550,16 +5550,17 @@ function renderMkbfBars(){
         kmTotal += Number(entry.kmRodado)||0;
       });
     });
-    return { uid, nome: pcmNomeUnidade(uid), socorros, kmTotal, mkbf: socorros>0 ? Math.round(kmTotal/socorros) : null };
+    return { uid, nome: pcmNomeUnidade(uid), socorros, kmTotal, mkbf: (socorros>0 && kmTotal>0) ? Math.round(kmTotal/socorros) : null };
   });
 
-  const comDados = resultados.filter(r => r.socorros > 0);
-  if(comDados.length === 0){
+  const comDados = resultados.filter(r => r.socorros > 0 && r.mkbf !== null);
+  const semKm = resultados.filter(r => r.socorros > 0 && r.mkbf === null);
+  if(comDados.length === 0 && semKm.length === 0){
     document.getElementById('mkbfbars').innerHTML = '<div style="color:var(--dim);font-size:12.5px;">Sem OS de Socorro neste período.</div>';
     return;
   }
 
-  const maxMkbf = Math.max(...comDados.map(r=>r.mkbf), 1);
+  const maxMkbf = comDados.length ? Math.max(...comDados.map(r=>r.mkbf), 1) : 1;
   document.getElementById('mkbfbars').innerHTML = comDados
     .sort((a,b)=>b.mkbf-a.mkbf)
     .map(r=>`
@@ -5567,6 +5568,12 @@ function renderMkbfBars(){
       <div class="bar-label">${r.nome}</div>
       <div class="bar-track"><div class="bar-fill" style="width:${(r.mkbf/maxMkbf*100).toFixed(0)}%"></div></div>
       <div class="bar-val">${r.mkbf.toLocaleString('pt-BR')} km</div>
+    </div>`).join('') +
+    semKm.map(r=>`
+    <div class="bar-row">
+      <div class="bar-label">${r.nome}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>
+      <div class="bar-val" style="color:var(--dim);font-size:10.5px;">sem dados de hodômetro (${r.socorros} socorro${r.socorros>1?'s':''})</div>
     </div>`).join('') +
     (resultados.some(r=>r.socorros===0) ? `<div style="font-size:11px;color:var(--dim);margin-top:8px;">Garagens sem Socorro no período não aparecem no gráfico.</div>` : '');
 }
