@@ -2143,6 +2143,10 @@
     </div>
     <div class="card">
       <h3 class="card-h-row">Top veículos com mais intervenções
+        <select id="vehbars-modo" class="card-h-select">
+          <option value="todas">Todas as intervenções</option>
+          <option value="Socorro">Só Socorro</option>
+        </select>
       </h3>
       <div id="vehbars"></div>
     </div>
@@ -5474,7 +5478,9 @@ document.getElementById('months-month').addEventListener('change', ()=>{ renderM
 function renderVehBars(){
   const monthSel = document.getElementById('months-month');
   const monthFilter = monthSel ? monthSel.value : '';
-  const rows = allRows().filter(r => !monthFilter || r.data.slice(0,7) === monthFilter);
+  const modoSel = document.getElementById('vehbars-modo');
+  const modo = modoSel ? modoSel.value : 'todas';
+  const rows = allRows().filter(r => (!monthFilter || r.data.slice(0,7) === monthFilter) && (modo!=='Socorro' || r.tipo==='Socorro'));
   const vehOs = {};
   rows.forEach(r=>{
     if(!r.veiculo) return;
@@ -5487,21 +5493,23 @@ function renderVehBars(){
     .sort((a,b)=>b[1]-a[1])
     .slice(0,8);
   if(topVeh.length===0){
-    document.getElementById('vehbars').innerHTML = '<div style="color:var(--dim);font-size:12.5px;">Nenhuma ordem neste período.</div>';
+    document.getElementById('vehbars').innerHTML = `<div style="color:var(--dim);font-size:12.5px;">Nenhuma ${modo==='Socorro' ? 'OS de Socorro' : 'ordem'} neste período.</div>`;
     return;
   }
   const maxVeh = topVeh[0][1];
+  const corBarra = modo==='Socorro' ? 'background:var(--RedJohn);' : '';
   document.getElementById('vehbars').innerHTML = topVeh.map(([veiculo,n])=>{
     const op = getOperacao(veiculo);
     const label = op ? `${veiculo} · ${op}` : veiculo;
     return `
     <div class="bar-row">
       <div class="bar-label">${label}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${(n/maxVeh*100).toFixed(0)}%"></div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(n/maxVeh*100).toFixed(0)}%;${corBarra}"></div></div>
       <div class="bar-val">${n}</div>
     </div>`;
   }).join('');
 }
+document.getElementById('vehbars-modo').addEventListener('change', renderVehBars);
 
 // Separação das OS por tipo (Corretiva / Preventiva / Socorro / outros que venham
 // a existir) — respeita o filtro de mês do card "Ordens por mês".
