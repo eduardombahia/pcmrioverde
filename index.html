@@ -2077,7 +2077,7 @@
 
 <header>
   <p class="eyebrow">Planejamento e Controle de Manutenção · Grupo CSC</p>
-  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.31</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
+  <h1>Registro de <span>Ordens de Serviço</span> <span class="version-badge" id="version-badge">v10.41</span><span class="update-banner" id="update-banner" title="Clique para atualizar a página"><span class="dot-pulse"></span>Nova versão disponível — atualizar</span></h1>
   <p class="sub">Painel da aba <strong>Controle</strong> — corretivas e preventivas lançadas na frota Urbano e Comigo, com reincidências sinalizadas por chave de erro. Período: <span id="periodo"></span>.</p>
 </header>
 
@@ -5487,7 +5487,7 @@ function renderTipoDonut(){
     return;
   }
 
-  const CORES_TIPO = { 'Corretiva':'var(--orange)', 'Preventiva':'var(--green)', 'Socorro':'var(--red)' };
+  const CORES_TIPO = { 'Corretiva':'var(--orange)', 'Preventiva':'var(--green)', 'Socorro':'var(--RedJohn)' };
   const tipoCount = {};
   rows.forEach(r=>{ const t = r.tipo || 'Não classificada'; tipoCount[t] = (tipoCount[t]||0)+1; });
   const segs = Object.entries(tipoCount)
@@ -8250,7 +8250,7 @@ document.getElementById('log-export-btn').addEventListener('click', () => {
 });
 
 loadLog();
-addLog('sistema', 'App iniciado', `v10.31 · ${new Date().toLocaleString('pt-BR')}`);
+addLog('sistema', 'App iniciado', `v10.41 · ${new Date().toLocaleString('pt-BR')}`);
 
 // ════════════════════════════════════════════════════════
 // SOLICITAÇÕES DE REPARO
