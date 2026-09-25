@@ -2211,7 +2211,7 @@
 <!-- ═══════════════ ORDENS DE SERVIÇO TAB ═══════════════ -->
 <div id="tab-ordens" class="tab-panel">
 
-  <p class="sub" style="margin-top:0;margin-bottom:16px;">Consulte, filtre e gerencie todas as ordens de serviço lançadas. Clique em <b>Novo registro</b> para cadastrar uma OS manualmente, use os filtros para localizar rapidamente por operação, tipo, setor, responsável ou reincidência, e clique em uma linha para editar ou excluir. Para importação do TransNet: Módulos, Frota, Manutenção, Consultas/Relatórios, Manutenção por Oficinas. </p>
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Consulte, filtre e gerencie todas as ordens de serviço lançadas. Clique em <b>Novo registro</b> para cadastrar uma OS manualmente, use os filtros para localizar rapidamente por operação, tipo, setor, responsável ou reincidência, e clique em uma linha para editar ou excluir.</p>
 
   <section class="filters">
     <select id="f-empresa"><option value="">Empresa: todas</option></select>
@@ -2668,7 +2668,7 @@
 
 <!-- ═══════════════ FROTA TAB ═══════════════ -->
 <div id="tab-frota" class="tab-panel">
-  <p class="sub" style="margin-top:0;margin-bottom:16px;">Cadastre e gerencie os veículos da frota, com placa e operação vinculada. Esta lista alimenta os campos de veículo em todos os outros formulários do sistema (OS, hodômetro, GNS e solicitações). Para importação do TransNet: Módulos, Coporativo, Cadastros, Equipamentos, Ver Equipamentos, Relatórios, Relatórios de Equipamentos. Marque as opções "Local:",	"Tipo Serviço:" e "Placa:"</p>
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Cadastre e gerencie os veículos da frota, com placa e operação vinculada. Esta lista alimenta os campos de veículo em todos os outros formulários do sistema (OS, hodômetro, GNS e solicitações).</p>
   <div class="frota-toolbar">
     <input type="text" id="frota-search" placeholder="Filtrar por veículo, placa ou operação…">
     <button class="btn-secondary" id="frota-import-toggle-btn">📂 Importar frota (CSV)</button>
@@ -2994,7 +2994,7 @@
 
 <!-- ═══════════════ HODÔMETRO TAB ═══════════════ -->
 <div id="tab-hodometro" class="tab-panel">
-  <p class="sub" style="margin-top:0;margin-bottom:16px;">Acompanhe o hodômetro atual e o consumo (Km/L) de cada veículo da frota. Atualize as leituras manualmente ou por importação, e use o histórico para calcular quilometragem rodada entre abastecimentos. Para importação do TransNet: Módulos, Frota, Abastecimento, Relatórios, Abastecimento por Veículo.</p>
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Acompanhe o hodômetro atual e o consumo (Km/L) de cada veículo da frota. Atualize as leituras manualmente ou por importação, e use o histórico para calcular quilometragem rodada entre abastecimentos.</p>
   <div class="hodo-layout">
 
     <!-- ── ESQUERDA: Cadastro de veículos ── -->
@@ -7217,15 +7217,24 @@ function isDuplicate(candidate, excludeOs){
   // Primary key: veiculo + os + setor + categoria
   // This catches the same OS entered twice regardless of minor description differences.
   // If os is blank (edge case), fall back to data+veiculo+tipo+setor+categoria+descricao.
+  //
+  // Exceção: O.S. do relatório de Preventivas (parseRelatorioOS) chegam com
+  // setor="Não classificado" e categoria="" para TODOS os planos da mesma O.S.
+  // (a categoria real só é escolhida depois, manualmente). Sem isso, o 2º, 3º...
+  // plano da mesma O.S. bateria com o 1º nessa chave e seria descartado como
+  // "duplicado" — por isso, quando a categoria vem vazia, o texto do plano
+  // (observacoes) também entra na comparação, já que é o único campo que
+  // diferencia um plano do outro nesse caso.
   const rows = allRows();
   const c = {
-    data:      normalize(candidate.data),
-    veiculo:   normalize(candidate.veiculo),
-    os:        normalize(candidate.os),
-    tipo:      normalize(candidate.tipo),
-    setor:     normalize(candidate.setor),
-    categoria: normalize(candidate.categoria),
-    descricao: normalize(candidate.descricao),
+    data:        normalize(candidate.data),
+    veiculo:     normalize(candidate.veiculo),
+    os:          normalize(candidate.os),
+    tipo:        normalize(candidate.tipo),
+    setor:       normalize(candidate.setor),
+    categoria:   normalize(candidate.categoria),
+    descricao:   normalize(candidate.descricao),
+    observacoes: normalize(candidate.observacoes || candidate.obs || ''),
   };
 
   return rows.find(r => {
@@ -7237,8 +7246,13 @@ function isDuplicate(candidate, excludeOs){
     const rc = normalize(r.categoria);
 
     if(c.os && ro){
-      // Primary key match: same OS number on same vehicle + setor + categoria
-      return rv === c.veiculo && ro === c.os && rs === c.setor && rc === c.categoria;
+      // Primary key match: same OS number on same vehicle + setor + categoria.
+      // Quando não há categoria (planos ainda não classificados), exige também
+      // que o texto do plano seja igual — senão dois planos distintos da
+      // mesma O.S. seriam vistos como o mesmo registro.
+      const categoriaBate = rc === c.categoria &&
+        (c.categoria !== '' || normalize(r.observacoes||'') === c.observacoes);
+      return rv === c.veiculo && ro === c.os && rs === c.setor && categoriaBate;
     }
 
     // Fallback for records without OS number
@@ -10871,12 +10885,16 @@ function processImportRows(rawRows){
     if(!dataNorm){ invalid++; return; }
 
     // Duplicate checks
-    const dupFile = isDuplicate({ data: dataNorm, veiculo, os, tipo, setor, categoria, descricao });
+    const dupFile = isDuplicate({ data: dataNorm, veiculo, os, tipo, setor, categoria, descricao, observacoes });
+    // Mesma exceção de isDuplicate: sem categoria (planos ainda não
+    // classificados), o texto do plano (observacoes) entra na comparação
+    // para não descartar o 2º/3º plano da mesma O.S. como duplicado do 1º.
     const dupInQueue = importQueue.find(r =>
       normalize(r.veiculo)       === normalize(veiculo)  &&
       normalize(r.os)            === normalize(os)       &&
       normalize(r.setor)         === normalize(setor)    &&
-      normalize(r.categoria||'') === normalize(categoria)
+      normalize(r.categoria||'') === normalize(categoria) &&
+      (normalize(categoria) !== '' || normalize(r.observacoes||'') === normalize(observacoes))
     );
     if(dupFile || dupInQueue){ skipped++; return; }
 
