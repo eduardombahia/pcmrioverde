@@ -2232,6 +2232,8 @@
     <button class="clear-btn" id="f-clear">Limpar filtros</button>
     <span class="count"><b id="count-n">0</b> de <span id="count-total">0</span> ordens</span>
     <button class="btn-secondary" id="btn-massa-ia" title="Classificar com IA todos os registros ainda sem Setor/Categoria">🤖 Classificar com IA</button>
+    <label class="toggle" id="massa-ia-socorro-modo-wrap" style="display:none;color:var(--RedJohn);" title="A IA continua escolhendo Setor e Categoria normalmente para cada registro pendente — só o Tipo é travado em Socorro, ignorando Corretiva/Preventiva."><input type="checkbox" id="massa-ia-socorro-modo"> 🆘 Modo Socorro (travar Tipo)</label>
+    <button class="btn-secondary" id="btn-marcar-socorro" title="Trocar o Tipo para Socorro em massa, por lista de OS já classificadas">🆘 Marcar OS como Socorro</button>
     <button class="add-btn" id="open-drawer"><span class="plus">+</span> Novo registro</button>
   </section>
 
@@ -3035,7 +3037,7 @@
         <div style="font-size:22px;margin-bottom:6px;">📊</div>
         <div>Arraste o arquivo aqui ou <strong>clique para selecionar</strong></div>
         <div style="font-size:11px;margin-top:10px;color:var(--dim);">
-          Aceita o relatório de abastecimento exportado do sistema (blocos por veículo, colunas Data/Hod. Atual/Comb./Km-Lt/Vl. Ab.) — linhas com Valor zerado (só aditivo/óleo) são ignoradas automaticamente.<br>
+          Aceita o relatório de abastecimento exportado do sistema (blocos por veículo, colunas Data/Hod. Atual/Comb./Km-Lt/Vl. Ab.) — linhas com Litros zerado (só aditivo/óleo, sem combustível) são ignoradas automaticamente.<br>
           Também aceita CSV/XLSX genérico com colunas: <code style="color:var(--chalk);">Frota&nbsp;&nbsp;Hodômetro&nbsp;&nbsp;Litros&nbsp;&nbsp;Km/L&nbsp;&nbsp;Km Rodado&nbsp;&nbsp;Data e Hora</code>
         </div>
         <input type="file" id="hodo-input" accept=".xlsx,.xls,.csv">
@@ -3113,6 +3115,24 @@
     <div class="modal-foot">
       <button class="btn-secondary" id="frota-modal-cancel">Cancelar</button>
       <button class="btn-primary" id="frota-modal-save">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL MARCAR OS COMO SOCORRO (troca de Tipo em massa por lista de OS) ════ -->
+<div class="modal-overlay" id="socorro-modal-overlay">
+  <div class="modal">
+    <button class="modal-close" id="socorro-modal-close">&times;</button>
+    <h2>🆘 Marcar OS como Socorro</h2>
+    <p class="sub" style="margin-top:0;">Cole abaixo os números de OS que já estão classificados (Setor/Categoria certos) e que você quer trocar o <b>Tipo</b> para <b>Socorro</b> em massa. Separe por vírgula, espaço ou uma OS por linha. Setor e Categoria de cada registro não são alterados — só o Tipo e a chave de erro são recalculados.</p>
+    <div class="field">
+      <label for="socorro-os-lista">OS *</label>
+      <textarea id="socorro-os-lista" rows="6" placeholder="ex:&#10;1164059&#10;1165857&#10;1168196, 1168403"></textarea>
+    </div>
+    <div id="socorro-resultado" style="font-family:var(--font-mono);font-size:12px;color:var(--dim);white-space:pre-wrap;margin-top:4px;"></div>
+    <div class="modal-foot">
+      <button class="btn-secondary" id="socorro-modal-cancel">Fechar</button>
+      <button class="btn-primary" id="socorro-modal-aplicar">Aplicar</button>
     </div>
   </div>
 </div>
@@ -3212,6 +3232,9 @@
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
         <button type="button" class="btn-secondary" id="ed-ia-classificar-btn" style="font-size:12px;padding:5px 10px;">🤖 Sugerir Setor/Categoria com IA</button>
         <span id="ed-ia-classificar-status" style="font-size:11px;color:var(--dim);"></span>
+        <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--RedJohn);cursor:pointer;user-select:none;" title="A IA continua escolhendo Setor e Categoria normalmente — só o Tipo é travado em Socorro, ignorando Corretiva/Preventiva.">
+          <input type="checkbox" id="ed-ia-socorro-modo"> 🆘 Modo Socorro (travar Tipo)
+        </label>
       </div>
     </div>
 
@@ -3327,6 +3350,9 @@
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
         <button type="button" class="btn-secondary" id="in-ia-classificar-btn" style="font-size:12px;padding:5px 10px;">🤖 Sugerir Setor/Categoria com IA</button>
         <span id="in-ia-classificar-status" style="font-size:11px;color:var(--dim);"></span>
+        <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--RedJohn);cursor:pointer;user-select:none;" title="A IA continua escolhendo Setor e Categoria normalmente — só o Tipo é travado em Socorro, ignorando Corretiva/Preventiva.">
+          <input type="checkbox" id="in-ia-socorro-modo"> 🆘 Modo Socorro (travar Tipo)
+        </label>
       </div>
     </div>
 
@@ -7945,8 +7971,9 @@ function mergeHodoEntries(parsed, successMsg){
 // ── Parser dedicado ao relatório de abastecimento (blocos "Veículo : OPP/FROTA", delimitador ";") ──
 // Coluna A = Data (às vezes em branco — herda a última data vista no bloco);
 // Coluna C = Hodômetro atual; Coluna E = Combustível (litros); Coluna F = Km/L;
-// última coluna (Vl. Ab.) = valor do abastecimento — linhas com Valor 0 (lançamentos
-// de aditivo/óleo sem abastecimento de fato) são ignoradas.
+// última coluna (Vl. Ab.) = valor do abastecimento — pode vir zerada em abastecimentos
+// internos (postos próprios), então NÃO é usada para descartar linha. O critério de
+// linha ignorada é Litros = 0 (lançamento de aditivo/óleo sem combustível de fato).
 function parseNumeroBR(raw){
   if(raw===undefined || raw===null) return 0;
   const s = String(raw).trim();
@@ -8002,13 +8029,13 @@ function parseRelatorioAbastecimento(text){
     if(parsedDate){ dataAtualLabel = parsedDate.label; dataAtualTs = parsedDate.ts; }
     if(!dataAtualLabel) continue;
 
-    const valor = parseNumeroBR(r[16]); // coluna Q = Vl. Ab.
-    if(!valor) continue; // Valor 0 → ignora
-
     const hodometro = Math.round(parseNumeroBR(r[2])); // coluna C = Hod. Atual
     if(!hodometro) continue;
 
-    const litros    = parseNumeroBR(r[4]); // coluna E = Comb.
+    const litros = parseNumeroBR(r[4]); // coluna E = Comb.
+    if(!litros) continue; // Sem litros abastecidos (só aditivo/óleo) → ignora
+
+    const valor     = parseNumeroBR(r[16]); // coluna Q = Vl. Ab. (pode vir 0 em abast. interno)
     const kml       = parseNumeroBR(r[5]); // coluna F = Km/Lt
     const kmRodado  = Math.round(parseNumeroBR(r[3])); // coluna D = Km Rod.
     const operacao  = getOperacao(veiculoAtual);
@@ -8043,7 +8070,7 @@ function handleHodoFile(file){
   readerLatin.onload = e => {
     const abastRows = parseRelatorioAbastecimento(e.target.result);
     if(abastRows.length){
-      mergeHodoEntries(abastRows, `${abastRows.length} abastecimento(s) importado(s) (linhas com Valor zerado foram ignoradas).`);
+      mergeHodoEntries(abastRows, `${abastRows.length} abastecimento(s) importado(s) (linhas com Litros zerado foram ignoradas).`);
       return;
     }
 
@@ -9815,6 +9842,11 @@ async function sugerirClassificacaoIA(prefixo){
   const linhas = dividirDescricaoEmLinhas(descricao);
   if(!linhas.length){ alert('Escreva a Descrição da OS antes de pedir a sugestão da IA.'); return; }
 
+  // Modo Socorro: a IA continua escolhendo Setor e Categoria normalmente — só o
+  // Tipo é travado em "Socorro" pra cada linha, ignorando Corretiva/Preventiva.
+  const socorroModoEl = document.getElementById(`${prefixo}-ia-socorro-modo`);
+  const socorroModo = !!(socorroModoEl && socorroModoEl.checked);
+
   // Manda apenas os setores "reais" (exclui "Não classificado") como opções válidas
   const setoresValidos = { ...SETOR_CATEGORIAS };
   delete setoresValidos['Não classificado'];
@@ -9869,7 +9901,7 @@ async function sugerirClassificacaoIA(prefixo){
 
       const setor     = data.setor;
       const categoria = data.categoria || '';
-      const tipo      = (data.tipo === 'Corretiva' || data.tipo === 'Preventiva') ? data.tipo : '';
+      const tipo      = socorroModo ? 'Socorro' : ((data.tipo === 'Corretiva' || data.tipo === 'Preventiva') ? data.tipo : '');
 
       if(!setor || !SETOR_CATEGORIAS[setor]){
         pendentes.push(`"${linha.slice(0,40)}" (setor fora da lista)`);
@@ -9897,6 +9929,7 @@ async function sugerirClassificacaoIA(prefixo){
     }
 
     const partes = [];
+    if(socorroModo) partes.push('🆘 Modo Socorro ativo — Tipo travado em "Socorro" em todos os pares.');
     if(adicionados) partes.push(`✅ ${adicionados}/${linhas.length} par(es) adicionado(s) automaticamente (1 por linha da descrição).`);
     if(pendentes.length) partes.push(`⚠️ Revise manualmente: ${pendentes.join('; ')}.`);
     if(falhas.length) partes.push(`❌ Falha ao classificar: ${falhas.join('; ')}.`);
@@ -9979,6 +10012,12 @@ async function classificarEmMassaIA(){
     return;
   }
 
+  // Modo Socorro: a IA continua escolhendo Setor e Categoria normalmente para
+  // cada registro pendente — só o Tipo é travado em "Socorro", ignorando
+  // Corretiva/Preventiva (e o Tipo já existente no registro, se houver).
+  const socorroModoEl = document.getElementById('massa-ia-socorro-modo');
+  const socorroModoMassa = !!(socorroModoEl && socorroModoEl.checked);
+
   // Abre modal
   const overlay = document.getElementById('massa-modal-overlay');
   const bar = document.getElementById('massa-progress-bar');
@@ -9996,7 +10035,8 @@ async function classificarEmMassaIA(){
   massaAtualizaStats(0, 0, 0, 0);
 
   document.getElementById('massa-resumo-texto').innerHTML =
-    `Classificando <strong>${pendentes.length}</strong> registro(s) sem Setor/Categoria via IA. Aguarde — uma chamada por linha da descrição.`;
+    `Classificando <strong>${pendentes.length}</strong> registro(s) sem Setor/Categoria via IA. Aguarde — uma chamada por linha da descrição.` +
+    (socorroModoMassa ? ' <strong style="color:var(--RedJohn);">🆘 Modo Socorro ativo — Tipo será travado em "Socorro" em todos os registros classificados.</strong>' : '');
 
   massaCancelado = false;
   overlay.classList.add('open');
@@ -10072,7 +10112,7 @@ async function classificarEmMassaIA(){
 
       const setor     = data.setor;
       const categoria = data.categoria || '';
-      const tipo      = (data.tipo === 'Corretiva' || data.tipo === 'Preventiva') ? data.tipo : (r.tipo || '');
+      const tipo      = socorroModoMassa ? 'Socorro' : ((data.tipo === 'Corretiva' || data.tipo === 'Preventiva') ? data.tipo : (r.tipo || ''));
 
       if(!setor || !SETOR_CATEGORIAS[setor]){
         massaLog(`⚠️ [${i+1}/${pendentes.length}] ${veicLabel} OS ${osLabel} L${j+1}: setor fora da lista ("${data.setor || '?'}")`, 'pend');
@@ -10200,9 +10240,11 @@ document.getElementById('massa-modal-close').onclick  = () => {
 // Exibe o botão apenas quando IA_PROXY_URL estiver configurada, e conecta o clique
 (function iniciarBotaoMassa(){
   const btn = document.getElementById('btn-massa-ia');
+  const socorroWrap = document.getElementById('massa-ia-socorro-modo-wrap');
   if(IA_PROXY_URL && btn){
     btn.style.display = '';
     btn.onclick = classificarEmMassaIA;
+    if(socorroWrap) socorroWrap.style.display = '';
   }
 })();
 
@@ -10505,6 +10547,118 @@ function recalcularReincidencias(){
   saveOverrides();
   return changed;
 }
+
+// ════════════════════════════════════════════════════════
+// MARCAR OS COMO SOCORRO — troca em massa o Tipo (e recalcula a chave de
+// erro) de registros JÁ CLASSIFICADOS (Setor/Categoria certos), a partir de
+// uma lista de números de OS informada pelo usuário. Setor e Categoria não
+// são alterados — só Tipo (→ "Socorro") e a chave de erro correspondente.
+// Cobre tanto registros de planilha (DATA + overrides) quanto manuais.
+// ════════════════════════════════════════════════════════
+function marcarOsComoSocorro(osListaTexto){
+  const osSet = new Set(
+    String(osListaTexto || '')
+      .split(/[\s,;]+/)
+      .map(s => s.trim())
+      .filter(Boolean)
+  );
+  if(!osSet.size){
+    return { alterados: 0, jaEram: 0, naoClassificados: 0, encontrados: 0, naoEncontrados: [] };
+  }
+
+  let alterados = 0, jaEram = 0, naoClassificados = 0;
+  let alterouOverrides = false, alterouManual = false;
+  const encontrados = new Set();
+
+  DATA.forEach((r, idx) => {
+    if(deletedKeys[keyForRecord(r)]) return;
+    const osStr = String(r.os).trim();
+    if(!osSet.has(osStr)) return;
+    encontrados.add(osStr);
+
+    const key = keyForRecord(r);
+    const current = overrides[key] ? {...r, ...overrides[key]} : r;
+
+    if(current.tipo === 'Socorro'){ jaEram++; return; }
+    if(!isClassificado(current.setor, current.categoria)){ naoClassificados++; return; }
+
+    const novaChave = ensureChave('Socorro', current.setor, current.categoria);
+    const updates = { tipo: 'Socorro', chave_erro: novaChave || current.chave_erro || null };
+    if(Array.isArray(current.pares) && current.pares.length){
+      updates.pares = current.pares.map(p => ({ ...p, tipo: 'Socorro', chave: ensureChave('Socorro', p.setor, p.categoria) || p.chave }));
+    }
+    overrides[key] = { ...(overrides[key] || {}), ...updates };
+    Object.assign(DATA[idx], updates);
+    alterouOverrides = true;
+    alterados++;
+  });
+
+  manualRecords.forEach(r => {
+    const osStr = String(r.os).trim();
+    if(!osSet.has(osStr)) return;
+    encontrados.add(osStr);
+
+    if(r.tipo === 'Socorro'){ jaEram++; return; }
+    if(!isClassificado(r.setor, r.categoria)){ naoClassificados++; return; }
+
+    const novaChave = ensureChave('Socorro', r.setor, r.categoria);
+    r.tipo = 'Socorro';
+    r.chave_erro = novaChave || r.chave_erro || null;
+    if(Array.isArray(r.pares) && r.pares.length){
+      r.pares = r.pares.map(p => ({ ...p, tipo: 'Socorro', chave: ensureChave('Socorro', p.setor, p.categoria) || p.chave }));
+    }
+    alterouManual = true;
+    alterados++;
+  });
+
+  const naoEncontrados = [...osSet].filter(os => !encontrados.has(os));
+
+  if(alterouOverrides) saveOverrides();
+  if(alterouManual)    saveManualRecords(manualRecords);
+  if(alterouOverrides || alterouManual){
+    recalcularReincidencias();
+    recalcularHodometros();
+    renderAll();
+  }
+
+  if(alterados){
+    addLog('marcar-socorro', 'Marcar OS como Socorro',
+      `${alterados} registro(s) com Tipo alterado para Socorro · ${jaEram} já era(m) Socorro · ${naoClassificados} sem classificação · ${naoEncontrados.length} OS não encontrada(s)`);
+  }
+
+  return { alterados, jaEram, naoClassificados, encontrados: encontrados.size, naoEncontrados };
+}
+
+// Wiring do modal "Marcar OS como Socorro"
+document.getElementById('btn-marcar-socorro').addEventListener('click', () => {
+  document.getElementById('socorro-os-lista').value = '';
+  document.getElementById('socorro-resultado').textContent = '';
+  document.getElementById('socorro-modal-overlay').classList.add('open');
+});
+document.getElementById('socorro-modal-close').addEventListener('click', () => {
+  document.getElementById('socorro-modal-overlay').classList.remove('open');
+});
+document.getElementById('socorro-modal-cancel').addEventListener('click', () => {
+  document.getElementById('socorro-modal-overlay').classList.remove('open');
+});
+document.getElementById('socorro-modal-aplicar').addEventListener('click', () => {
+  if(pcmBloquear('ordens','editar')) return;
+  const texto = document.getElementById('socorro-os-lista').value;
+  const resultEl = document.getElementById('socorro-resultado');
+  if(!texto.trim()){
+    resultEl.style.color = 'var(--red)';
+    resultEl.textContent = 'Cole ao menos um número de OS.';
+    return;
+  }
+  const r = marcarOsComoSocorro(texto);
+  const linhas = [];
+  linhas.push(`✅ ${r.alterados} registro(s) com Tipo alterado para Socorro.`);
+  if(r.jaEram)           linhas.push(`ℹ️ ${r.jaEram} já era(m) Socorro (ignorado).`);
+  if(r.naoClassificados) linhas.push(`⚠️ ${r.naoClassificados} encontrada(s) mas sem Setor/Categoria — classifique antes de marcar como Socorro.`);
+  if(r.naoEncontrados.length) linhas.push(`❌ OS não encontrada(s): ${r.naoEncontrados.join(', ')}`);
+  resultEl.style.color = (r.naoClassificados || r.naoEncontrados.length) ? 'var(--yellow)' : 'var(--green)';
+  resultEl.textContent = linhas.join('\n');
+});
 
 // Atualiza o hodômetro/km gravado em cada registro manual com base no
 // histórico de hodômetro mais atual (útil quando uma leitura de hodômetro
