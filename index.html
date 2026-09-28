@@ -2793,12 +2793,14 @@
   <p class="sub" style="margin-top:0;margin-bottom:16px;">Toda vez que a IA reconhece o <b>Setor</b> certo pra uma descrição mas não encontra nenhuma <b>Categoria</b> já cadastrada que combine, o par não é adicionado sozinho — em vez disso, cai aqui como sugestão. Revise cada item: crie a categoria (se fizer sentido ter uma nova) ou descarte (se for um caso isolado que não precisa de categoria própria). Isso não altera nenhuma OS já lançada — só ajuda a manter sua lista de categorias completa pras próximas classificações.</p>
 
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-    <span style="font-size:12.5px;color:var(--dim);">Novas sugestões vão para:</span>
-    <div id="sugestoes-modo" style="display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden;">
-      <button type="button" class="btn-secondary" data-modo="socorro" style="border:0;border-radius:0;padding:5px 12px;font-size:12px;">🚨 Tudo Socorro</button>
-      <button type="button" class="btn-secondary" data-modo="normal" style="border:0;border-radius:0;padding:5px 12px;font-size:12px;">🔧 Corretiva / Preventiva</button>
+    <span style="font-size:12.5px;color:var(--dim);">Tipo das novas sugestões:</span>
+    <div id="sugestoes-tipo-alt" style="display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden;">
+      <button type="button" class="btn-secondary" data-tipo="auto" style="border:0;border-radius:0;padding:5px 12px;font-size:12px;">🤖 Automático (IA)</button>
+      <button type="button" class="btn-secondary" data-tipo="Corretiva" style="border:0;border-radius:0;padding:5px 12px;font-size:12px;">🔧 Corretiva</button>
+      <button type="button" class="btn-secondary" data-tipo="Preventiva" style="border:0;border-radius:0;padding:5px 12px;font-size:12px;">🛠 Preventiva</button>
+      <button type="button" class="btn-secondary" data-tipo="Socorro" style="border:0;border-radius:0;padding:5px 12px;font-size:12px;">🚨 Socorro</button>
     </div>
-    <span id="sugestoes-modo-hint" style="font-size:11.5px;color:var(--dim);"></span>
+    <span id="sugestoes-tipo-hint" style="font-size:11.5px;color:var(--dim);"></span>
   </div>
   <div id="sugestoes-empty" class="sub" style="display:none;padding:24px 0;text-align:center;">Nenhuma sugestão pendente no momento. 🎉</div>
   <div id="sugestoes-list" class="cat-setores-list"></div>
@@ -7422,43 +7424,47 @@ loadSugestoesCategoria();
 
 // Registra (ou reforça, se já existir uma sugestão igual) um caso em que a
 // IA identificou o Setor mas não achou Categoria correspondente na lista.
-// Todas as sugestões de categoria são direcionadas ao setor/tipo "Socorro",
-// independentemente do setor que a IA tenha identificado.
-const SUGESTAO_SETOR_FIXO = 'Socorro';
-const SUGESTAO_TIPO_FIXO  = 'Socorro';
-const SUGESTAO_MODO_KEY   = 'pcm_sugestao_modo_v1'; // 'socorro' | 'normal'
-let sugestaoModo = 'socorro';
-try{ if(localStorage.getItem(SUGESTAO_MODO_KEY) === 'normal') sugestaoModo = 'normal'; }catch(e){}
+// Alternador de tipo das novas sugestões: "auto" usa o Tipo/Setor que a IA
+// identificou; "Corretiva"/"Preventiva" forçam só o Tipo; "Socorro" força
+// Tipo e Setor = Socorro. A escolha fica salva neste navegador.
+const SUGESTAO_TIPO_KEY = 'pcm_sugestao_tipo_v1'; // 'auto' | 'Corretiva' | 'Preventiva' | 'Socorro'
+const SUGESTAO_TIPOS_OK = ['auto','Corretiva','Preventiva','Socorro'];
+let sugestaoTipoModo = 'auto';
+try{
+  const salvo = localStorage.getItem(SUGESTAO_TIPO_KEY);
+  if(SUGESTAO_TIPOS_OK.includes(salvo)) sugestaoTipoModo = salvo;
+}catch(e){}
 
-function setSugestaoModo(modo){
-  sugestaoModo = modo === 'normal' ? 'normal' : 'socorro';
-  try{ localStorage.setItem(SUGESTAO_MODO_KEY, sugestaoModo); }catch(e){}
-  renderSugestaoModoUI();
+function setSugestaoTipoModo(modo){
+  sugestaoTipoModo = SUGESTAO_TIPOS_OK.includes(modo) ? modo : 'auto';
+  try{ localStorage.setItem(SUGESTAO_TIPO_KEY, sugestaoTipoModo); }catch(e){}
+  renderSugestaoTipoUI();
 }
-function renderSugestaoModoUI(){
-  const wrap = document.getElementById('sugestoes-modo');
+function renderSugestaoTipoUI(){
+  const wrap = document.getElementById('sugestoes-tipo-alt');
   if(!wrap) return;
   wrap.querySelectorAll('button').forEach(b => {
-    const ativo = b.dataset.modo === sugestaoModo;
+    const ativo = b.dataset.tipo === sugestaoTipoModo;
     b.style.background = ativo ? 'var(--accent, #f59e0b)' : '';
     b.style.color      = ativo ? '#000' : '';
     b.style.fontWeight = ativo ? '700' : '';
   });
-  const hint = document.getElementById('sugestoes-modo-hint');
-  if(hint) hint.textContent = sugestaoModo === 'socorro'
-    ? 'Setor e Tipo = Socorro, qualquer que seja a resposta da IA.'
-    : 'Usa o Setor e o Tipo (Corretiva/Preventiva) identificados pela IA.';
+  const hint = document.getElementById('sugestoes-tipo-hint');
+  if(hint) hint.textContent =
+    sugestaoTipoModo === 'auto'      ? 'Usa o Setor e o Tipo identificados pela IA.' :
+    sugestaoTipoModo === 'Socorro'   ? 'Tipo e Setor = Socorro, qualquer que seja a resposta da IA.' :
+                                       `Tipo = ${sugestaoTipoModo} (o Setor continua o identificado pela IA).`;
 }
-document.getElementById('sugestoes-modo')?.addEventListener('click', e => {
-  const b = e.target.closest('button[data-modo]');
-  if(b) setSugestaoModo(b.dataset.modo);
+document.getElementById('sugestoes-tipo-alt')?.addEventListener('click', e => {
+  const b = e.target.closest('button[data-tipo]');
+  if(b) setSugestaoTipoModo(b.dataset.tipo);
 });
-renderSugestaoModoUI();
+renderSugestaoTipoUI();
 
 function pushSugestaoCategoria(setor, categoriaSugerida, tipo, descricaoLinha){
-  if(sugestaoModo === 'socorro'){
-    setor = SUGESTAO_SETOR_FIXO;
-    tipo  = SUGESTAO_TIPO_FIXO;
+  if(sugestaoTipoModo !== 'auto'){
+    tipo = sugestaoTipoModo;
+    if(sugestaoTipoModo === 'Socorro') setor = 'Socorro';
   }
   const catTxt = (categoriaSugerida || '').trim();
   const chave = `${normalize(setor)}|${normalize(catTxt || '(sem sugestão de nome)')}`;
@@ -7511,7 +7517,7 @@ function renderSugestoesTab(){
     const catsExistentes = (SETOR_CATEGORIAS[item.setor] || []);
     const dlOpts = catsExistentes.map(c => `<option value="${escAttr(c)}">`).join('');
     const setoresReais = Object.keys(SETOR_CATEGORIAS).filter(s => s !== 'Não classificado').sort((a,b)=>a.localeCompare(b,'pt-BR'));
-    if(sugestaoModo === 'socorro' && !setoresReais.includes(SUGESTAO_SETOR_FIXO)) setoresReais.push(SUGESTAO_SETOR_FIXO);
+    if(item.setor && item.setor !== 'Não classificado' && !setoresReais.includes(item.setor)) setoresReais.push(item.setor);
     const setorOpts = setoresReais.map(s =>
       `<option value="${escAttr(s)}"${s === item.setor ? ' selected' : ''}>${escAttr(s)}</option>`
     ).join('');
