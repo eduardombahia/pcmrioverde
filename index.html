@@ -2027,6 +2027,16 @@
     background:var(--panel); border:1px solid var(--line); padding:6px 10px; border-radius:6px; cursor:pointer;
   }
   #pcm-admin-modal{ max-height:88vh; overflow-y:auto; }
+  /* ── Dashboard de Planos ── */
+  .dp-status{display:inline-block;font-family:var(--font-mono);font-size:10.5px;padding:2px 8px;border-radius:3px;border:1px solid var(--line);color:var(--dim);white-space:nowrap;}
+  .dp-status.v{background:rgba(var(--red-rgb),.14);color:var(--red);border-color:rgba(var(--red-rgb),.3);}
+  .dp-status.k{background:rgba(var(--orange-rgb),.14);color:var(--orange);border-color:rgba(var(--orange-rgb),.3);}
+  .dp-status.l{background:rgba(var(--yellow-rgb),.14);color:var(--yellow);border-color:rgba(var(--yellow-rgb),.3);}
+  .dp-status.ok{background:rgba(var(--green-rgb),.14);color:var(--green);border-color:rgba(var(--green-rgb),.3);}
+  .dp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:26px;}
+  .dp-grid .bar-label{width:190px;} .dp-grid .bar-val{width:48px;}
+  .dp-pct{font-family:var(--font-mono);}
+  @media(max-width:1100px){.dp-grid{grid-template-columns:1fr;}}  
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a1a1a'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' font-family='sans-serif'%3E%F0%9F%94%A7%3C/text%3E%3C/svg%3E">
@@ -2129,6 +2139,7 @@
     <button class="tab-btn" data-tab="gns"><span class="tab-icon">🚧</span><span class="tab-label">GNS</span></button>
     <button class="tab-btn" data-tab="hodometro"><span class="tab-icon">🛣️</span><span class="tab-label">Hodômetro</span></button>
     <button class="tab-btn" data-tab="frota"><span class="tab-icon">🚌</span><span class="tab-label">Frota</span></button>
+    <button class="tab-btn" data-tab="dashboard-planos"><span class="tab-icon">📈</span><span class="tab-label">Dashboard de Planos</span></button>
     <button class="tab-btn" data-tab="categorias"><span class="tab-icon">🏷️</span><span class="tab-label">Chaves de Erro</span></button>
     <button class="tab-btn" data-tab="sugestoes"><span class="tab-icon">💡</span><span class="tab-label">Sugestões de Categoria</span><span class="tab-badge" id="sugestoes-badge" style="display:none;">0</span></button>
     <button class="tab-btn" data-tab="log"><span class="tab-icon">📋</span><span class="tab-label">Log</span></button>
@@ -2726,7 +2737,57 @@
     <button class="btn-secondary" id="frota-import-toggle-btn">📂 Importar frota (CSV)</button>
     <button class="btn-primary" id="frota-add-btn">+ Adicionar veículo</button>
   </div>
+<div id="tab-dashboard-planos" class="tab-panel">
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Visão dos planos de manutenção por garagem, com base nas abas <b>Base Planos</b> e <b>Dash Planos</b> da planilha de comparação. Importe o CSV e os filtros e comparações são calculados automaticamente.</p>
 
+  <div class="import-area">
+    <h3>Importar dados (CSV)</h3>
+    <div class="import-grid">
+      <div class="import-field"><label>Base Planos (CSV) — obrigatório</label><input type="file" id="dp-csv-planos" accept=".csv,.txt"></div>
+      <div class="import-field"><label>Base Ativos (CSV) — opcional, define a garagem</label><input type="file" id="dp-csv-ativos" accept=".csv,.txt"></div>
+      <div class="import-field"><label>KM rodado mensal</label><input type="number" id="dp-km-mensal" value="3600000" min="1"></div>
+    </div>
+    <div id="dp-import-msg" class="sub" style="margin:12px 0 0;"></div>
+  </div>
+
+  <div class="filters" id="dp-filters">
+    <select id="dp-garagem">
+      <option value="">Geral (todas as garagens)</option>
+      <option>São Francisco</option><option>Vitorino</option><option>Bandeirantes</option>
+    </select>
+    <select id="dp-plano"><option value="">Todos os planos</option></select>
+    <select id="dp-status">
+      <option value="">Todos os status</option><option value="v">Vencido</option><option value="k">Km Estourado</option><option value="l">Atingiu limite</option><option value="ok">Em dia</option>
+    </select>
+    <input type="text" id="dp-busca" placeholder="Filtrar por carro…">
+    <span class="count">Exibindo <b id="dp-count">0</b> registros</span>
+  </div>
+
+  <section class="kpis" id="dp-kpis"></section>
+
+  <section class="dp-grid">
+    <div class="card"><h3>% vencido por garagem</h3><div id="dp-bars-garagem"></div></div>
+    <div class="card"><h3>Planos com mais vencidos</h3><div id="dp-bars-planos"></div></div>
+    <div class="card"><h3>Distribuição por status</h3><div id="dp-bars-status"></div></div>
+  </section>
+
+  <div class="card" style="margin-bottom:26px;">
+    <h3>Resumo por plano — <span id="dp-resumo-titulo">Geral</span></h3>
+    <div class="table-wrap" style="max-height:420px;">
+      <table><thead><tr><th>Plano</th><th>Periodicidade (km)</th><th>Qtd. diária</th><th>Carros</th><th>Vencidos</th><th>% vencido</th><th>São Francisco</th><th>Vitorino</th><th>Bandeirantes</th></tr></thead>
+      <tbody id="dp-resumo-tbody"></tbody></table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Detalhamento dos planos</h3>
+    <div class="table-wrap">
+      <table><thead><tr><th>Carro</th><th>Garagem</th><th>Plano</th><th>Última manutenção</th><th>Km rodado</th><th>Km diferença</th><th>Dias</th><th>Status</th></tr></thead>
+      <tbody id="dp-det-tbody"></tbody></table>
+    </div>
+    <p class="sub" id="dp-det-nota" style="margin:10px 0 0;"></p>
+  </div>
+</div>
   <!-- ── Importação de Frota a partir do relatório "Equipamentos" ── -->
   <div id="frota-import-area" style="display:none;margin-bottom:20px;">
     <div class="import-area">
@@ -2798,7 +2859,6 @@
       </div>
       <input type="file" id="vinculo-csv-input" accept=".csv,.txt">
     </div>
-
     <div id="vinculo-import-summary" style="display:none;margin-top:16px;"></div>
 
     <div id="vinculo-import-preview-wrap" style="display:none;margin-top:16px;">
@@ -3905,6 +3965,7 @@ const PCM_ABAS = [
   { id:'gns',          label:'GNS' },
   { id:'hodometro',    label:'Hodômetro' },
   { id:'frota',        label:'Frota' },
+  { id:'dashboard-planos', label:'Dashboard de Planos' },
   { id:'importar',     label:'Importar OS' },
   { id:'categorias',   label:'Chaves de Erro' },
   { id:'sugestoes',    label:'Sugestões de Categoria' },
@@ -12898,7 +12959,151 @@ async function pcmBoot(){
 }
 
 pcmBoot();
+// ═══════════════ DASHBOARD DE PLANOS ═══════════════
+(function(){
+  const GARAGENS=['São Francisco','Vitorino','Bandeirantes'];
+  const $=id=>document.getElementById(id);
+  const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const norm=t=>String(t==null?'':t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  let DP={rows:[],ativos:{}};
 
+  function parseCSV(text){
+    text=text.replace(/^\uFEFF/,'');
+    const first=text.split(/\r?\n/)[0]||'';
+    const d=(first.split(';').length>first.split(',').length)?';':(first.split('\t').length>first.split(',').length?'\t':',');
+    const out=[];let row=[],f='',q=false;
+    for(let i=0;i<text.length;i++){
+      const c=text[i];
+      if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+      else if(c==='"') q=true;
+      else if(c===d){row.push(f);f='';}
+      else if(c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n')i++; row.push(f);f=''; if(row.some(x=>x!==''))out.push(row); row=[]; }
+      else f+=c;
+    }
+    row.push(f); if(row.some(x=>x!==''))out.push(row);
+    return out;
+  }
+  function num(v){
+    if(v==null)return null; let t=String(v).trim().replace(/\s/g,''); if(t===''||t==='#N/A')return null;
+    if(t.includes('.')&&t.includes(','))t=t.replace(/\./g,'').replace(',','.');
+    else if(t.includes(','))t=t.replace(',','.');
+    else if(/^-?\d{1,3}(\.\d{3})+$/.test(t))t=t.replace(/\./g,'');
+    const n=parseFloat(t); return isNaN(n)?null:n;
+  }
+  function garagemCanon(g){
+    const n=norm(g); return GARAGENS.find(x=>norm(x)===n)||'';
+  }
+  function fmtData(v){
+    if(!v)return '—'; const t=String(v).trim();
+    if(/^\d{4}-\d{2}-\d{2}/.test(t)){const [y,m,d]=t.slice(0,10).split('-');return d+'/'+m+'/'+y;}
+    return t;
+  }
+  function statusDe(r){
+    const o=norm(r.obs);
+    if(o==='vencido')return 'v';
+    if(o==='km estourado')return 'k';
+    if(o.startsWith('atingiu'))return 'l';
+    if(!o){ // sem Observação no CSV: aplica a regra da planilha (Km Diferença > 0 ou Dias > Int. Dias)
+      if((r.kmDif!=null&&r.kmDif>0)||(r.intDias>0&&r.dias!=null&&r.dias>r.intDias))return 'v';
+    }
+    return 'ok';
+  }
+  const STATUS_LBL={v:'Vencido',k:'Km Estourado',l:'Atingiu limite',ok:'Em dia'};
+
+  function lerPlanos(text){
+    const t=parseCSV(text); if(t.length<2)throw new Error('Arquivo vazio.');
+    const h=t[0].map(norm), occ={};
+    const idx=(n,nth=0)=>{let c=-1;for(let i=0;i<h.length;i++){if(h[i]===n){if(++c===nth)return i;}}return -1;};
+    const ix={carro:idx('carro'),plano:idx('plano de manutencao'),intKm:idx('int. km'),intDias:idx('int. dias'),data:idx('data ultima manutencao'),
+      kmRodado:idx('km rodado'),dias:idx('dias',0),kmDif:idx('km diferenca'),obs:idx('observacao'),gar:idx('garagem')};
+    if(ix.carro<0||ix.plano<0)throw new Error('Colunas "Carro" e "Plano de Manutenção" não encontradas. Exporte a aba Base Planos.');
+    const g=(r,i)=>i<0?'':r[i];
+    return t.slice(1).map(r=>({
+      carro:String(g(r,ix.carro)).trim(), plano:String(g(r,ix.plano)).trim(),
+      intKm:num(g(r,ix.intKm))||0, intDias:num(g(r,ix.intDias))||0, data:g(r,ix.data),
+      kmRodado:num(g(r,ix.kmRodado)), dias:num(g(r,ix.dias)), kmDif:num(g(r,ix.kmDif)),
+      obs:g(r,ix.obs), gar:garagemCanon(g(r,ix.gar))
+    })).filter(r=>r.carro&&r.plano);
+  }
+  function lerAtivos(text){
+    const t=parseCSV(text), h=t[0].map(norm), ic=h.indexOf('carro'), ig=h.indexOf('garagem');
+    if(ic<0||ig<0)throw new Error('Base Ativos precisa das colunas "Carro" e "Garagem".');
+    const m={}; t.slice(1).forEach(r=>{const c=String(r[ic]).trim(),gr=garagemCanon(r[ig]); if(c&&gr)m[c]=gr;}); return m;
+  }
+  function aplicarAtivos(){
+    if(!Object.keys(DP.ativos).length)return;
+    DP.rows.forEach(r=>{ if(DP.ativos[r.carro])r.gar=DP.ativos[r.carro]; });
+  }
+
+  function filtrados(ignorarGaragem){
+    const g=$('dp-garagem').value, p=$('dp-plano').value, st=$('dp-status').value, b=norm($('dp-busca').value);
+    return DP.rows.filter(r=>{
+      r._st=r._st||statusDe(r);
+      if(!ignorarGaragem&&g&&r.gar!==g)return false;
+      if(p&&r.plano!==p)return false;
+      if(st&&r._st!==st)return false;
+      if(b&&!norm(r.carro).includes(b))return false;
+      return true;
+    });
+  }
+  function barras(el,itens,fmt){
+    const max=Math.max(1,...itens.map(i=>i.v));
+    el.innerHTML=itens.length?itens.map(i=>`<div class="bar-row"><span class="bar-label" title="${esc(i.l)}">${esc(i.l)}</span><div class="bar-track"><div class="bar-fill" style="width:${(i.v/max*100).toFixed(1)}%"></div></div><span class="bar-val">${fmt?fmt(i.v):i.v}</span></div>`).join(''):'<div class="sub">Sem dados.</div>';
+  }
+  const pct=(a,b)=>b?(a/b*100):0, pfmt=v=>v.toFixed(1).replace('.',',')+'%';
+
+  function render(){
+    const base=filtrados(false), g=$('dp-garagem').value;
+    $('dp-count').textContent=base.length.toLocaleString('pt-BR');
+    $('dp-resumo-titulo').textContent=g||'Geral';
+    const carros=new Set(base.map(r=>r.carro)).size, venc=base.filter(r=>r._st==='v').length,
+          kmE=base.filter(r=>r._st==='k').length, lim=base.filter(r=>r._st==='l').length;
+    const k=(c,n,l)=>`<div class="kpi ${c}"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+    $('dp-kpis').innerHTML=k('veic',carros.toLocaleString('pt-BR'),'Carros')+k('',base.length.toLocaleString('pt-BR'),'Planos')+
+      k('socorro',venc.toLocaleString('pt-BR'),'Vencidos')+k('taxa',pfmt(pct(venc,base.length)),'% vencido')+
+      k('corr',kmE.toLocaleString('pt-BR'),'Km estourado')+k('improcedente',lim.toLocaleString('pt-BR'),'Atingiu limite');
+
+    // comparação entre garagens (ignora o filtro de garagem, respeita os demais)
+    const todas=filtrados(true);
+    barras($('dp-bars-garagem'),GARAGENS.map(x=>{const a=todas.filter(r=>r.gar===x);return{l:x,v:pct(a.filter(r=>r._st==='v').length,a.length)};}),pfmt);
+    const porPlano={}; base.forEach(r=>{ if(r._st==='v')porPlano[r.plano]=(porPlano[r.plano]||0)+1; });
+    barras($('dp-bars-planos'),Object.entries(porPlano).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([l,v])=>({l,v})));
+    barras($('dp-bars-status'),Object.keys(STATUS_LBL).map(s=>({l:STATUS_LBL[s],v:base.filter(r=>r._st===s).length})));
+
+    // resumo por plano (mesma lógica da aba Dash Planos)
+    const mensal=num($('dp-km-mensal').value)||0, planos={};
+    base.forEach(r=>{const o=planos[r.plano]=planos[r.plano]||{km:r.intKm,n:0,v:0,g:{}};
+      o.n++; if(r._st==='v')o.v++; if(r.intKm>o.km)o.km=r.intKm;
+      const gg=o.g[r.gar]=o.g[r.gar]||{n:0,v:0}; gg.n++; if(r._st==='v')gg.v++; });
+    $('dp-resumo-tbody').innerHTML=Object.entries(planos).sort((a,b)=>b[1].v-a[1].v).map(([p,o])=>{
+      const cel=x=>x?`${x.v}/${x.n} <span class="dp-pct" style="color:var(--dim)">(${pfmt(pct(x.v,x.n))})</span>`:'—';
+      return `<tr><td>${esc(p)}</td><td>${o.km?o.km.toLocaleString('pt-BR'):'—'}</td><td>${o.km&&mensal?(mensal/o.km/24).toLocaleString('pt-BR',{maximumFractionDigits:1}):'—'}</td><td>${o.n}</td><td>${o.v}</td><td class="dp-pct">${pfmt(pct(o.v,o.n))}</td>${GARAGENS.map(x=>`<td>${cel(o.g[x])}</td>`).join('')}</tr>`;}).join('')||'<tr><td colspan="9" class="sub">Importe o CSV da Base Planos.</td></tr>';
+
+    // detalhamento (mais críticos primeiro)
+    const LIM=300, ordem={v:0,k:1,l:2,ok:3};
+    const det=base.slice().sort((a,b)=>ordem[a._st]-ordem[b._st]||(b.kmDif||0)-(a.kmDif||0));
+    $('dp-det-tbody').innerHTML=det.slice(0,LIM).map(r=>`<tr><td>${esc(r.carro)}</td><td>${esc(r.gar||'—')}</td><td>${esc(r.plano)}</td><td>${esc(fmtData(r.data))}</td><td>${r.kmRodado!=null?r.kmRodado.toLocaleString('pt-BR'):'—'}</td><td>${r.kmDif!=null?r.kmDif.toLocaleString('pt-BR'):'—'}</td><td>${r.dias!=null?r.dias:'—'}</td><td><span class="dp-status ${r._st}">${STATUS_LBL[r._st]}</span></td></tr>`).join('');
+    $('dp-det-nota').textContent=det.length>LIM?`Mostrando os ${LIM} registros mais críticos de ${det.length.toLocaleString('pt-BR')}. Use os filtros para refinar.`:'';
+  }
+  function atualizarSelectPlanos(){
+    const sel=$('dp-plano'), v=sel.value, ps=[...new Set(DP.rows.map(r=>r.plano))].sort();
+    sel.innerHTML='<option value="">Todos os planos</option>'+ps.map(p=>`<option>${esc(p)}</option>`).join(''); sel.value=ps.includes(v)?v:'';
+  }
+  function msg(t,erro){const m=$('dp-import-msg');m.textContent=t;m.style.color=erro?'var(--red)':'var(--green)';}
+  function lerArquivo(file,cb){const fr=new FileReader();fr.onload=()=>{try{cb(fr.result);}catch(e){msg('Erro: '+e.message,true);}};fr.readAsText(file,'utf-8');}
+
+  $('dp-csv-planos').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
+    lerArquivo(f,t=>{DP.rows=lerPlanos(t);aplicarAtivos();atualizarSelectPlanos();
+      const sem=DP.rows.filter(r=>!r.gar).length;
+      msg(`${DP.rows.length.toLocaleString('pt-BR')} planos importados.`+(sem?` ${sem.toLocaleString('pt-BR')} sem garagem (importe a Base Ativos para vinculá-los).`:''));render();});});
+  $('dp-csv-ativos').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
+    lerArquivo(f,t=>{DP.ativos=lerAtivos(t);aplicarAtivos();msg(`${Object.keys(DP.ativos).length} carros vinculados a garagens.`);render();});});
+  ['dp-garagem','dp-plano','dp-status'].forEach(id=>$(id).addEventListener('change',render));
+  $('dp-busca').addEventListener('input',render);
+  $('dp-km-mensal').addEventListener('input',render);
+  document.querySelector('.tab-btn[data-tab="dashboard-planos"]').addEventListener('click',render);
+  render();
+})();
 </script>
 </body>
 </html>
