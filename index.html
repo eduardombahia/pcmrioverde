@@ -2817,7 +2817,30 @@
   </div>
 
   <section class="kpis" id="dp-kpis"></section>
-
+  <div class="card" style="margin-bottom:26px;">
+    <h3>Imagem de preventivas do dia</h3>
+    <p class="sub" style="margin-top:0;">Lista os carros mais próximos de vencer (ou já vencidos) na <b>601-Preventiva Inspeção</b>. Marque os carros e gere a imagem: as colunas recebem "x" nos planos <b>Vencidos</b> ou que <b>Atingiram o limite</b>. Respeita o filtro de garagem acima. Carros com "Km Estourado" (erro de hodômetro) ficam fora da lista.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+      <input type="date" id="dp-img-data" title="Data do título">
+      <input type="number" id="dp-img-qtd" value="8" min="1" max="40" style="width:80px;" title="Qtd. de carros">
+      <button class="btn-secondary" id="dp-img-sug">Sugerir carros</button>
+      <button class="btn-secondary" id="dp-img-limpar">Limpar seleção</button>
+      <button class="btn-primary" id="dp-img-gerar">🖼️ Gerar imagem</button>
+      <span class="sub" style="margin:0;"><b id="dp-img-nsel">0</b> selecionados</span>
+    </div>
+    <div class="table-wrap" style="max-height:300px;">
+      <table><thead><tr><th style="width:40px;"></th><th>Carro</th><th>Garagem</th><th>Km diferença (601)</th><th>Outros planos pendentes</th></tr></thead>
+      <tbody id="dp-sel-tbody"><tr><td colspan="5" class="sub">Importe o CSV da Base Planos.</td></tr></tbody></table>
+    </div>
+    <div id="dp-img-wrap" style="display:none;margin-top:16px;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+        <button class="btn-primary" id="dp-img-down">⬇ Baixar PNG</button>
+        <button class="btn-secondary" id="dp-img-copy">📋 Copiar imagem</button>
+        <span class="sub" id="dp-img-msg" style="margin:0;align-self:center;"></span>
+      </div>
+      <div style="overflow-x:auto;"><canvas id="dp-canvas" style="max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;"></canvas></div>
+    </div>
+  </div>
   <section class="dp-grid">
     <div class="card"><h3>% vencido por garagem</h3><div id="dp-bars-garagem"></div></div>
     <div class="card"><h3>Planos com mais vencidos</h3><div id="dp-bars-planos"></div></div>
@@ -12966,7 +12989,7 @@ pcmBoot();
   const $=id=>document.getElementById(id);
   const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const norm=t=>String(t==null?'':t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
-  let DP={rows:[],ativos:{}};
+  let DP={rows:[],ativos:{},anos:{},sel:new Set()}
 
   function parseCSV(text){
     text=text.replace(/^\uFEFF/,'');
@@ -13029,7 +13052,7 @@ pcmBoot();
   function lerAtivos(text){
     const t=parseCSV(text), h=t[0].map(norm), ic=h.indexOf('carro'), ig=h.indexOf('garagem');
     if(ic<0||ig<0)throw new Error('Base Ativos precisa das colunas "Carro" e "Garagem".');
-    const m={}; t.slice(1).forEach(r=>{const c=String(r[ic]).trim(),gr=garagemCanon(r[ig]); if(c&&gr)m[c]=gr;}); return m;
+    const m={}, ia=h.indexOf('ano'); t.slice(1).forEach(r=>{const c=String(r[ic]).trim(),gr=garagemCanon(r[ig]); if(c&&gr)m[c]=gr; if(c&&ia>=0)DP.anos[c]=String(r[ia]).trim();}); return m;
   }
   function aplicarAtivos(){
     if(!Object.keys(DP.ativos).length)return;
@@ -13085,7 +13108,9 @@ pcmBoot();
     const det=base.slice().sort((a,b)=>ordem[a._st]-ordem[b._st]||(b.kmDif||0)-(a.kmDif||0));
     $('dp-det-tbody').innerHTML=det.slice(0,LIM).map(r=>`<tr><td>${esc(r.carro)}</td><td>${esc(r.gar||'—')}</td><td>${esc(r.plano)}</td><td>${esc(fmtData(r.data))}</td><td>${r.kmRodado!=null?r.kmRodado.toLocaleString('pt-BR'):'—'}</td><td>${r.kmDif!=null?r.kmDif.toLocaleString('pt-BR'):'—'}</td><td>${r.dias!=null?r.dias:'—'}</td><td><span class="dp-status ${r._st}">${STATUS_LBL[r._st]}</span></td></tr>`).join('');
     $('dp-det-nota').textContent=det.length>LIM?`Mostrando os ${LIM} registros mais críticos de ${det.length.toLocaleString('pt-BR')}. Use os filtros para refinar.`:'';
+    if(window.__dpPrev)window.__dpPrev();
   }
+  
   function atualizarSelectPlanos(){
     const sel=$('dp-plano'), v=sel.value, ps=[...new Set(DP.rows.map(r=>r.plano))].sort();
     sel.innerHTML='<option value="">Todos os planos</option>'+ps.map(p=>`<option>${esc(p)}</option>`).join(''); sel.value=ps.includes(v)?v:'';
@@ -13103,6 +13128,75 @@ pcmBoot();
   $('dp-busca').addEventListener('input',render);
   $('dp-km-mensal').addEventListener('input',render);
   document.querySelector('.tab-btn[data-tab="dashboard-planos"]').addEventListener('click',render);
+  // ── Imagem de preventivas ──
+  const COLS=[
+    {re:/^165-/,t:'REVISAR CUBOS DE RODA (RETENTOR)'},
+    {re:/^502-/,t:'TROCA ÓLEO MOTOR / FILTRO LUB.'},
+    {re:/^503-/,t:'TROCA DE FILTRO COMBUSTÍVEL E FILTRO SEPARADOR'},
+    {re:/^164-/,t:'TROCAR FILTRO DE AR',y:1},
+    {re:/^168-/,t:'TROCAR ÓLEO DIFERENCIAL',y:1},
+    {re:/^169-/,t:'TROCAR ÓLEO DE CAIXA',y:1},
+    {re:/^471-/,t:'FILTRO DA VÁLVULA APU (FILTRO SECADOR)',y:1},
+    {re:/^467-/,t:'REGULAGEM DE VÁLVULA DO MOTOR'}];
+  const dI=$('dp-img-data'); (()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());dI.value=d.toISOString().slice(0,10);})();
+  function candidatos(){
+    const g=$('dp-garagem').value, por={};
+    DP.rows.forEach(r=>{(por[r.carro]=por[r.carro]||{insp:null,flags:{}});
+      const o=por[r.carro]; o.gar=o.gar||r.gar;
+      if(/^601-/.test(r.plano)&&r.intKm>0&&statusDe(r)!=='k')o.insp=r; /* ignora Km Estourado (erro de hodômetro) */
+      const st=statusDe(r); if(st==='v'||st==='l')COLS.forEach((c,i)=>{if(c.re.test(r.plano))o.flags[i]=1;});});
+    return Object.entries(por).filter(([c,o])=>o.insp&&o.insp.kmDif!=null&&(!g||o.gar===g))
+      .map(([c,o])=>({carro:c,gar:o.gar,kmDif:o.insp.kmDif,flags:o.flags}))
+      .sort((a,b)=>b.kmDif-a.kmDif||a.carro.localeCompare(b.carro,'pt',{numeric:true}));
+  }
+  function prevRender(){
+    const cand=candidatos(), tb=$('dp-sel-tbody');
+    $('dp-img-nsel').textContent=DP.sel.size;
+    if(!cand.length){tb.innerHTML='<tr><td colspan="5" class="sub">Importe o CSV da Base Planos.</td></tr>';return;}
+    tb.innerHTML=cand.slice(0,80).map(c=>`<tr><td><input type="checkbox" data-car="${esc(c.carro)}" ${DP.sel.has(c.carro)?'checked':''}></td><td>${esc(c.carro)}</td><td>${esc(c.gar||'—')}</td><td>${c.kmDif.toLocaleString('pt-BR')}</td><td>${Object.keys(c.flags).length}</td></tr>`).join('');
+  }
+  window.__dpPrev=prevRender;
+  $('dp-sel-tbody').addEventListener('change',e=>{const c=e.target.dataset.car;if(!c)return;e.target.checked?DP.sel.add(c):DP.sel.delete(c);$('dp-img-nsel').textContent=DP.sel.size;});
+  $('dp-img-sug').addEventListener('click',()=>{DP.sel=new Set(candidatos().slice(0,Math.max(1,+$('dp-img-qtd').value||8)).map(c=>c.carro));prevRender();});
+  $('dp-img-limpar').addEventListener('click',()=>{DP.sel.clear();prevRender();});
+  function quebrar(ctx,txt,w){const out=[];let l='';txt.split(' ').forEach(x=>{const t=l?l+' '+x:x;if(ctx.measureText(t).width>w&&l){out.push(l);l=x;}else l=t;});if(l)out.push(l);return out;}
+  function gerarImagem(){
+    const cand=candidatos().filter(c=>DP.sel.has(c.carro));
+    const m=$('dp-img-msg'); if(!cand.length){alert('Selecione ao menos um carro (ou clique em "Sugerir carros").');return;}
+    const kmL=re=>{const v=DP.rows.filter(r=>re.test(r.plano)&&r.intKm>0).map(r=>r.intKm);return v.length?Math.min(...v):0;};
+    const insKm=kmL(/^601-/);
+    const cols=[{w:90,t:'Carro',f:'#dce6f1'},{w:130,t:'GARAGEM',f:'#dce6f1'},{w:100,t:String(insKm||''),f:'#dce6f1'}]
+      .concat(COLS.map(c=>({w:150,t:c.t,f:c.y?'#ffff00':'#dce6f1',km:kmL(c.re)?kmL(c.re)/1000+' MIL':''})))
+      .concat([{w:90,t:'Ano',f:'#dce6f1'}]);
+    const W=cols.reduce((a,c)=>a+c.w,0), TH=36, KH=20, HH=84, RH=26, N=Math.max(cand.length,10), H=TH+KH+HH+RH*N, S=2;
+    const cv=$('dp-canvas'); cv.width=W*S; cv.height=H*S; const x=cv.getContext('2d'); x.scale(S,S);
+    const F='Calibri, Arial, sans-serif';
+    x.fillStyle='#fff'; x.fillRect(0,0,W,H); x.strokeStyle='#000'; x.lineWidth=1; x.textAlign='center'; x.textBaseline='middle';
+    const dt=dI.value.split('-').reverse().join('/');
+    x.fillStyle='#000'; x.font='bold 18px '+F; x.fillText('Preventivas do dia '+dt,W/2,TH/2); x.strokeRect(.5,.5,W-1,TH);
+    let px=0;
+    cols.forEach((c,i)=>{
+      if(c.km){x.fillStyle='#333';x.font='11px '+F;x.fillText(c.km,px+c.w/2,TH+KH/2);}
+      const y0=TH+KH; x.fillStyle=c.f; x.fillRect(px,y0,c.w,HH); x.strokeRect(px+.5,y0+.5,c.w-1,HH);
+      x.fillStyle='#000'; x.font='bold 14px '+F; const ln=quebrar(x,c.t,c.w-12); ln.forEach((l,k)=>x.fillText(l,px+c.w/2,y0+HH/2+(k-(ln.length-1)/2)*17));
+      for(let r=0;r<N;r++){
+        const y=y0+HH+r*RH, d=cand[r];
+        x.fillStyle=(i===1)?'#e7e6e6':(i===0||i===cols.length-1)?'#dce6f1':'#fff'; x.fillRect(px,y,c.w,RH); x.strokeRect(px+.5,y+.5,c.w-1,RH);
+        if(!d)continue; x.fillStyle='#000'; x.font=(i===0?'bold ':'')+'14px '+F;
+        const v=i===0?d.carro:i===1?d.gar:i===2?'X':i===cols.length-1?(DP.anos[d.carro]||''):(d.flags[i-3]?'x':'');
+        if(v)x.fillText(v,px+c.w/2,y+RH/2+1);
+      }
+      px+=c.w;
+    });
+    $('dp-img-wrap').style.display='block'; m.textContent=cand.length+' carros na imagem.';
+    cv.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  $('dp-img-gerar').addEventListener('click',gerarImagem);
+  const nome=()=>'preventivas_'+dI.value.split('-').reverse().join('-')+'.png';
+  $('dp-img-down').addEventListener('click',()=>{$('dp-canvas').toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nome();a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);});});
+  $('dp-img-copy').addEventListener('click',()=>{const m=$('dp-img-msg');
+    $('dp-canvas').toBlob(async b=>{try{await navigator.clipboard.write([new ClipboardItem({'image/png':b})]);m.textContent='Imagem copiada! Cole (Ctrl+V) no WhatsApp/e-mail.';}catch(e){m.textContent='Não foi possível copiar neste navegador. Use "Baixar PNG".';}});});
+  
   render();
 })();
 </script>
