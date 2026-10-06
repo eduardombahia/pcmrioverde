@@ -2737,57 +2737,7 @@
     <button class="btn-secondary" id="frota-import-toggle-btn">📂 Importar frota (CSV)</button>
     <button class="btn-primary" id="frota-add-btn">+ Adicionar veículo</button>
   </div>
-<div id="tab-dashboard-planos" class="tab-panel">
-  <p class="sub" style="margin-top:0;margin-bottom:16px;">Visão dos planos de manutenção por garagem, com base nas abas <b>Base Planos</b> e <b>Dash Planos</b> da planilha de comparação. Importe o CSV e os filtros e comparações são calculados automaticamente.</p>
 
-  <div class="import-area">
-    <h3>Importar dados (CSV)</h3>
-    <div class="import-grid">
-      <div class="import-field"><label>Base Planos (CSV) — obrigatório</label><input type="file" id="dp-csv-planos" accept=".csv,.txt"></div>
-      <div class="import-field"><label>Base Ativos (CSV) — opcional, define a garagem</label><input type="file" id="dp-csv-ativos" accept=".csv,.txt"></div>
-      <div class="import-field"><label>KM rodado mensal</label><input type="number" id="dp-km-mensal" value="3600000" min="1"></div>
-    </div>
-    <div id="dp-import-msg" class="sub" style="margin:12px 0 0;"></div>
-  </div>
-
-  <div class="filters" id="dp-filters">
-    <select id="dp-garagem">
-      <option value="">Geral (todas as garagens)</option>
-      <option>São Francisco</option><option>Vitorino</option><option>Bandeirantes</option>
-    </select>
-    <select id="dp-plano"><option value="">Todos os planos</option></select>
-    <select id="dp-status">
-      <option value="">Todos os status</option><option value="v">Vencido</option><option value="k">Km Estourado</option><option value="l">Atingiu limite</option><option value="ok">Em dia</option>
-    </select>
-    <input type="text" id="dp-busca" placeholder="Filtrar por carro…">
-    <span class="count">Exibindo <b id="dp-count">0</b> registros</span>
-  </div>
-
-  <section class="kpis" id="dp-kpis"></section>
-
-  <section class="dp-grid">
-    <div class="card"><h3>% vencido por garagem</h3><div id="dp-bars-garagem"></div></div>
-    <div class="card"><h3>Planos com mais vencidos</h3><div id="dp-bars-planos"></div></div>
-    <div class="card"><h3>Distribuição por status</h3><div id="dp-bars-status"></div></div>
-  </section>
-
-  <div class="card" style="margin-bottom:26px;">
-    <h3>Resumo por plano — <span id="dp-resumo-titulo">Geral</span></h3>
-    <div class="table-wrap" style="max-height:420px;">
-      <table><thead><tr><th>Plano</th><th>Periodicidade (km)</th><th>Qtd. diária</th><th>Carros</th><th>Vencidos</th><th>% vencido</th><th>São Francisco</th><th>Vitorino</th><th>Bandeirantes</th></tr></thead>
-      <tbody id="dp-resumo-tbody"></tbody></table>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Detalhamento dos planos</h3>
-    <div class="table-wrap">
-      <table><thead><tr><th>Carro</th><th>Garagem</th><th>Plano</th><th>Última manutenção</th><th>Km rodado</th><th>Km diferença</th><th>Dias</th><th>Status</th></tr></thead>
-      <tbody id="dp-det-tbody"></tbody></table>
-    </div>
-    <p class="sub" id="dp-det-nota" style="margin:10px 0 0;"></p>
-  </div>
-</div>
   <!-- ── Importação de Frota a partir do relatório "Equipamentos" ── -->
   <div id="frota-import-area" style="display:none;margin-bottom:20px;">
     <div class="import-area">
@@ -2840,7 +2790,58 @@
     </table>
   </div>
 </div>
+<div id="tab-dashboard-planos" class="tab-panel">
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Visão dos planos de manutenção por garagem, com base nas abas <b>Base Planos</b> e <b>Dash Planos</b> da planilha de comparação. Importe o CSV e os filtros e comparações são calculados automaticamente.</p>
 
+  <div class="import-area">
+    <h3>Importar dados (CSV)</h3>
+    <div class="import-grid">
+      <div class="import-field"><label>Base Planos (CSV) — obrigatório</label><input type="file" id="dp-csv-planos" accept=".csv,.txt"></div>
+      <div class="import-field"><label>Base Ativos (CSV) — opcional, define a garagem</label><input type="file" id="dp-csv-ativos" accept=".csv,.txt"></div>
+      <div class="import-field"><label>KM rodado mensal</label><input type="number" id="dp-km-mensal" value="3600000" min="1"></div>
+    </div>
+    <div id="dp-import-msg" class="sub" style="margin:12px 0 0;"></div>
+  </div>
+
+  <div class="filters" id="dp-filters">
+    <select id="dp-garagem">
+      <option value="">Geral (todas as garagens)</option>
+      <option>São Francisco</option><option>Vitorino</option><option>Bandeirantes</option>
+    </select>
+    <select id="dp-plano"><option value="">Todos os planos</option></select>
+    <select id="dp-status">
+      <option value="">Todos os status</option><option value="v">Vencido</option><option value="k">Km Estourado</option><option value="l">Atingiu limite</option><option value="ok">Em dia</option>
+    </select>
+    <input type="text" id="dp-busca" placeholder="Filtrar por carro…">
+    <span class="count">Exibindo <b id="dp-count">0</b> registros</span>
+  </div>
+
+  <section class="kpis" id="dp-kpis"></section>
+
+  <section class="dp-grid">
+    <div class="card"><h3>% vencido por garagem</h3><div id="dp-bars-garagem"></div></div>
+    <div class="card"><h3>Planos com mais vencidos</h3><div id="dp-bars-planos"></div></div>
+    <div class="card"><h3>Distribuição por status</h3><div id="dp-bars-status"></div></div>
+  </section>
+
+  <div class="card" style="margin-bottom:26px;">
+    <h3>Resumo por plano — <span id="dp-resumo-titulo">Geral</span></h3>
+    <div class="table-wrap" style="max-height:420px;">
+      <table><thead><tr><th>Plano</th><th>Periodicidade (km)</th><th>Qtd. diária</th><th>Carros</th><th>Vencidos</th><th>% vencido</th><th>São Francisco</th><th>Vitorino</th><th>Bandeirantes</th></tr></thead>
+      <tbody id="dp-resumo-tbody"></tbody></table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Detalhamento dos planos</h3>
+    <div class="table-wrap">
+      <table><thead><tr><th>Carro</th><th>Garagem</th><th>Plano</th><th>Última manutenção</th><th>Km rodado</th><th>Km diferença</th><th>Dias</th><th>Status</th></tr></thead>
+      <tbody id="dp-det-tbody"></tbody></table>
+    </div>
+    <p class="sub" id="dp-det-nota" style="margin:10px 0 0;"></p>
+  </div>
+</div>
+  
 <!-- ═══════════════ VÍNCULO EMPRESA × FROTA (SOMENTE ADMIN) ═══════════════ -->
 <!-- Esta aba só aparece para super_admin/admin_unidade (ver pcmAplicarPermissoesNaUI).
      Para qualquer outro usuário, o botão fica com display:none e ele nem sabe que existe. -->
