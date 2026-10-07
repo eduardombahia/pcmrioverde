@@ -2842,10 +2842,12 @@
   </div>
     <div class="card" style="margin-top:26px;">
     <h3>Imagem de preventivas do dia</h3>
-    <p class="sub" style="margin-top:0;">Lista os carros mais próximos de vencer (ou já vencidos) na <b>601-Preventiva Inspeção</b>. Marque os carros e gere a imagem: as colunas recebem "x" nos planos <b>Vencidos</b> ou que <b>Atingiram o limite</b>. Respeita o filtro de garagem acima. Carros com "Km Estourado" (erro de hodômetro) ficam fora da lista.</p>
+    <p class="sub" style="margin-top:0;">Lista os carros mais próximos de vencer (ou já vencidos) na <b>601-Preventiva Inspeção</b>. Marque os carros e gere a imagem: as colunas recebem "x" nos planos <b>Vencidos</b>, que <b>Atingiram o limite</b> ou que faltam até a <b>margem de km</b> (padrão 3.000 km) para vencer. Respeita o filtro de garagem acima. Carros com "Km Estourado" (erro de hodômetro) ficam fora da lista.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
       <input type="date" id="dp-img-data" title="Data do título">
       <input type="number" id="dp-img-qtd" value="8" min="1" max="40" style="width:80px;" title="Qtd. de carros">
+            <input type="number" id="dp-img-margem" value="3000" min="0" step="500" style="width:100px;" title="Margem em km: planos que faltam até esse valor para vencer também são marcados">
+      <span class="sub" style="margin:0;">km de margem</span>
       <button class="btn-secondary" id="dp-img-sug">Sugerir carros</button>
       <button class="btn-secondary" id="dp-img-limpar">Limpar seleção</button>
       <button class="btn-primary" id="dp-img-gerar">🖼️ Gerar imagem</button>
@@ -13149,7 +13151,7 @@ pcmBoot();
     DP.rows.forEach(r=>{(por[r.carro]=por[r.carro]||{insp:null,flags:{}});
       const o=por[r.carro]; o.gar=o.gar||r.gar;
       if(/^601-/.test(r.plano)&&r.intKm>0&&statusDe(r)!=='k')o.insp=r; /* ignora Km Estourado (erro de hodômetro) */
-      const st=statusDe(r); if(st==='v'||st==='l')COLS.forEach((c,i)=>{if(c.re.test(r.plano))o.flags[i]=1;});});
+      const st=statusDe(r), mg=Math.max(0,+$('dp-img-margem').value||0); /* marca vencido, atingiu limite ou a vencer dentro da margem (km) */ if(st==='v'||st==='l'||(st!=='k'&&r.intKm>0&&r.kmDif!=null&&r.kmDif>=-mg))COLS.forEach((c,i)=>{if(c.re.test(r.plano))o.flags[i]=1;});});
     return Object.entries(por).filter(([c,o])=>o.insp&&o.insp.kmDif!=null&&(!g||o.gar===g))
       .map(([c,o])=>({carro:c,gar:o.gar,kmDif:o.insp.kmDif,flags:o.flags}))
       .sort((a,b)=>b.kmDif-a.kmDif||a.carro.localeCompare(b.carro,'pt',{numeric:true}));
@@ -13202,6 +13204,7 @@ pcmBoot();
     if(quiet!==true)cv.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
   $('dp-img-gerar').addEventListener('click',()=>gerarImagem());
+  $('dp-img-margem').addEventListener('input',()=>{prevRender();if($('dp-img-wrap').style.display==='block'&&DP.sel.size)gerarImagem(true);});
   $('dp-img-obs').addEventListener('input',()=>{if($('dp-img-wrap').style.display==='block'&&DP.sel.size)gerarImagem(true);});
   const nome=()=>'preventivas_'+dI.value.split('-').reverse().join('-')+'.png';
   $('dp-img-down').addEventListener('click',()=>{$('dp-canvas').toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nome();a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);});});
