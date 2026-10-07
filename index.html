@@ -2817,21 +2817,7 @@
   </div>
 
   <section class="kpis" id="dp-kpis"></section>
-  <div class="card" style="margin-bottom:26px;">
-   
-    <div class="table-wrap" style="max-height:300px;">
-      <table><thead><tr><th style="width:40px;"></th><th>Carro</th><th>Garagem</th><th>Km diferença (601)</th><th>Outros planos pendentes</th></tr></thead>
-      <tbody id="dp-sel-tbody"><tr><td colspan="5" class="sub">Importe o CSV da Base Planos.</td></tr></tbody></table>
-    </div>
-    <div id="dp-img-wrap" style="display:none;margin-top:16px;">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-        <button class="btn-primary" id="dp-img-down">⬇ Baixar PNG</button>
-        <button class="btn-secondary" id="dp-img-copy">📋 Copiar imagem</button>
-        <span class="sub" id="dp-img-msg" style="margin:0;align-self:center;"></span>
-      </div>
-      <div style="overflow-x:auto;"><canvas id="dp-canvas" style="max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;"></canvas></div>
-    </div>
-  </div>
+ 
   <section class="dp-grid">
     <div class="card"><h3>% vencido por garagem</h3><div id="dp-bars-garagem"></div></div>
     <div class="card"><h3>Planos com mais vencidos</h3><div id="dp-bars-planos"></div></div>
@@ -13008,7 +12994,7 @@ pcmBoot();
   const $=id=>document.getElementById(id);
   const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const norm=t=>String(t==null?'':t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
-  let DP={rows:[],ativos:{},anos:{},sel:new Set()}
+  let DP={rows:[],ativos:{},anos:{},sel:new Set()}; 
 
   function parseCSV(text){
     text=text.replace(/^\uFEFF/,'');
