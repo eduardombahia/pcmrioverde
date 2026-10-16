@@ -218,6 +218,12 @@
   .month-bars .seg{width:9px;border-radius:1px 1px 0 0;}
   .seg.c{background:var(--brand);}
   .seg.p{background:var(--green);}
+  .seg.s{background:var(--RedJohn);}
+  .months{height:175px;overflow-x:auto;}
+  .month-col{min-width:62px;}
+  .month-bars .sw{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;width:18px;}
+  .month-bars .sw .seg{width:14px;}
+  .sn{font-family:var(--font-mono);font-size:10px;color:var(--chalk);margin-bottom:2px;line-height:1;}
   .month-name{font-family:var(--font-mono);font-size:10.5px;color:var(--dim);margin-top:6px;text-transform:uppercase;}
   .month-qty{font-family:var(--font-mono);font-size:11px;color:var(--chalk);margin-bottom:4px;font-weight:600;}
   .legend{display:flex;gap:16px;margin-top:14px;font-size:11.5px;color:var(--dim);}
@@ -1424,7 +1430,7 @@
     .bar-label{width:100px;font-size:12.5px;}
     .bar-track{height:12px;}
     .bar-val{width:28px;font-size:12.5px;}
-    .months{height:120px;gap:5px;}
+    .months{height:150px;gap:5px;}
     .month-bars{gap:2px;}
     .month-bars .seg{width:6px;}
     .month-name{font-size:10.5px;}
@@ -2036,6 +2042,12 @@
   .dp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:26px;}
   .dp-grid .bar-label{width:190px;} .dp-grid .bar-val{width:48px;}
   .dp-pct{font-family:var(--font-mono);}
+  dp-sort{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px;}
+  .dp-sort label{font-family:var(--font-mono);font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;}
+  .dp-sort select{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);font-family:var(--font-mono);font-size:12.5px;border-radius:4px;padding:7px 10px;}
+  .dp-big table th,.dp-big table td{font-size:14px;padding:13px 16px;}
+  .dp-tbl th[data-k]{cursor:pointer;user-select:none;}
+  .dp-tbl th[data-k]:hover{color:var(--chalk);}
   @media(max-width:1100px){.dp-grid{grid-template-columns:1fr;}}  
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -2155,12 +2167,13 @@
 
   <section class="charts">
     <div class="card">
-      <h3 class="card-h-row">Ordens por mês — corretiva vs. preventiva
+      <h3 class="card-h-row">Ordens por mês — corretiva, socorro e preventiva
         <select id="months-month" class="card-h-select"><option value="">Todos os meses</option></select>
       </h3>
       <div class="months" id="months"></div>
       <div class="legend" id="months-legend">
         <span><i class="dot" style="background:var(--orange)"></i>Corretiva</span>
+        <span><i class="dot" style="background:var(--RedJohn)"></i>Socorro</span>
         <span><i class="dot" style="background:var(--green)"></i>Preventiva</span>
       </div>
     </div>
@@ -2798,7 +2811,7 @@
     <div class="import-grid">
       <div class="import-field"><label>Base Planos (CSV) — obrigatório</label><input type="file" id="dp-csv-planos" accept=".csv,.txt"></div>
       <div class="import-field"><label>Base Ativos (CSV) — opcional, define a garagem</label><input type="file" id="dp-csv-ativos" accept=".csv,.txt"></div>
-      <div class="import-field"><label>KM rodado mensal</label><input type="number" id="dp-km-mensal" value="3600000" min="1"></div>
+     
     </div>
     <div id="dp-import-msg" class="sub" style="margin:12px 0 0;"></div>
   </div>
@@ -2806,7 +2819,7 @@
   <div class="filters" id="dp-filters">
     <select id="dp-garagem">
       <option value="">Geral (todas as garagens)</option>
-      <option>São Francisco</option><option>Vitorino</option><option>Bandeirantes</option>
+      <option>São Francisco</option><option>Vitorino</option><option>Bandeirantes</option><option value="__sem">Sem garagem</option>
     </select>
     <select id="dp-plano"><option value="">Todos os planos</option></select>
     <select id="dp-status">
@@ -2826,16 +2839,23 @@
 
   <div class="card" style="margin-bottom:26px;">
     <h3>Resumo por plano — <span id="dp-resumo-titulo">Geral</span></h3>
-    <div class="table-wrap" style="max-height:420px;">
-      <table><thead><tr><th>Plano</th><th>Periodicidade (km)</th><th>Qtd. diária</th><th>Carros</th><th>Vencidos</th><th>% vencido</th><th>São Francisco</th><th>Vitorino</th><th>Bandeirantes</th></tr></thead>
+    div class="dp-sort"><label>Ordenar por</label>
+      <select id="dp-res-ord"><option value="v">Carros vencidos</option><option value="pct">% vencido</option><option value="n">Carros relacionados</option><option value="km">Periodicidade</option><option value="plano">Plano (A–Z)</option></select>
+      <button class="btn-secondary" id="dp-res-dir" type="button"></button></div>
+    <div class="table-wrap dp-big dp-tbl" data-t="res" style="max-height:75vh;">
+      <table><thead><tr><th data-k="plano">Plano</th><th data-k="km">Periodicidade (km)</th><th data-k="n">Carros relacionados</th><th data-k="v">Carros vencidos</th><th data-k="pct">% vencido</th></tr></thead>
       <tbody id="dp-resumo-tbody"></tbody></table>
     </div>
   </div>
 
   <div class="card">
     <h3>Detalhamento dos planos</h3>
-    <div class="table-wrap">
-      <table><thead><tr><th>Carro</th><th>Garagem</th><th>Plano</th><th>Última manutenção</th><th>Km rodado</th><th>Km diferença</th><th>Dias</th><th>Status</th></tr></thead>
+        <div class="dp-sort"><label>Ordenar por</label>
+      <select id="dp-det-ord"><option value="status">Status (críticos primeiro)</option><option value="kmDif">Km diferença</option><option value="kmRodado">Km rodado</option><option value="dias">Dias</option><option value="carro">Carro</option><option value="plano">Plano</option><option value="gar">Garagem</option></select>
+      <button class="btn-secondary" id="dp-det-dir" type="button"></button></div>
+    <div class="table-wrap dp-tbl" data-t="det">
+      <table><thead><tr><th data-k="carro">Carro</th><th data-k="gar">Garagem</th><th data-k="plano">Plano</th><th data-k="data">Última manutenção</th><th data-k="kmRodado">Km rodado</th><th data-k="kmDif">Km diferença</th><th data-k="dias">Dias</th><th data-k="status">Status</th></tr></thead>
+   
       <tbody id="dp-det-tbody"></tbody></table>
     </div>
     <p class="sub" id="dp-det-nota" style="margin:10px 0 0;"></p>
@@ -5630,19 +5650,20 @@ function renderMonths(){
   const monthMap = {};
   rows.forEach(r=>{
     const key = r.data.slice(0,7);
-    if(!monthMap[key]) monthMap[key] = {c:0,p:0};
-    if(r.tipo==='Corretiva') monthMap[key].c++; else if(r.tipo==='Preventiva') monthMap[key].p++;
+    if(!monthMap[key]) monthMap[key] = {c:0,s:0,p:0};
+    if(r.tipo==='Corretiva') monthMap[key].c++; else if(r.tipo==='Socorro') monthMap[key].s++; else if(r.tipo==='Preventiva') monthMap[key].p++;
   });
 
   const legend = document.getElementById('months-legend');
 
   // ── Mês específico selecionado → barras horizontais ──
   if(monthFilter){
-    const d = monthMap[monthFilter] || {c:0,p:0};
-    const total = d.c + d.p;
-    const maxVal = Math.max(d.c, d.p, 1);
+    const d = monthMap[monthFilter] || {c:0,s:0,p:0};
+    const total = d.c + d.s + d.p;
+    const maxVal = Math.max(d.c, d.s, d.p, 1);
     const items = [
       {label:'Corretiva', n:d.c, color:'var(--orange)'},
+      {label:'Socorro', n:d.s, color:'var(--RedJohn)'},
       {label:'Preventiva', n:d.p, color:'var(--green)'},
     ];
     document.getElementById('months').className = '';
@@ -5665,19 +5686,16 @@ function renderMonths(){
   document.getElementById('months').style.cssText = '';
   legend.style.display = '';
   const monthKeys = Object.keys(monthMap).sort();
-  const maxMonth = Math.max(...monthKeys.map(k=>monthMap[k].c+monthMap[k].p), 1);
+  const maxMonth = Math.max(...monthKeys.map(k=>monthMap[k].c+monthMap[k].s+monthMap[k].p), 1);
   document.getElementById('months').innerHTML = monthKeys.map(k=>{
-    const {c,p} = monthMap[k];
+    const {c,s,p} = monthMap[k];
     const label = MESES[parseInt(k.slice(5,7),10)-1];
-    const hC = Math.round((c/maxMonth)*120);
-    const hP = Math.round((p/maxMonth)*120);
-    const total = c + p;
+        const h = n => Math.round((n/maxMonth)*100);
+    const total = c + s + p;
+    const bar = (n,cls,nome) => `<div class="sw"><span class="sn">${n}</span><div class="seg ${cls}" style="height:${h(n)}px" title="${n} ${nome}"></div></div>`;
     return `<div class="month-col">
-      <div class="month-qty">${total}</div>
-      <div class="month-bars">
-        <div class="seg c" style="height:${hC}px" title="${c} corretivas"></div>
-        <div class="seg p" style="height:${hP}px" title="${p} preventivas"></div>
-      </div>
+            <div class="month-qty" title="Total de OS no mês">${total}</div>
+      <div class="month-bars">${bar(c,'c','corretivas')}${bar(s,'s','socorro')}${bar(p,'p','preventivas')}</div>
       <div class="month-name">${label}</div>
     </div>`;
   }).join('');
@@ -12993,6 +13011,7 @@ pcmBoot();
 // ═══════════════ DASHBOARD DE PLANOS ═══════════════
 (function(){
   const GARAGENS=['São Francisco','Vitorino','Bandeirantes'];
+  const KM_MENSAL=3600000; // média mensal embutida (km rodado da frota)
   const $=id=>document.getElementById(id);
   const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const norm=t=>String(t==null?'':t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
@@ -13022,8 +13041,12 @@ pcmBoot();
     const n=parseFloat(t); return isNaN(n)?null:n;
   }
   function garagemCanon(g){
-    const n=norm(g); return GARAGENS.find(x=>norm(x)===n)||'';
+     const n=norm(g).replace(/[^a-z]/g,''); // tolera acento quebrado, maiúsculas, espaços e prefixos
+    if(n.includes('francisco'))return GARAGENS[0]; if(n.includes('vitorino'))return GARAGENS[1]; if(n.includes('bandeirante'))return GARAGENS[2];
+    return '';
   }
+    // chave do carro: ignora espaços, caixa, zeros à esquerda, ".0" e separador de milhar do Excel
+  const chave=c=>String(c==null?'':c).trim().toUpperCase().replace(/\s+/g,'').replace(/[.,]0+$/,'').replace(/^(\d{1,3})(\.\d{3})+$/,m=>m.replace(/\./g,'')).replace(/^0+(?=\d)/,'');
   function fmtData(v){
     if(!v)return '—'; const t=String(v).trim();
     if(/^\d{4}-\d{2}-\d{2}/.test(t)){const [y,m,d]=t.slice(0,10).split('-');return d+'/'+m+'/'+y;}
@@ -13059,18 +13082,31 @@ pcmBoot();
   function lerAtivos(text){
     const t=parseCSV(text), h=t[0].map(norm), ic=h.indexOf('carro'), ig=h.indexOf('garagem');
     if(ic<0||ig<0)throw new Error('Base Ativos precisa das colunas "Carro" e "Garagem".');
-    const m={}, ia=h.indexOf('ano'); t.slice(1).forEach(r=>{const c=String(r[ic]).trim(),gr=garagemCanon(r[ig]); if(c&&gr)m[c]=gr; if(c&&ia>=0)DP.anos[c]=String(r[ia]).trim();}); return m;
+        const m={}, ia=h.indexOf('ano'); t.slice(1).forEach(r=>{const c=String(r[ic]).trim(),gr=garagemCanon(r[ig]); if(c&&gr)m[chave(c)]=gr; if(c&&ia>=0)DP.anos[chave(c)]=String(r[ia]).trim();}); return m;
   }
   function aplicarAtivos(){
-    if(!Object.keys(DP.ativos).length)return;
-    DP.rows.forEach(r=>{ if(DP.ativos[r.carro])r.gar=DP.ativos[r.carro]; });
+        if(Object.keys(DP.ativos).length)DP.rows.forEach(r=>{ const g=DP.ativos[chave(r.carro)]; if(g)r.gar=g; });
+    // quem ainda está sem garagem herda a de outro plano do mesmo carro
+    const porCarro={}; DP.rows.forEach(r=>{ if(r.gar)porCarro[chave(r.carro)]=r.gar; });
+    DP.rows.forEach(r=>{ if(!r.gar&&porCarro[chave(r.carro)])r.gar=porCarro[chave(r.carro)]; });
   }
-
+  // ── Ordenação (maior→menor / menor→maior) ──
+  const SORT={res:{k:'v',d:-1},det:{k:'status',d:1}};
+  const cmp=(a,b)=>(typeof a==='string'||typeof b==='string')?String(a==null?'':a).localeCompare(String(b==null?'':b),'pt',{numeric:true}):(a==null?-Infinity:a)-(b==null?-Infinity:b);
+  function syncSort(){
+    [['res','dp-res-ord','dp-res-dir'],['det','dp-det-ord','dp-det-dir']].forEach(([t,so,bd])=>{
+      const st=SORT[t], sel=$(so); if(sel.querySelector(`option[value="${st.k}"]`))sel.value=st.k;
+      $(bd).textContent=st.d===-1?'▼ Maior → menor':'▲ Menor → maior';
+      document.querySelectorAll(`#tab-dashboard-planos .dp-tbl[data-t="${t}"] th[data-k]`).forEach(th=>{
+        th.dataset.l=th.dataset.l||th.textContent; th.textContent=th.dataset.l+(th.dataset.k===st.k?(st.d===-1?' ▼':' ▲'):'');});
+    });
+  }
+  function setSort(t,k){const st=SORT[t]; if(k===st.k)st.d=-st.d; else{st.k=k; st.d=(['plano','carro','gar','data','status'].includes(k))?1:-1;} render();}
   function filtrados(ignorarGaragem){
     const g=$('dp-garagem').value, p=$('dp-plano').value, st=$('dp-status').value, b=norm($('dp-busca').value);
     return DP.rows.filter(r=>{
       r._st=r._st||statusDe(r);
-      if(!ignorarGaragem&&g&&r.gar!==g)return false;
+      if(!ignorarGaragem&&g&&(g==='__sem'?!!r.gar:r.gar!==g))return false;
       if(p&&r.plano!==p)return false;
       if(st&&r._st!==st)return false;
       if(b&&!norm(r.carro).includes(b))return false;
@@ -13086,7 +13122,7 @@ pcmBoot();
   function render(){
     const base=filtrados(false), g=$('dp-garagem').value;
     $('dp-count').textContent=base.length.toLocaleString('pt-BR');
-    $('dp-resumo-titulo').textContent=g||'Geral';
+   $('dp-resumo-titulo').textContent=g==='__sem'?'Sem garagem':(g||'Geral');
     const carros=new Set(base.map(r=>r.carro)).size, venc=base.filter(r=>r._st==='v').length,
           kmE=base.filter(r=>r._st==='k').length, lim=base.filter(r=>r._st==='l').length;
     const k=(c,n,l)=>`<div class="kpi ${c}"><div class="n">${n}</div><div class="l">${l}</div></div>`;
@@ -13102,19 +13138,19 @@ pcmBoot();
     barras($('dp-bars-status'),Object.keys(STATUS_LBL).map(s=>({l:STATUS_LBL[s],v:base.filter(r=>r._st===s).length})));
 
     // resumo por plano (mesma lógica da aba Dash Planos)
-    const mensal=num($('dp-km-mensal').value)||0, planos={};
-    base.forEach(r=>{const o=planos[r.plano]=planos[r.plano]||{km:r.intKm,n:0,v:0,g:{}};
-      o.n++; if(r._st==='v')o.v++; if(r.intKm>o.km)o.km=r.intKm;
-      const gg=o.g[r.gar]=o.g[r.gar]||{n:0,v:0}; gg.n++; if(r._st==='v')gg.v++; });
-    $('dp-resumo-tbody').innerHTML=Object.entries(planos).sort((a,b)=>b[1].v-a[1].v).map(([p,o])=>{
-      const cel=x=>x?`${x.v}/${x.n} <span class="dp-pct" style="color:var(--dim)">(${pfmt(pct(x.v,x.n))})</span>`:'—';
-      return `<tr><td>${esc(p)}</td><td>${o.km?o.km.toLocaleString('pt-BR'):'—'}</td><td>${o.km&&mensal?(mensal/o.km/24).toLocaleString('pt-BR',{maximumFractionDigits:1}):'—'}</td><td>${o.n}</td><td>${o.v}</td><td class="dp-pct">${pfmt(pct(o.v,o.n))}</td>${GARAGENS.map(x=>`<td>${cel(o.g[x])}</td>`).join('')}</tr>`;}).join('')||'<tr><td colspan="9" class="sub">Importe o CSV da Base Planos.</td></tr>';
-
+        syncSort();
+    const planos={};
+    base.forEach(r=>{const o=planos[r.plano]=planos[r.plano]||{plano:r.plano,km:r.intKm,n:0,v:0};
+      o.n++; if(r._st==='v')o.v++; if(r.intKm>o.km)o.km=r.intKm; });
+    const RS=SORT.res, lista=Object.values(planos).map(o=>({...o,pct:pct(o.v,o.n)}))
+      .sort((a,b)=>RS.d*cmp(a[RS.k],b[RS.k])||b.v-a.v||cmp(a.plano,b.plano));
+    $('dp-resumo-tbody').innerHTML=lista.map(o=>`<tr><td>${esc(o.plano)}</td><td>${o.km?o.km.toLocaleString('pt-BR'):'—'}</td><td>${o.n}</td><td>${o.v}</td><td class="dp-pct">${pfmt(o.pct)}</td></tr>`).join('')||'<tr><td colspan="5" class="sub">Importe o CSV da Base Planos.</td></tr>';
     // detalhamento (mais críticos primeiro)
-    const LIM=300, ordem={v:0,k:1,l:2,ok:3};
-    const det=base.slice().sort((a,b)=>ordem[a._st]-ordem[b._st]||(b.kmDif||0)-(a.kmDif||0));
+    const LIM=300, ordem={v:0,k:1,l:2,ok:3}, DS=SORT.det;
+    const val=(r,k)=>k==='status'?ordem[r._st]:r[k];
+    const det=base.slice().sort((a,b)=>DS.d*cmp(val(a,DS.k),val(b,DS.k))||(b.kmDif||0)-(a.kmDif||0));
     $('dp-det-tbody').innerHTML=det.slice(0,LIM).map(r=>`<tr><td>${esc(r.carro)}</td><td>${esc(r.gar||'—')}</td><td>${esc(r.plano)}</td><td>${esc(fmtData(r.data))}</td><td>${r.kmRodado!=null?r.kmRodado.toLocaleString('pt-BR'):'—'}</td><td>${r.kmDif!=null?r.kmDif.toLocaleString('pt-BR'):'—'}</td><td>${r.dias!=null?r.dias:'—'}</td><td><span class="dp-status ${r._st}">${STATUS_LBL[r._st]}</span></td></tr>`).join('');
-    $('dp-det-nota').textContent=det.length>LIM?`Mostrando os ${LIM} registros mais críticos de ${det.length.toLocaleString('pt-BR')}. Use os filtros para refinar.`:'';
+    $('dp-det-nota').textContent=det.length>LIM?`Mostrando os ${LIM} primeiros de ${det.length.toLocaleString('pt-BR')} registros, conforme a ordenação escolhida. Use os filtros para refinar.`:'';
     if(window.__dpPrev)window.__dpPrev();
   }
   
@@ -13123,17 +13159,25 @@ pcmBoot();
     sel.innerHTML='<option value="">Todos os planos</option>'+ps.map(p=>`<option>${esc(p)}</option>`).join(''); sel.value=ps.includes(v)?v:'';
   }
   function msg(t,erro){const m=$('dp-import-msg');m.textContent=t;m.style.color=erro?'var(--red)':'var(--green)';}
-  function lerArquivo(file,cb){const fr=new FileReader();fr.onload=()=>{try{cb(fr.result);}catch(e){msg('Erro: '+e.message,true);}};fr.readAsText(file,'utf-8');}
+    function lerArquivo(file,cb){const fr=new FileReader();fr.onload=()=>{try{
+      let t; try{t=new TextDecoder('utf-8',{fatal:true}).decode(fr.result);}catch(_){t=new TextDecoder('windows-1252').decode(fr.result);}
+      cb(t);}catch(e){msg('Erro: '+e.message,true);}};fr.readAsArrayBuffer(file);}
+  function avisoSemGaragem(){
+    const sem=[...new Set(DP.rows.filter(r=>!r.gar).map(r=>r.carro))];
+    return sem.length?` ${sem.length} carro(s) sem garagem (não constam na Base Ativos): ${sem.slice(0,15).join(', ')}${sem.length>15?'…':''}. Use o filtro "Sem garagem" para ver todos.`:' Todos os carros vinculados a uma garagem.';
+  }
 
   $('dp-csv-planos').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
     lerArquivo(f,t=>{DP.rows=lerPlanos(t);aplicarAtivos();atualizarSelectPlanos();
-      const sem=DP.rows.filter(r=>!r.gar).length;
-      msg(`${DP.rows.length.toLocaleString('pt-BR')} planos importados.`+(sem?` ${sem.toLocaleString('pt-BR')} sem garagem (importe a Base Ativos para vinculá-los).`:''));render();});});
+            msg(`${DP.rows.length.toLocaleString('pt-BR')} planos importados.`+avisoSemGaragem());render();});});
   $('dp-csv-ativos').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
-    lerArquivo(f,t=>{DP.ativos=lerAtivos(t);aplicarAtivos();msg(`${Object.keys(DP.ativos).length} carros vinculados a garagens.`);render();});});
+        lerArquivo(f,t=>{DP.ativos=lerAtivos(t);aplicarAtivos();msg(`${Object.keys(DP.ativos).length} carros vinculados a garagens.`+avisoSemGaragem());render();});});
   ['dp-garagem','dp-plano','dp-status'].forEach(id=>$(id).addEventListener('change',render));
   $('dp-busca').addEventListener('input',render);
-  $('dp-km-mensal').addEventListener('input',render);
+    [['res','dp-res-ord','dp-res-dir'],['det','dp-det-ord','dp-det-dir']].forEach(([t,so,bd])=>{
+    $(so).addEventListener('change',e=>{SORT[t].k=e.target.value;SORT[t].d=(['plano','carro','gar','status'].includes(e.target.value))?1:-1;render();});
+    $(bd).addEventListener('click',()=>{SORT[t].d=-SORT[t].d;render();});});
+  document.querySelectorAll('#tab-dashboard-planos .dp-tbl').forEach(w=>w.querySelector('thead').addEventListener('click',e=>{const th=e.target.closest('th[data-k]');if(th)setSort(w.dataset.t,th.dataset.k);}));
   document.querySelector('.tab-btn[data-tab="dashboard-planos"]').addEventListener('click',render);
     // ── Imagem de preventivas ──
   const COLS=[
@@ -13152,7 +13196,7 @@ pcmBoot();
       const o=por[r.carro]; o.gar=o.gar||r.gar;
       if(/^601-/.test(r.plano)&&r.intKm>0&&statusDe(r)!=='k')o.insp=r; /* ignora Km Estourado (erro de hodômetro) */
       const st=statusDe(r), mg=Math.max(0,+$('dp-img-margem').value||0); /* marca vencido, atingiu limite ou a vencer dentro da margem (km) */ if(st==='v'||st==='l'||(st!=='k'&&r.intKm>0&&r.kmDif!=null&&r.kmDif>=-mg))COLS.forEach((c,i)=>{if(c.re.test(r.plano))o.flags[i]=1;});});
-    return Object.entries(por).filter(([c,o])=>o.insp&&o.insp.kmDif!=null&&(!g||o.gar===g))
+      return Object.entries(por).filter(([c,o])=>o.insp&&o.insp.kmDif!=null&&(!g||(g==='__sem'?!o.gar:o.gar===g)))
       .map(([c,o])=>({carro:c,gar:o.gar,kmDif:o.insp.kmDif,flags:o.flags}))
       .sort((a,b)=>b.kmDif-a.kmDif||a.carro.localeCompare(b.carro,'pt',{numeric:true}));
   }
@@ -13192,7 +13236,7 @@ pcmBoot();
         const y=y0+HH+r*RH, d=cand[r];
         x.fillStyle=(i===1||c.t==='RODÍZIO DE BATERIAS')?'#e7e6e6':(i===0||i===cols.length-1)?'#dce6f1':'#fff'; x.fillRect(px,y,c.w,RH); x.strokeRect(px+.5,y+.5,c.w-1,RH);
         if(!d)continue; x.fillStyle='#000'; x.font=(i===0?'bold ':'')+'14px '+F;
-        const v=i===0?d.carro:i===1?d.gar:i===2?'X':i===cols.length-1?(DP.anos[d.carro]||''):(d.flags[i-3]?'x':'');
+        const v=i===0?d.carro:i===1?d.gar:i===2?'X':i===cols.length-1?(DP.anos[chave(d.carro)]||''):(d.flags[i-3]?'x':'');
         if(v)x.fillText(v,px+c.w/2,y+RH/2+1);
       }
       px+=c.w;
