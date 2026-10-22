@@ -2042,7 +2042,7 @@
   .dp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:26px;}
   .dp-grid .bar-label{width:190px;} .dp-grid .bar-val{width:48px;}
   .dp-pct{font-family:var(--font-mono);}
-  dp-sort{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px;}
+  .dp-sort{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px;}
   .dp-sort label{font-family:var(--font-mono);font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;}
   .dp-sort select{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);font-family:var(--font-mono);font-size:12.5px;border-radius:4px;padding:7px 10px;}
   .dp-big table th,.dp-big table td{font-size:14px;padding:13px 16px;}
@@ -2839,7 +2839,7 @@
 
   <div class="card" style="margin-bottom:26px;">
     <h3>Resumo por plano — <span id="dp-resumo-titulo">Geral</span></h3>
-    div class="dp-sort"><label>Ordenar por</label>
+    <div class="dp-sort"><label>Ordenar por</label>
       <select id="dp-res-ord"><option value="v">Carros vencidos</option><option value="pct">% vencido</option><option value="n">Carros relacionados</option><option value="km">Periodicidade</option><option value="plano">Plano (A–Z)</option></select>
       <button class="btn-secondary" id="dp-res-dir" type="button"></button></div>
     <div class="table-wrap dp-big dp-tbl" data-t="res" style="max-height:75vh;">
