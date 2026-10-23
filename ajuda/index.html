@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PCM — Ajuda: como importar</title>
+<style>
+:root{--bg:#F4F6F9;--card:#fff;--tx:#1b1f24;--dim:#5b6673;--line:#dfe4ea;--ac:#e8590c;--code:#eef1f5}
+@media(prefers-color-scheme:dark){:root{--bg:#15171a;--card:#1D2025;--tx:#e8eaed;--dim:#98a2ae;--line:#2d3138;--ac:#ff8a3d;--code:#262a30}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 system-ui,Segoe UI,Arial,sans-serif}
+header{padding:18px 22px;border-bottom:1px solid var(--line);background:var(--card);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;flex:1}header a{color:var(--ac);text-decoration:none;font-weight:600}
+main{max-width:860px;margin:0 auto;padding:20px 18px 60px}
+nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+nav a{padding:6px 12px;border:1px solid var(--line);border-radius:99px;color:var(--tx);text-decoration:none;font-size:13px;background:var(--card)}
+nav a:hover{border-color:var(--ac)}
+section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px 20px;margin-bottom:18px;scroll-margin-top:12px}
+h2{margin:0 0 4px;font-size:18px}h3{margin:16px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+.onde{color:var(--dim);font-size:13px;margin:0 0 8px}
+ol,ul{margin:6px 0;padding-left:22px}li{margin:3px 0}
+code{background:var(--code);padding:1px 6px;border-radius:4px;font-size:13px}
+.aviso{border-left:3px solid var(--ac);background:var(--code);padding:8px 12px;border-radius:4px;margin:10px 0;font-size:14px}
+#gate{max-width:480px;margin:80px auto;padding:0 18px;text-align:center}#gate a{color:var(--ac);font-weight:600}
+#conteudo{display:none}
+</style>
+</head>
+<body>
+<div id="gate"><h2>Ajuda do PCM</h2><p id="gate-msg">Verificando seu acesso…</p><p><a href="../">Entrar no PCM</a></p></div>
+
+<div id="conteudo">
+<header><h1>📘 Como importar no PCM</h1><a href="../">← Voltar ao PCM</a></header>
+<main>
+<nav>
+<a href="#frota">Frota</a><a href="#vinculo">Vínculo Empresa × Frota</a><a href="#hodometro">Hodômetro</a>
+<a href="#os">Ordens de Serviço</a><a href="#sr">Solicitações de Reparo</a><a href="#planos">Dashboard de Planos</a>
+</nav>
+
+<section id="frota">
+<h2>🚌 Frota — relatório "Equipamentos"</h2>
+<p class="onde">PCM → aba <b>Frota</b> → <b>📂 Importar frota (CSV)</b></p>
+<h3>1. Gerar o arquivo no sistema de origem</h3>
+<ul>
+<li>Abra o relatório <b>Equipamentos</b> e, em <b>Campos</b>, marque: Nr. Chassi, Dt. Início de Atividade, <b>Dt. Fim de Atividade</b>, Ano Chassi, Tipo de Chassi, Fabricante do Chassi, Tipo de Equipamento, Ano e Fabricante da Carroceria, Modelo Carroceria, Local, Linha, <b>Tipo Serviço</b>, Tipo Veículo, Tipo Combustível, Padrão Manutenção, Tipo Motor, Tipo Câmbio, <b>Placa</b> e Renavam. <b>Empresa</b> e <b>Nr. Ordem</b> já vêm marcados.</li>
+<li>Em <b>Situação</b>, escolha <b>TODOS</b> (com "10 - ATIVO" os veículos baixados não saem no relatório).</li>
+<li>Exporte em CSV.</li>
+</ul>
+<h3>2. Importar</h3>
+<ol>
+<li>Clique em <b>📂 Importar frota (CSV)</b> e arraste o arquivo (ou clique para escolher).</li>
+<li>Confira a prévia: <b>Novos veículos</b> (com o Local de destino e a Operação sugerida, que você pode trocar) e <b>Fichas a atualizar</b>.</li>
+<li>Clique em <b>✅ Importar / atualizar</b>.</li>
+</ol>
+<div class="aviso">Veículos que já existem têm só a <b>ficha</b> atualizada. <b>Placa, Operação e Local não são alterados</b>; se a placa do relatório for diferente, a prévia avisa. O <b>Tipo Serviço</b> do relatório fica numa coluna própria e não troca a Operação.</div>
+<h3>Problemas comuns</h3>
+<ul><li><i>"Não foi possível reconhecer este arquivo"</i> — o cabeçalho precisa ter pelo menos <code>Empresa</code>, <code>Nr. Ordem</code> e <code>Placa</code>.</li>
+<li>Colunas vazias (ex.: Linha) significam que o relatório não trouxe valor.</li></ul>
+</section>
+
+<section id="vinculo">
+<h2>🔗 Vínculo Empresa × Frota</h2>
+<p class="onde">PCM → painel de administração (restrito a admins) → <b>Importar relatório "Equipamentos" (CSV)</b></p>
+<ul><li>Usa o mesmo relatório "Equipamentos" da Frota (mínimo: <code>Empresa</code>, <code>Nr. Ordem</code>, <code>Placa</code>).</li>
+<li>O sistema reconhece a empresa de cada veículo pelo prefixo numérico (ex.: <code>087</code>) e grava o vínculo com a empresa cadastrada.</li></ul>
+</section>
+
+<section id="hodometro">
+<h2>🛣️ Hodômetro — relatório de abastecimento</h2>
+<p class="onde">PCM → aba <b>Hodômetro</b> → <b>Atualizar hodômetros</b></p>
+<ol>
+<li>Exporte o relatório de abastecimento (blocos por veículo, colunas Data, Hod. Atual, Comb., Km/Lt, Vl. Ab.).</li>
+<li>Arraste o arquivo (<code>.xlsx</code>, <code>.xls</code>, <code>.xlsm</code> ou <code>.csv</code>) na área de importação.</li>
+</ol>
+<div class="aviso">Linhas com valor zerado (só aditivo/óleo) são ignoradas automaticamente. Um CSV/XLSX genérico também funciona, com as colunas <code>Frota</code>, <code>Hodômetro</code>, <code>Litros</code>, <code>Km/L</code>, <code>Km Rodado</code> e <code>Data e Hora</code>.</div>
+<p>Para um único veículo, use a <b>Atualização manual</b> logo abaixo.</p>
+</section>
+
+<section id="os">
+<h2>🗂️ Ordens de Serviço</h2>
+<p class="onde">PCM → aba <b>Ordens de Serviço</b> → <b>Importar ordens de serviço</b></p>
+<ul><li>Aceita <code>.csv</code>, <code>.txt</code>, <code>.xlsx</code> e <code>.xls</code>: arraste o arquivo na área de importação. Também é possível lançar uma OS manualmente.</li>
+<li>Depois de importar, use <b>🏷️ Classificar pendentes</b> (na barra da aba) para classificar Setor/Categoria pela descrição.</li></ul>
+</section>
+
+<section id="sr">
+<h2>🛠️ Solicitações de Reparo (SR)</h2>
+<p class="onde">PCM → aba <b>Solicitações de Reparo</b> → <b>Importar Solicitações de Reparo</b></p>
+<ul><li>Aceita <code>.csv</code>, <code>.txt</code>, <code>.xlsx</code> e <code>.xls</code>: arraste o arquivo na área de importação.</li></ul>
+</section>
+
+<section id="planos">
+<h2>📈 Dashboard de Planos</h2>
+<p class="onde">PCM → aba <b>Dashboard de Planos</b> → <b>Importar dados (CSV)</b></p>
+<ul><li><b>Base Planos (CSV)</b> — obrigatório.</li>
+<li><b>Base Ativos (CSV)</b> — opcional; define a garagem.</li></ul>
+</section>
+</main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+// Mesmo projeto Firebase do PCM. Como esta página fica no mesmo endereço do PCM
+// (eduardombahia.github.io), a sessão de login é compartilhada automaticamente.
+firebase.initializeApp({
+  apiKey:"AIzaSyDFWILJKLMSaOneyK81UQpJnsqOxcxmT6o", authDomain:"pcmrioverdego.firebaseapp.com",
+  projectId:"pcmrioverdego", appId:"1:399286540282:web:0ee26179c292302b18f643"
+});
+firebase.auth().onAuthStateChanged(u => {
+  if(u){
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('conteudo').style.display = 'block';
+    if(location.hash){ const el = document.querySelector(location.hash); if(el) el.scrollIntoView(); }
+  } else {
+    document.getElementById('gate-msg').textContent = 'Entre no PCM para ver a ajuda.';
+  }
+});
+</script>
+</body>
+</html>
