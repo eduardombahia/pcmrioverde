@@ -678,6 +678,11 @@
 
   /* ── Frota table ── */
   .frota-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .frota-ficha-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 22px;margin:6px 0 4px;max-height:60vh;overflow-y:auto;}
+  .frota-ficha-grid .ff-item{min-width:0;}
+  .frota-ficha-grid .ff-label{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);}
+  .frota-ficha-grid .ff-valor{font-size:13px;color:var(--chalk);word-break:break-word;}
+  @media(max-width:600px){.frota-ficha-grid{grid-template-columns:1fr;}}
   .frota-toolbar input{
     background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);
     font-family:var(--font-body);font-size:13px;padding:8px 10px;border-radius:3px;outline:none;flex:1;min-width:160px;
@@ -695,6 +700,11 @@
   }
   .frota-card tbody td{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--chalk);}
   .frota-card tbody tr:hover{background:rgba(255,255,255,.02);}
+  .frota-card th.fx-left,.frota-card td.fx-left{position:sticky;left:0;z-index:2;background:var(--panel);box-shadow:1px 0 0 var(--line);}
+  .frota-card thead th.fx-left{background:var(--panel-2);z-index:3;}
+  .frota-card th.fx-right,.frota-card td.fx-right{position:sticky;right:0;z-index:2;background:var(--panel);box-shadow:-1px 0 0 var(--line);}
+  .frota-card thead th.fx-right{background:var(--panel-2);z-index:3;}
+  #frota-tbody td{white-space:nowrap;}
   .frota-card .op-pill{
     font-family:var(--font-mono);font-size:11px;padding:2px 7px;border-radius:3px;
     background:rgba(var(--brand-2-rgb),.12);color:var(--brand-2);border:1px solid rgba(var(--brand-2-rgb),.3);
@@ -784,7 +794,7 @@
   .modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;}
   .modal.modal-lg{width:min(720px,94vw);}
 
-  /* ── Modal de Classificação em Massa via IA ── */
+  /* ── Modal de Classificação em Massa ── */
   .modal.modal-massa{width:min(580px,94vw);}
   .massa-resumo{font-size:12.5px;color:var(--dim);margin-bottom:14px;line-height:1.5;}
   .massa-resumo strong{color:var(--chalk);}
@@ -804,7 +814,6 @@
   .massa-log-line.pend{color:var(--brand-2);}
   .massa-log-line.fail{color:var(--red);}
   .massa-log-line.info{color:var(--dim);}
-  #btn-massa-ia{display:none;} /* ocultado até IA_PROXY_URL ser definida */
   .hodo-veiculo-link{
     cursor:pointer;text-decoration:underline;text-decoration-color:transparent;
     transition:color .15s, text-decoration-color .15s;
@@ -2302,7 +2311,7 @@
     <button class="btn-secondary" id="f-search-btn">🔎 Pesquisar</button>
     <button class="clear-btn" id="f-clear">Limpar filtros</button>
     <span class="count"><b id="count-n">0</b> de <span id="count-total">0</span> ordens</span>
-    <button class="btn-secondary" id="btn-massa-ia" title="Classificar com IA todos os registros ainda sem Setor/Categoria">🤖 Classificar com IA</button>
+    <button class="btn-secondary" id="btn-massa-class" title="Classifica pela descrição todos os registros ainda sem Setor/Categoria, com base nas OS já classificadas">🏷️ Classificar pendentes</button>
     <button class="add-btn" id="open-drawer"><span class="plus">+</span> Novo registro</button>
   </section>
 
@@ -2746,7 +2755,7 @@
 <div id="tab-frota" class="tab-panel">
   <p class="sub" style="margin-top:0;margin-bottom:16px;">Cadastre e gerencie os veículos da frota, com placa e operação vinculada. Esta lista alimenta os campos de veículo em todos os outros formulários do sistema (OS, hodômetro, GNS e solicitações).</p>
   <div class="frota-toolbar">
-    <input type="text" id="frota-search" placeholder="Filtrar por veículo, placa ou operação…">
+    <input type="text" id="frota-search" placeholder="Filtrar por veículo, placa, empresa, operação, chassi…">
     <button class="btn-secondary" id="frota-import-toggle-btn">📂 Importar frota (CSV)</button>
     <button class="btn-primary" id="frota-add-btn">+ Adicionar veículo</button>
   </div>
@@ -2770,10 +2779,10 @@
 
       <div id="frota-import-preview-wrap" style="display:none;margin-top:16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <span style="font-family:var(--font-mono);font-size:12px;color:var(--dim);">Novos veículos a importar: <b id="frota-import-count" style="color:var(--brand-2)">0</b></span>
+          <span style="font-family:var(--font-mono);font-size:12px;color:var(--dim);">Novos veículos: <b id="frota-import-count" style="color:var(--brand-2)">0</b> · Fichas a atualizar: <b id="frota-import-upd-count" style="color:var(--brand-2)">0</b></span>
           <div style="display:flex;gap:8px;">
             <button class="btn-secondary" id="frota-import-cancel-btn">Cancelar</button>
-            <button class="btn-primary" id="frota-import-commit-btn">✅ Importar novos veículos</button>
+            <button class="btn-primary" id="frota-import-commit-btn">✅ Importar / atualizar</button>
           </div>
         </div>
         <div class="import-preview">
@@ -2791,13 +2800,7 @@
   <div class="frota-card">
     <table>
       <thead>
-        <tr>
-          <th id="th-unidade-frota" style="display:none;">Local</th>
-          <th>Veículo</th>
-          <th>Placa</th>
-          <th>Operação</th>
-          <th></th>
-        </tr>
+        <tr id="frota-thead-row"></tr>
       </thead>
       <tbody id="frota-tbody"></tbody>
     </table>
@@ -2953,7 +2956,7 @@
 
 <!-- ═══════════════ SUGESTÕES DE CATEGORIA TAB ═══════════════ -->
 <div id="tab-sugestoes" class="tab-panel">
-  <p class="sub" style="margin-top:0;margin-bottom:16px;">Toda vez que a IA reconhece o <b>Setor</b> certo pra uma descrição mas não encontra nenhuma <b>Categoria</b> já cadastrada que combine, o par não é adicionado sozinho — em vez disso, cai aqui como sugestão. Revise cada item: crie a categoria (se fizer sentido ter uma nova) ou descarte (se for um caso isolado que não precisa de categoria própria). Isso não altera nenhuma OS já lançada — só ajuda a manter sua lista de categorias completa pras próximas classificações.</p>
+  <p class="sub" style="margin-top:0;margin-bottom:16px;">Categorias sugeridas guardadas neste navegador (de usos anteriores do sistema). Revise cada item: crie a categoria (se fizer sentido ter uma nova) ou descarte (se for um caso isolado que não precisa de categoria própria). Isso não altera nenhuma OS já lançada — só ajuda a manter sua lista de categorias completa. A classificação atual (botão <b>Classificar</b> na OS e <b>Classificar pendentes</b>) usa apenas categorias que já existem, então novas sugestões não são geradas automaticamente.</p>
 
   <div id="sugestoes-empty" class="sub" style="display:none;padding:24px 0;text-align:center;">Nenhuma sugestão pendente no momento. 🎉</div>
   <div id="sugestoes-list" class="cat-setores-list"></div>
@@ -3280,6 +3283,18 @@
   </div>
 </div>
 
+<!-- ════ FICHA DO VEÍCULO (dados do relatório Equipamentos) ════ -->
+<div class="modal-overlay" id="frota-ficha-overlay">
+  <div class="modal" style="max-width:640px;">
+    <button class="modal-close" id="frota-ficha-close">&times;</button>
+    <h2 id="frota-ficha-title">Ficha do veículo</h2>
+    <div id="frota-ficha-body"></div>
+    <div class="modal-foot">
+      <button class="btn-secondary" id="frota-ficha-fechar">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Histórico de abastecimento / hodômetro do veículo -->
 <div class="modal-overlay" id="hodo-hist-modal-overlay">
   <div class="modal modal-lg">
@@ -3312,23 +3327,26 @@
 <div class="modal-overlay" id="massa-modal-overlay">
   <div class="modal modal-massa">
     <button class="modal-close" id="massa-modal-close">&times;</button>
-    <h2>🤖 Classificação em Massa com IA</h2>
+    <h2>🏷️ Classificar pendentes</h2>
     <p class="massa-resumo" id="massa-resumo-texto">Identificando registros sem classificação…</p>
-    <div class="massa-progress-bar-wrap">
-      <div class="massa-progress-bar" id="massa-progress-bar"></div>
+    <div class="field" style="margin-bottom:12px;">
+      <label for="massa-confianca">Confiança mínima para classificar</label>
+      <select id="massa-confianca">
+        <option value="0.8">Alta (80%) — só os mais seguros</option>
+        <option value="0.6" selected>Média (60%) — recomendado</option>
+        <option value="0.4">Baixa (40%) — mais registros, mais erros</option>
+      </select>
     </div>
     <div class="massa-stats">
-      <span class="massa-stat ok" id="massa-stat-ok">✅ 0 classificados</span>
-      <span class="massa-stat pend" id="massa-stat-pend">⚠️ 0 pendentes</span>
-      <span class="massa-stat fail" id="massa-stat-fail">❌ 0 falhas</span>
-      <span class="massa-stat skip" id="massa-stat-skip">⏭ 0 ignorados</span>
+      <span class="massa-stat ok" id="massa-stat-ok">✅ 0 prontos para aplicar</span>
+      <span class="massa-stat pend" id="massa-stat-pend">⚠️ 0 continuam pendentes</span>
+      <span class="massa-stat skip" id="massa-stat-skip">⏭ 0 sem descrição</span>
     </div>
     <div class="massa-log" id="massa-log"></div>
-    <div class="modal-foot" style="justify-content:space-between;align-items:center;">
-      <span style="font-family:var(--font-mono);font-size:11px;color:var(--dim);" id="massa-eta"></span>
+    <div class="modal-foot" style="justify-content:flex-end;align-items:center;">
       <div style="display:flex;gap:10px;">
-        <button class="btn-secondary" id="massa-btn-cancelar">Cancelar</button>
-        <button class="btn-primary" id="massa-btn-fechar" style="display:none;">Fechar e aplicar</button>
+        <button class="btn-secondary" id="massa-btn-fechar">Fechar</button>
+        <button class="btn-primary" id="massa-btn-aplicar" disabled>Nada a aplicar</button>
       </div>
     </div>
   </div>
@@ -3373,8 +3391,8 @@
       <label for="ed-descricao">Descrição *</label>
       <textarea id="ed-descricao"></textarea>
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
-        <button type="button" class="btn-secondary" id="ed-ia-classificar-btn" style="font-size:12px;padding:5px 10px;">🤖 Sugerir Setor/Categoria com IA</button>
-        <span id="ed-ia-classificar-status" style="font-size:11px;color:var(--dim);"></span>
+        <button type="button" class="btn-secondary" id="ed-classificar-btn" style="font-size:12px;padding:5px 10px;" title="Preenche Setor, Categoria e Tipo pela semelhança com OS já classificadas">🏷️ Classificar pela descrição</button>
+        <span id="ed-classificar-status" style="font-size:11px;color:var(--dim);"></span>
       </div>
     </div>
 
@@ -3488,8 +3506,8 @@
       <label for="in-descricao">Descrição *</label>
       <textarea id="in-descricao" placeholder="ex: Troca de óleo motor e filtros"></textarea>
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
-        <button type="button" class="btn-secondary" id="in-ia-classificar-btn" style="font-size:12px;padding:5px 10px;">🤖 Sugerir Setor/Categoria com IA</button>
-        <span id="in-ia-classificar-status" style="font-size:11px;color:var(--dim);"></span>
+        <button type="button" class="btn-secondary" id="in-classificar-btn" style="font-size:12px;padding:5px 10px;" title="Preenche Setor, Categoria e Tipo pela semelhança com OS já classificadas">🏷️ Classificar pela descrição</button>
+        <span id="in-classificar-status" style="font-size:11px;color:var(--dim);"></span>
       </div>
     </div>
 
@@ -3832,12 +3850,6 @@ const CATEGORIA_TIPOS_BASE = {
   'Mecânica|Desempenho': 'Corretiva',
 };
 const TIPOS_VALIDOS = ['Ambos','Corretiva','Preventiva'];
-
-// ── Configuração da IA de classificação (Setor/Categoria) ──
-// Depois de publicar o proxy (Cloudflare Worker — ver instruções à parte),
-// cole aqui a URL do endpoint. Deixe '' para manter o botão "Sugerir com IA"
-// desativado (nada quebra sem essa configuração).
-const IA_PROXY_URL = 'https://pcm-ia-proxy.eduardombahia.workers.dev';
 
 // ── Estado ativo (base + personalizações do usuário) ──
 // Estes objetos começam como cópia da base e podem ser sobrescritos pelo
@@ -7312,32 +7324,104 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // ── Frota table ─────────────────────────────────────────
 let frotaEditId = null;
 
+// Empresa exibida: a do relatório (ficha) e, na falta dela, a do vínculo Empresa × Frota
+function frotaEmpresaTexto(v, d){
+  if(d && d.ficha && d.ficha.empresa) return d.ficha.empresa;
+  const emp = pcmEmpresaDoVeiculo(v);
+  return emp ? emp.nome : '';
+}
+
+// Ordem das colunas da ficha na tabela (só aparecem as que existem em algum relatório importado)
+const FROTA_ORDEM_TABELA = ['empresa','__operacao','tipoServico','local','linha','tipoEquipamento','tipoVeiculo',
+  'inicioAtividade','fimAtividade','chassi','anoChassi','mesChassi','tipoChassi','fabChassi',
+  'fabCarroceria','modeloCarroceria','anoCarroceria','mesCarroceria','motor','posicaoMotor','cambio',
+  'combustivel','portas','padraoManutencao','renavam'];
+
 function renderFrota(){
   const q = (document.getElementById('frota-search').value || '').toLowerCase();
   const tbody = document.getElementById('frota-tbody');
+  const rotulos = Object.fromEntries(FROTA_ROTULOS_FICHA);
+  rotulos.local = 'Local (relatório)';
+
+  // Colunas: as da ficha que existem em ALGUM veículo (mesmo vazias no relatório) + Operação
+  const todos = Object.values(frota);
+  const colunas = FROTA_ORDEM_TABELA.filter(k => k === '__operacao' || todos.some(d => d.ficha && d.ficha[k] !== undefined));
+
   const rows = Object.entries(frota)
-    .filter(([v, d]) => !q || v.includes(q) || (d.placa||'').toLowerCase().includes(q) || (d.operacao||'').toLowerCase().includes(q))
+    .filter(([v, d]) => {
+      if(!q) return true;
+      const f = d.ficha || {};
+      const texto = [v, d.placa, d.operacao, frotaEmpresaTexto(v, d), ...Object.values(f)]
+        .filter(Boolean).join(' ').toLowerCase();
+      return texto.includes(q);
+    })
     .sort(([a],[b]) => a.localeCompare(b, undefined, {numeric:true}));
 
+  const mostrarUnidadeFrota = pcmUnidadesAtivas().length > 1;
+  // Cabeçalho
+  document.getElementById('frota-thead-row').innerHTML =
+    (mostrarUnidadeFrota ? '<th id="th-unidade-frota">Unidade</th>' : '')
+    + '<th class="fx-left">Veículo</th><th>Placa</th>'
+    + colunas.map(k => `<th>${k === '__operacao' ? 'Operação' : frotaEsc(rotulos[k] || k)}</th>`).join('')
+    + '<th class="fx-right"></th>';
+
   if(rows.length === 0){
-    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--dim);text-align:center;padding:20px;">Nenhum veículo encontrado.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${colunas.length + 4}" style="color:var(--dim);text-align:center;padding:20px;">Nenhum veículo encontrado.</td></tr>`;
     return;
   }
-  const mostrarUnidadeFrota = pcmUnidadesAtivas().length > 1;
-  const thUnidadeFrota = document.getElementById('th-unidade-frota');
-  if(thUnidadeFrota) thUnidadeFrota.style.display = mostrarUnidadeFrota ? '' : 'none';
-  tbody.innerHTML = rows.map(([v, d]) => `
+  const dash = '<span style="color:var(--dim)">—</span>';
+  tbody.innerHTML = rows.map(([v, d]) => {
+    const f = d.ficha || {};
+    const celulas = colunas.map(k => {
+      if(k === '__operacao') return `<td>${d.operacao ? `<span class="${opClass(d.operacao)}">${frotaEsc(d.operacao)}</span>` : dash}</td>`;
+      const val = k === 'empresa' ? frotaEmpresaTexto(v, d) : f[k];
+      return `<td style="font-size:12px;">${val ? frotaEsc(val) : dash}</td>`;
+    }).join('');
+    return `
     <tr>
-      ${mostrarUnidadeFrota ? `<td>${d._unidadeNome||'—'}</td>` : ''}
-      <td style="font-family:var(--font-mono);color:var(--brand-2);">${v}</td>
-      <td>${d.placa || '<span style="color:var(--dim)">—</span>'}</td>
-      <td>${d.operacao ? `<span class="${opClass(d.operacao)}">${d.operacao}</span>` : '<span style="color:var(--dim)">—</span>'}</td>
-      <td>
-        <button class="icon-btn" onclick="openFrotaModal('${v}')">✏️</button>
-        <button class="icon-btn" onclick="deleteFrota('${v}')" style="margin-left:4px;">✕</button>
+      ${mostrarUnidadeFrota ? `<td>${frotaEsc(d._unidadeNome||'—')}</td>` : ''}
+      <td class="fx-left" style="font-family:var(--font-mono);color:var(--brand-2);">${frotaEsc(v)}</td>
+      <td>${d.placa ? frotaEsc(d.placa) : dash}</td>
+      ${celulas}
+      <td class="fx-right">
+        <button class="icon-btn" title="Ficha do veículo" onclick="openFrotaFicha('${frotaEsc(v)}')">ℹ️</button>
+        <button class="icon-btn" title="Editar" onclick="openFrotaModal('${frotaEsc(v)}')" style="margin-left:4px;">✏️</button>
+        <button class="icon-btn" title="Remover" onclick="deleteFrota('${frotaEsc(v)}')" style="margin-left:4px;">✕</button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
+
+// ── Ficha do veículo (somente leitura): dados vindos do relatório Equipamentos ──
+function openFrotaFicha(v){
+  const d = frota[v] || {};
+  const f = d.ficha || {};
+  document.getElementById('frota-ficha-title').textContent = `Veículo ${v}`;
+  const item = (rotulo, valor) => `<div class="ff-item"><div class="ff-label">${frotaEsc(rotulo)}</div><div class="ff-valor">${valor ? frotaEsc(valor) : '<span style="color:var(--dim)">—</span>'}</div></div>`;
+  let html = '<div class="frota-ficha-grid">'
+    + item('Placa', d.placa)
+    + item('Operação (cadastro)', d.operacao)
+    + item('Local (unidade)', d._unidadeNome);
+  const temFicha = FROTA_ROTULOS_FICHA.some(([k]) => f[k]);
+  FROTA_ROTULOS_FICHA.forEach(([campo, rotulo]) => {
+    if(f[campo] === undefined) return; // coluna que nunca veio num relatório
+    html += item(rotulo, f[campo]);
+  });
+  html += '</div>';
+  if(!temFicha){
+    html += '<p class="sub" style="margin-top:12px;">Este veículo ainda não tem dados do relatório. Importe o relatório <b>Equipamentos</b> (Importar frota) para preencher a ficha.</p>';
+  } else if(f.atualizadoEm){
+    html += `<p class="sub" style="margin-top:12px;font-size:11.5px;">Ficha atualizada pelo relatório em ${frotaEsc(f.atualizadoEm.split('-').reverse().join('/'))}.</p>`;
+  }
+  document.getElementById('frota-ficha-body').innerHTML = html;
+  document.getElementById('frota-ficha-overlay').classList.add('open');
+}
+function closeFrotaFicha(){ document.getElementById('frota-ficha-overlay').classList.remove('open'); }
+document.getElementById('frota-ficha-close').addEventListener('click', closeFrotaFicha);
+document.getElementById('frota-ficha-fechar').addEventListener('click', closeFrotaFicha);
+document.getElementById('frota-ficha-overlay').addEventListener('click', e => {
+  if(e.target === document.getElementById('frota-ficha-overlay')) closeFrotaFicha();
+});
 
 document.getElementById('frota-search').addEventListener('input', renderFrota);
 document.getElementById('frota-add-btn').addEventListener('click', () => openFrotaModal(null));
@@ -7386,16 +7470,18 @@ document.getElementById('frota-modal-overlay').addEventListener('click', e => {
 
 document.getElementById('frota-modal-save').addEventListener('click', () => {
   const v = frotaEditId || document.getElementById('fm-veiculo').value.trim();
-  const placa = document.getElementById('fm-placa').value.trim();
+  const placa = document.getElementById('fm-placa').value.trim().toUpperCase();
   const op = document.getElementById('fm-operacao').value;
   const errEl = document.getElementById('fm-error');
-  if(!v || !op){ errEl.style.display='block'; return; }
+  if(!v || !op){ errEl.textContent = 'Preencha o número do veículo e a operação.'; errEl.style.display='block'; return; }
+  if(!frotaEditId && frota[v]){ errEl.textContent = `O veículo ${v} já está cadastrado — use o ✏️ na lista para editá-lo.`; errEl.style.display='block'; return; }
   errEl.style.display = 'none';
   // Ao editar um veículo já existente, mantém a unidade original dele; ao criar um novo,
   // usa a unidade principal do usuário.
   const unidadeExistente = frota[v] ? frota[v]._unidadeId : null;
   const unidadeAlvo = unidadeExistente || pcmUnidadePrincipal();
-  frota[v] = { placa, operacao: op, _unidadeId: unidadeAlvo, _unidadeNome: pcmNomeUnidade(unidadeAlvo) };
+  // Mantém os demais campos do veículo (ficha do relatório, vínculo com a empresa etc.)
+  frota[v] = { ...(frota[v] || {}), placa, operacao: op, _unidadeId: unidadeAlvo, _unidadeNome: pcmNomeUnidade(unidadeAlvo) };
   saveFrota(frota);
   closeFrotaModal();
   renderFrota();
@@ -7968,7 +8054,7 @@ function mesclarGrupoOS(group, groupEl){
 
 
 // ════════════════════════════════════════════════════════
-// SUGESTÕES DE CATEGORIA — quando a IA acerta o Setor mas não encontra
+// SUGESTÕES DE CATEGORIA — quando o Setor é identificado mas não se encontra
 // uma Categoria já cadastrada que combine, o caso cai aqui em vez de
 // virar um par "sem categoria". Guardado só neste navegador (não
 // sincroniza entre usuários — é uma lista pessoal de revisão).
@@ -7988,7 +8074,7 @@ function saveSugestoesCategoria(){
 loadSugestoesCategoria();
 
 // Registra (ou reforça, se já existir uma sugestão igual) um caso em que a
-// IA identificou o Setor mas não achou Categoria correspondente na lista.
+// o Setor foi identificado mas não há Categoria correspondente na lista.
 function pushSugestaoCategoria(setor, categoriaSugerida, tipo, descricaoLinha){
   const catTxt = (categoriaSugerida || '').trim();
   const chave = `${normalize(setor)}|${normalize(catTxt || '(sem sugestão de nome)')}`;
@@ -8139,7 +8225,7 @@ document.getElementById('sugestoes-list')?.addEventListener('click', e => {
         CATEGORIA_TIPOS[`${setorEscolhido}|${nomeReal}`] = item.tipo;
       }
       saveCategorias();
-      addLog('sistema', `Categoria "${nomeReal}" criada em "${setorEscolhido}"`, 'Criada a partir de uma sugestão da IA');
+      addLog('sistema', `Categoria "${nomeReal}" criada em "${setorEscolhido}"`, 'Criada a partir de uma sugestão de categoria');
     }
 
     let aplicados = 0;
@@ -10396,8 +10482,14 @@ function maybeAutoAddPair(){
 document.getElementById('pair-add-btn').addEventListener('click', addPair);
 document.getElementById('in-setor').addEventListener('change', updateCategorias);
 
-// ── Base de exemplos reais já classificados (planilha + manuais), para dar
-// à IA exemplos concretos do padrão de classificação usado nesta frota ──
+// ════════════════════════════════════════════════════════
+// CLASSIFICAÇÃO LOCAL (sem IA, sem custo, 100% no navegador)
+// Aprende com as OS já classificadas (planilha + lançadas): compara a
+// descrição nova com o histórico por semelhança de palavras (TF-IDF +
+// vizinhos mais próximos) e devolve Setor + Categoria + Tipo, junto com um
+// nível de confiança de 0 a 1. Abaixo do corte de confiança o sistema NÃO
+// aplica nada sozinho — a linha fica para revisão manual.
+// ════════════════════════════════════════════════════════
 const STOPWORDS_PT = new Set(['com','sem','para','nao','uma','um','de','da','do',
   'das','dos','em','no','na','nos','nas','por','ao','aos','os','as','que','se',
   'foi','ser','tem','tinha','the','and']);
@@ -10411,72 +10503,8 @@ function tokenizarTexto(s){
     .filter(w => w.length > 2 && !STOPWORDS_PT.has(w));
 }
 
-function buildExemplosBase(){
-  const registros = [...DATA, ...manualRecords];
-  const vistos = new Set();
-  const base = [];
-  registros.forEach(r => {
-    // uma OS pode ter mais de um par Setor+Categoria (campo "pares"); senão usa
-    // os campos de topo tipo/setor/categoria
-    const pares = (r.pares && r.pares.length) ? r.pares : [{ tipo: r.tipo, setor: r.setor, categoria: r.categoria }];
-    pares.forEach(p => {
-      if(!r.descricao || !p.setor || p.setor === 'Não classificado' || !p.categoria) return;
-      const chave = `${r.descricao.trim().toLowerCase()}|${p.setor}|${p.categoria}`;
-      if(vistos.has(chave)) return;
-      vistos.add(chave);
-      base.push({ descricao: r.descricao.trim(), tipo: p.tipo || r.tipo || '', setor: p.setor, categoria: p.categoria, tokens: tokenizarTexto(r.descricao) });
-    });
-  });
-  return base;
-}
-
-let _exemplosBaseCache = null;
-let _exemplosBaseTamanho = -1;
-function getExemplosBase(){
-  const tamanhoAtual = DATA.length + manualRecords.length;
-  if(!_exemplosBaseCache || _exemplosBaseTamanho !== tamanhoAtual){
-    _exemplosBaseCache = buildExemplosBase();
-    _exemplosBaseTamanho = tamanhoAtual;
-  }
-  return _exemplosBaseCache;
-}
-
-// Busca, no histórico já classificado, as descrições mais parecidas com a
-// descrição atual (por sobreposição de palavras) — usadas como exemplos
-// reais (few-shot) para a IA aprender o padrão de classificação da frota.
-function buscarExemplosSimilares(descricao, limite){
-  const tokensAlvo = new Set(tokenizarTexto(descricao));
-  if(!tokensAlvo.size) return [];
-  const base = getExemplosBase();
-  const pontuados = [];
-  base.forEach(ex => {
-    if(!ex.tokens.length) return;
-    let comuns = 0;
-    ex.tokens.forEach(t => { if(tokensAlvo.has(t)) comuns++; });
-    if(comuns === 0) return;
-    const score = comuns / Math.max(tokensAlvo.size, ex.tokens.length);
-    pontuados.push({ ex, score });
-  });
-  pontuados.sort((a,b) => b.score - a.score);
-
-  // Diversidade: no máx. 2 exemplos por par Setor+Categoria, pra não repetir sempre o mesmo
-  const porPar = {};
-  const escolhidos = [];
-  for(const { ex } of pontuados){
-    const chavePar = `${ex.setor}|${ex.categoria}`;
-    porPar[chavePar] = (porPar[chavePar] || 0) + 1;
-    if(porPar[chavePar] > 3) continue; // até 3 exemplos por par Setor+Categoria
-    escolhidos.push({ descricao: ex.descricao, tipo: ex.tipo, setor: ex.setor, categoria: ex.categoria });
-    if(escolhidos.length >= limite) break;
-  }
-  return escolhidos;
-}
-
-// ── Classificação de Setor/Categoria via IA (proxy externo — ver deploy do Worker) ──
-// prefixo: 'in' (Lançamento Manual) ou 'ed' (Editar registro já existente)
-// A descrição é dividida em linhas AQUI no painel (não depende da IA acertar
-// onde separar) e cada linha vira uma chamada própria ao proxy — garantindo
-// exatamente 1 classificação (Tipo+Setor+Categoria+Chave) por linha.
+// A descrição é dividida em linhas AQUI no painel: cada linha é um problema
+// (e vira um par Tipo+Setor+Categoria+Chave).
 function dividirDescricaoEmLinhas(descricao){
   return String(descricao || '')
     .split(/\r?\n/)
@@ -10484,132 +10512,242 @@ function dividirDescricaoEmLinhas(descricao){
     .filter(Boolean);
 }
 
-async function sugerirClassificacaoIA(prefixo){
-  const btn        = document.getElementById(`${prefixo}-ia-classificar-btn`);
-  const status      = document.getElementById(`${prefixo}-ia-classificar-status`);
-  const descricao   = document.getElementById(`${prefixo}-descricao`).value.trim();
+const CLF_K = 5;                  // nº de OS parecidas que "votam"
+const CLF_CONF_INDIVIDUAL = 0.5;  // confiança mínima para aplicar no botão da OS
+const CLF_CONF_SUGESTAO   = 0.25; // abaixo disso nem pré-preenche
 
-  if(!IA_PROXY_URL){
-    alert('IA ainda não configurada: defina a constante IA_PROXY_URL no início do script, com a URL do seu proxy (veja as instruções de deploy).');
+// Palavras viram raiz de 5 letras (plural/variações) + pares de palavras vizinhas
+function clfFeatures(texto){
+  const t = tokenizarTexto(texto).map(w => w.slice(0,5));
+  const f = t.slice();
+  for(let i = 0; i < t.length - 1; i++) f.push(t[i] + '_' + t[i+1]);
+  return f;
+}
+
+function clfIdDoRegistro(r){
+  return (r._edit_id != null && r.origin !== 'manual') ? 'p' + r._edit_id : 'm' + r._id;
+}
+
+function clfParValido(setor, categoria){
+  return !!setor && setor !== 'Não classificado' && !!categoria
+    && Array.isArray(SETOR_CATEGORIAS[setor]) && SETOR_CATEGORIAS[setor].includes(categoria);
+}
+
+// Monta o modelo a partir de TODAS as OS já classificadas (das unidades ativas).
+// OS com várias linhas e vários pares: cada linha é ligada ao seu par.
+function clfConstruirModelo(){
+  const amostras = [];
+  allRows().forEach(r => {
+    if(!r.descricao) return;
+    const linhas = dividirDescricaoEmLinhas(r.descricao);
+    const pares = (Array.isArray(r.pares) && r.pares.length)
+      ? r.pares
+      : [{ tipo: r.tipo, setor: r.setor, categoria: r.categoria }];
+    const id = clfIdDoRegistro(r);
+    const add = (texto, p) => {
+      if(!clfParValido(p.setor, p.categoria)) return;
+      const feats = clfFeatures(texto);
+      if(!feats.length) return;
+      amostras.push({ id, texto, feats, setor: p.setor, categoria: p.categoria, tipo: p.tipo || r.tipo || '' });
+    };
+    if(pares.length > 1){
+      if(linhas.length === pares.length) linhas.forEach((l, i) => add(l, pares[i]));
+      // várias linhas e pares em número diferente: ambíguo, não entra na base
+    } else if(pares.length === 1){
+      add(linhas.join(' '), pares[0]);
+    }
+  });
+
+  // IDF: palavras raras pesam mais que palavras comuns
+  const df = new Map();
+  amostras.forEach(a => new Set(a.feats).forEach(f => df.set(f, (df.get(f) || 0) + 1)));
+  const N = amostras.length;
+  const idf = new Map();
+  df.forEach((v, f) => idf.set(f, Math.log((N + 1) / (v + 1)) + 1));
+
+  // Índice invertido: palavra -> [{ doc, peso }]
+  const indice = new Map();
+  amostras.forEach((a, i) => {
+    const cont = new Map();
+    a.feats.forEach(f => cont.set(f, (cont.get(f) || 0) + 1));
+    let norma = 0;
+    cont.forEach((n, f) => { const w = n * idf.get(f); cont.set(f, w); norma += w * w; });
+    norma = Math.sqrt(norma) || 1;
+    cont.forEach((w, f) => {
+      if(!indice.has(f)) indice.set(f, []);
+      indice.get(f).push({ doc: i, peso: w / norma });
+    });
+  });
+  return { amostras, idf, indice };
+}
+
+// Classifica UMA linha. `excluirId` tira do histórico a própria OS (ao editar).
+// Retorna null se não houver nenhuma palavra em comum com o histórico.
+function clfClassificarLinha(modelo, texto, excluirId){
+  const cont = new Map();
+  clfFeatures(texto).forEach(f => { if(modelo.idf.has(f)) cont.set(f, (cont.get(f) || 0) + 1); });
+  if(!cont.size) return null;
+  let norma = 0;
+  cont.forEach((n, f) => { const w = n * modelo.idf.get(f); cont.set(f, w); norma += w * w; });
+  norma = Math.sqrt(norma);
+  if(!norma) return null;
+
+  const scores = new Map();
+  cont.forEach((w, f) => {
+    const q = w / norma;
+    (modelo.indice.get(f) || []).forEach(({ doc, peso }) => {
+      scores.set(doc, (scores.get(doc) || 0) + q * peso);
+    });
+  });
+
+  const top = [];
+  scores.forEach((s, doc) => {
+    if(excluirId && modelo.amostras[doc].id === excluirId) return;
+    top.push({ s, a: modelo.amostras[doc] });
+  });
+  if(!top.length) return null;
+  top.sort((x, y) => y.s - x.s);
+  const viz = top.slice(0, CLF_K);
+
+  const votos = new Map(); // 'setor|||categoria' -> { v, melhor, exemplo, tipos }
+  viz.forEach(({ s, a }) => {
+    const k = a.setor + '|||' + a.categoria;
+    if(!votos.has(k)) votos.set(k, { v: 0, melhor: 0, exemplo: a.texto, setor: a.setor, categoria: a.categoria, tipos: {} });
+    const e = votos.get(k);
+    e.v += s * s;
+    if(s > e.melhor){ e.melhor = s; e.exemplo = a.texto; }
+    if(a.tipo) e.tipos[a.tipo] = (e.tipos[a.tipo] || 0) + s * s;
+  });
+  let vencedor = null;
+  votos.forEach(e => { if(!vencedor || e.v > vencedor.v) vencedor = e; });
+
+  let tipoVotado = '';
+  let melhorTipo = 0;
+  Object.entries(vencedor.tipos).forEach(([t, v]) => {
+    if((t === 'Corretiva' || t === 'Preventiva') && v > melhorTipo){ melhorTipo = v; tipoVotado = t; }
+  });
+
+  return {
+    setor: vencedor.setor,
+    categoria: vencedor.categoria,
+    confianca: vencedor.melhor,   // 0..1 — quão parecida é a melhor OS que votou nesta categoria
+    tipoVotado,
+    exemplo: vencedor.exemplo,
+  };
+}
+
+// Tipo (Corretiva/Preventiva): 1) tipo fixo da categoria, se houver; 2) tipo
+// mais comum entre as OS parecidas; 3) tipo da própria OS (se informado).
+function clfResolverTipo(res, tipoRegistro, preferirRegistro){
+  const valido = t => (t === 'Corretiva' || t === 'Preventiva') ? t : '';
+  const fixo = valido(getCategoriaTipo(res.setor, res.categoria));
+  if(fixo) return fixo;
+  if(preferirRegistro && valido(tipoRegistro)) return valido(tipoRegistro);
+  return valido(res.tipoVotado) || valido(tipoRegistro) || '';
+}
+
+const pctTxt = c => Math.round(c * 100) + '%';
+
+// Linhas que terminam em ":" (ex.: "Verificar:") são só títulos da lista que vem
+// logo abaixo — não são um problema a classificar.
+function clfLinhasClassificaveis(descricao){
+  return dividirDescricaoEmLinhas(descricao).filter(l => !/:\s*$/.test(l));
+}
+
+// ── Botão dentro da OS (Lançamento Manual 'in' e Edição 'ed') ──
+function classificarPelaDescricao(prefixo){
+  const btn       = document.getElementById(`${prefixo}-classificar-btn`);
+  const status    = document.getElementById(`${prefixo}-classificar-status`);
+  const descricao = document.getElementById(`${prefixo}-descricao`).value.trim();
+
+  const linhas = clfLinhasClassificaveis(descricao);
+  if(!linhas.length){
+    alert('Escreva a Descrição da OS antes de classificar.');
     return;
   }
-  if(!descricao){
-    alert('Escreva a Descrição da OS antes de pedir a sugestão da IA.');
-    return;
-  }
 
-  const linhas = dividirDescricaoEmLinhas(descricao);
-  if(!linhas.length){ alert('Escreva a Descrição da OS antes de pedir a sugestão da IA.'); return; }
-
-  // Manda apenas os setores "reais" (exclui "Não classificado") como opções válidas
-  const setoresValidos = { ...SETOR_CATEGORIAS };
-  delete setoresValidos['Não classificado'];
-
-  const setorFieldId    = `${prefixo}-setor`;
-  const categoriaFieldId= `${prefixo}-categoria`;
-  const tipoFieldId     = prefixo === 'in' ? 'in-pair-tipo' : 'ed-tipo';
-  const addPairFn       = prefixo === 'in' ? addPair : edAddPair;
-  const updateCatFn     = prefixo === 'ed' ? () => edUpdateCategorias('') : updateCategorias;
+  const setorFieldId     = `${prefixo}-setor`;
+  const categoriaFieldId = `${prefixo}-categoria`;
+  const tipoFieldId      = prefixo === 'in' ? 'in-pair-tipo' : 'ed-tipo';
+  const addPairFn        = prefixo === 'in' ? addPair : edAddPair;
+  const updateCatFn      = prefixo === 'ed' ? () => edUpdateCategorias('') : updateCategorias;
+  const lista            = () => (prefixo === 'in' ? osPairs : edPares);
+  const excluirId = (prefixo === 'ed' && editTarget && editTarget.record) ? clfIdDoRegistro(editTarget.record) : null;
+  // Na edição, o campo "Tipo" é o Tipo da própria OS: aqui ele só é LIDO, nunca alterado.
+  const tipoRegistro = prefixo === 'ed' ? (document.getElementById('ed-tipo').value || '') : '';
 
   btn.disabled = true;
-  const textoOriginal = btn.textContent;
-  status.textContent = '';
-
-  let adicionados = 0;
+  let adicionados = 0, duplicados = 0;
   const pendentes = [];
-  const falhas = [];
-
   try{
-    // Uma chamada por linha, em sequência (evita sobrecarregar o limite gratuito de requisições)
-    for(let i = 0; i < linhas.length; i++){
-      const linha = linhas[i];
-      btn.textContent = linhas.length > 1 ? `🤖 Classificando ${i+1}/${linhas.length}...` : '🤖 Classificando...';
-
-      const exemplos = buscarExemplosSimilares(linha, 20);
-      // DEBUG: mostra no console quantos exemplos reais (base local + Firestore)
-      // foram encontrados para esta linha — ajuda a diagnosticar se o problema
-      // e o Firestore nao ter carregado os dados ou so falta de historico parecido.
-      console.info(`[IA] "${linha}" -> ${exemplos.length} exemplo(s) encontrado(s)`, exemplos);
-      console.info(`[IA] Base disponivel: ${DATA.length} (seed) + ${manualRecords.length} (manualRecords/Firestore) registros`);
-
-      let data;
-      try{
-        const resp = await fetch(IA_PROXY_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ descricao: linha, setores: setoresValidos, exemplos }),
-        });
-        if(!resp.ok) throw new Error(`Proxy respondeu ${resp.status}`);
-        data = await resp.json();
-        console.info(`[IA] Resposta crua do worker para "${linha}":`, JSON.parse(JSON.stringify(data)));
-        if(data.error) throw new Error(data.error);
-      } catch(errLinha){
-        falhas.push(`"${linha.slice(0,40)}" (${errLinha.message})`);
-        // A chamada à IA nem chegou a responder (ex.: "Failed to fetch" = proxy
-        // fora do ar ou sem conexão) — sem setor nenhum identificado. Mesmo
-        // assim registra a linha em Sugestões de Categoria, agrupada à parte,
-        // para não perder o caso: fica disponível para classificação manual.
-        pushSugestaoCategoria('', '⚠️ Falha ao classificar (revisar manualmente)', '', linha);
-        continue;
+    const modelo = clfConstruirModelo();
+    linhas.forEach(linha => {
+      const res = clfClassificarLinha(modelo, linha, excluirId);
+      const rotulo = `"${linha.slice(0, 40)}"`;
+      if(!res || res.confianca < CLF_CONF_SUGESTAO){
+        pendentes.push(`${rotulo} (nenhuma OS parecida no histórico)`);
+        return;
       }
+      const fraca = res.confianca < CLF_CONF_INDIVIDUAL;
+      const tipo = clfResolverTipo(res, tipoRegistro, prefixo === 'ed');
 
-      const setor     = data.setor;
-      const categoria = data.categoria || '';
-      const tipo      = (data.tipo === 'Corretiva' || data.tipo === 'Preventiva') ? data.tipo : '';
-
-      if(!setor || !SETOR_CATEGORIAS[setor]){
-        pendentes.push(`"${linha.slice(0,40)}" (setor fora da lista)`);
-        continue;
-      }
-
-      document.getElementById(setorFieldId).value = setor;
+      // Pré-preenche Setor/Categoria (mesmo na sugestão fraca, para você só confirmar).
+      // O campo de Tipo só é preenchido no Lançamento Manual (seletor do par); na
+      // edição ele é o Tipo da OS e não é tocado.
+      document.getElementById(setorFieldId).value = res.setor;
       updateCatFn();
-      const categoriaValida = categoria && SETOR_CATEGORIAS[setor].includes(categoria);
-      if(categoriaValida) document.getElementById(categoriaFieldId).value = categoria;
-      if(tipo) document.getElementById(tipoFieldId).value = tipo;
+      document.getElementById(categoriaFieldId).value = res.categoria;
+      if(tipo && prefixo === 'in') document.getElementById(tipoFieldId).value = tipo;
 
-      if(categoriaValida && tipo){
-        addPairFn(); // já garante a chave de erro deste par
-        adicionados++;
-      } else {
-        if(!categoriaValida){
-          pushSugestaoCategoria(setor, data.categoriaSugerida || categoria, tipo, linha);
-        }
-        const motivoCat = !categoriaValida ? 'categoria (adicionada à aba "Sugestões de Categoria")' : '';
-        const motivoTipo = !tipo ? 'tipo' : '';
-        const motivo = [motivoCat, motivoTipo].filter(Boolean).join(' e ');
-        pendentes.push(`"${linha.slice(0,40)}" → ${setor}${categoria ? ' › '+categoria : ''} (falta ${motivo})`);
+      if(fraca || !tipo){
+        const motivo = fraca ? `confiança baixa ${pctTxt(res.confianca)}` : 'falta definir o Tipo';
+        pendentes.push(`${rotulo} → ${res.setor} › ${res.categoria} (${motivo}; parecida com "${res.exemplo.slice(0, 40)}")`);
+        return;
       }
-    }
+      if(lista().find(p => p.setor === res.setor && p.categoria === res.categoria && p.tipo === tipo)){
+        duplicados++;
+        document.getElementById(setorFieldId).value = '';
+        updateCatFn();
+        if(prefixo === 'in') document.getElementById(tipoFieldId).value = '';
+        return;
+      }
+      if(prefixo === 'ed'){
+        // Edição: adiciona o par direto na lista, sem mexer no Tipo da OS
+        edPares.push({ tipo, setor: res.setor, categoria: res.categoria, chave: ensureChave(tipo, res.setor, res.categoria) });
+        document.getElementById(setorFieldId).value = '';
+        updateCatFn();
+      } else {
+        addPairFn(); // já garante a chave de erro deste par
+      }
+      adicionados++;
+    });
+    if(prefixo === 'ed' && adicionados) edRenderPairs();
 
     const partes = [];
-    if(adicionados) partes.push(`✅ ${adicionados}/${linhas.length} par(es) adicionado(s) automaticamente (1 por linha da descrição).`);
-    if(pendentes.length) partes.push(`⚠️ Revise manualmente: ${pendentes.join('; ')}.`);
-    if(falhas.length) partes.push(`❌ Falha ao classificar: ${falhas.join('; ')}.`);
-    if(!partes.length) partes.push('⚠️ Nenhuma sugestão pôde ser aplicada automaticamente — revise manualmente.');
-
+    if(adicionados) partes.push(`✅ ${adicionados}/${linhas.length} par(es) adicionado(s) pela semelhança com OS já classificadas.`);
+    if(duplicados)  partes.push(`ℹ️ ${duplicados} linha(s) repetiam um par já adicionado.`);
+    if(pendentes.length) partes.push(`⚠️ Confira manualmente: ${pendentes.join('; ')}.`);
+    if(!partes.length) partes.push('⚠️ Nenhuma sugestão pôde ser aplicada — classifique manualmente.');
     status.textContent = partes.join(' ');
     status.style.color = adicionados ? 'var(--green)' : 'var(--red)';
   } finally {
     btn.disabled = false;
-    btn.textContent = textoOriginal;
   }
 }
 
 ['in','ed'].forEach(prefixo => {
-  const btn = document.getElementById(`${prefixo}-ia-classificar-btn`);
-  if(btn) btn.addEventListener('click', () => sugerirClassificacaoIA(prefixo));
+  const btn = document.getElementById(`${prefixo}-classificar-btn`);
+  if(btn) btn.addEventListener('click', () => classificarPelaDescricao(prefixo));
 });
 
 // ════════════════════════════════════════════════════════
-// CLASSIFICAÇÃO EM MASSA VIA IA
-// Percorre todos os registros com setor "Não classificado" (ou sem
-// categoria), chama o proxy uma vez por linha da descrição (igual ao
-// fluxo individual) e aplica o resultado direto em overrides /
-// manualRecords — sem abrir o drawer de edição.
+// CLASSIFICAR PENDENTES EM MASSA
+// Percorre todos os registros ainda sem Setor/Categoria, calcula a
+// classificação pela semelhança com o histórico e mostra o resultado ANTES
+// de gravar. Só entra o registro em que TODAS as linhas da descrição
+// atingirem a confiança escolhida; o resto continua pendente, sem alteração.
 // ════════════════════════════════════════════════════════
-
-let massaCancelado = false;
+let massaResultados = [];
 
 function getMassaPendentes(){
   // Retorna lista de { record, origin, key } de todos os registros sem classificação completa
@@ -10637,216 +10775,111 @@ function massaLog(msg, tipo){
   linha.className = `massa-log-line ${tipo || 'info'}`;
   linha.textContent = msg;
   log.appendChild(linha);
-  log.scrollTop = log.scrollHeight;
 }
 
-function massaAtualizaStats(ok, pend, fail, skip){
-  document.getElementById('massa-stat-ok').textContent  = `✅ ${ok} classificados`;
-  document.getElementById('massa-stat-pend').textContent = `⚠️ ${pend} pendentes`;
-  document.getElementById('massa-stat-fail').textContent = `❌ ${fail} falhas`;
-  document.getElementById('massa-stat-skip').textContent = `⏭ ${skip} ignorados`;
+function massaAtualizaStats(ok, pend, skip){
+  document.getElementById('massa-stat-ok').textContent   = `✅ ${ok} prontos para aplicar`;
+  document.getElementById('massa-stat-pend').textContent = `⚠️ ${pend} continuam pendentes`;
+  document.getElementById('massa-stat-skip').textContent = `⏭ ${skip} sem descrição`;
 }
 
-function massaAtualizaProgresso(feitos, total){
-  const pct = total ? Math.round((feitos / total) * 100) : 0;
-  const bar = document.getElementById('massa-progress-bar');
-  if(bar) bar.style.width = pct + '%';
-}
-
-async function classificarEmMassaIA(){
-  if(!IA_PROXY_URL){
-    alert('IA ainda não configurada: defina a constante IA_PROXY_URL no início do script.');
-    return;
-  }
-
+function massaCalcular(){
+  const minimo = parseFloat(document.getElementById('massa-confianca').value) || 0.6;
   const pendentes = getMassaPendentes();
-  if(!pendentes.length){
-    alert('Nenhum registro sem classificação encontrado. Todos os registros já possuem Setor e Categoria.');
-    return;
-  }
-
-  // Abre modal
-  const overlay = document.getElementById('massa-modal-overlay');
-  const bar = document.getElementById('massa-progress-bar');
+  const modelo = clfConstruirModelo();
   const log = document.getElementById('massa-log');
-  const eta = document.getElementById('massa-eta');
-  const btnCancelar = document.getElementById('massa-btn-cancelar');
-  const btnFechar   = document.getElementById('massa-btn-fechar');
-
   log.innerHTML = '';
-  bar.style.width = '0%';
-  bar.classList.remove('done','error');
-  btnCancelar.style.display = '';
-  btnFechar.style.display = 'none';
-  eta.textContent = '';
-  massaAtualizaStats(0, 0, 0, 0);
+  massaResultados = [];
+  let cOk = 0, cPend = 0, cSkip = 0;
+  const LIMITE_LOG = 400;
+  let logados = 0;
+  const logar = (msg, tipo) => { if(logados++ < LIMITE_LOG) massaLog(msg, tipo); };
 
-  document.getElementById('massa-resumo-texto').innerHTML =
-    `Classificando <strong>${pendentes.length}</strong> registro(s) sem Setor/Categoria via IA. Aguarde — uma chamada por linha da descrição.`;
-
-  massaCancelado = false;
-  overlay.classList.add('open');
-
-  const setoresValidos = { ...SETOR_CATEGORIAS };
-  delete setoresValidos['Não classificado'];
-
-  let cOk = 0, cPend = 0, cFail = 0, cSkip = 0;
-  let alterouOverrides = false, alterouManual = false;
-  const tsInicio = Date.now();
-
-  for(let i = 0; i < pendentes.length; i++){
-    if(massaCancelado){
-      massaLog(`— Cancelado pelo usuário após ${i} registro(s). —`, 'info');
-      break;
-    }
-
-    const item = pendentes[i];
+  pendentes.forEach(item => {
     const r = item.record;
-    const veicLabel = r.veiculo || '?';
-    const osLabel   = r.os || '?';
+    const rot = `${r.veiculo || '?'} OS ${r.os || '?'}`;
+    const linhas = clfLinhasClassificaveis(r.descricao || '');
+    if(!linhas.length){ cSkip++; logar(`⏭ ${rot} — sem descrição`, 'info'); return; }
 
-    const linhas = dividirDescricaoEmLinhas(r.descricao || '');
-    if(!linhas.length){
-      massaLog(`⏭ [${i+1}/${pendentes.length}] ${veicLabel} OS ${osLabel} — sem descrição, ignorado`, 'info');
-      cSkip++;
-      massaAtualizaStats(cOk, cPend, cFail, cSkip);
-      massaAtualizaProgresso(i+1, pendentes.length);
-      continue;
-    }
-
-    // ETA simples: tempo médio por registro × restantes
-    if(i > 0){
-      const elapsed = (Date.now() - tsInicio) / 1000;
-      const avg = elapsed / i;
-      const restantes = pendentes.length - i;
-      const etaSec = Math.round(avg * restantes);
-      eta.textContent = `~${etaSec}s restantes`;
-    }
-
-    // Chama proxy linha a linha (mesmo padrão do fluxo individual)
     const paresNovos = [];
-    let linhaFalhou = false;
-    let linhaPendente = false;
-
-    for(let j = 0; j < linhas.length; j++){
-      if(massaCancelado) break;
-      const linha = linhas[j];
-      const exemplos = buscarExemplosSimilares(linha, 20);
-      // DEBUG: mostra no console quantos exemplos reais (base local + Firestore)
-      // foram encontrados para esta linha — ajuda a diagnosticar se o problema
-      // e o Firestore nao ter carregado os dados ou so falta de historico parecido.
-      console.info(`[IA] "${linha}" -> ${exemplos.length} exemplo(s) encontrado(s)`, exemplos);
-      console.info(`[IA] Base disponivel: ${DATA.length} (seed) + ${manualRecords.length} (manualRecords/Firestore) registros`);
-
-      let data;
-      try{
-        const resp = await fetch(IA_PROXY_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ descricao: linha, setores: setoresValidos, exemplos }),
-        });
-        if(!resp.ok) throw new Error(`Proxy respondeu ${resp.status}`);
-        data = await resp.json();
-        console.info(`[IA] Resposta crua do worker para "${linha}":`, JSON.parse(JSON.stringify(data)));
-        if(data.error) throw new Error(data.error);
-      } catch(err){
-        massaLog(`❌ [${i+1}/${pendentes.length}] ${veicLabel} OS ${osLabel} L${j+1}: ${err.message}`, 'fail');
-        linhaFalhou = true;
-        pushSugestaoCategoria('', '⚠️ Falha ao classificar (revisar manualmente)', '', linha);
-        continue;
+    let motivo = '';
+    for(const linha of linhas){
+      const res = clfClassificarLinha(modelo, linha, null);
+      if(!res || res.confianca < minimo){
+        motivo = res ? `"${linha.slice(0, 35)}" → ${res.setor} › ${res.categoria} (${pctTxt(res.confianca)})`
+                     : `"${linha.slice(0, 35)}" (sem OS parecida)`;
+        break;
       }
-
-      const setor     = data.setor;
-      const categoria = data.categoria || '';
-      const tipo      = (data.tipo === 'Corretiva' || data.tipo === 'Preventiva') ? data.tipo : (r.tipo || '');
-
-      if(!setor || !SETOR_CATEGORIAS[setor]){
-        massaLog(`⚠️ [${i+1}/${pendentes.length}] ${veicLabel} OS ${osLabel} L${j+1}: setor fora da lista ("${data.setor || '?'}")`, 'pend');
-        linhaPendente = true;
-        continue;
-      }
-
-      const categoriaValida = categoria && SETOR_CATEGORIAS[setor].includes(categoria);
-      if(!categoriaValida && data.categoriaSugerida){
-        pushSugestaoCategoria(setor, data.categoriaSugerida || categoria, tipo, linha);
-      }
-
-      if(categoriaValida){
-        const chave = ensureChave(tipo, setor, categoria);
-        paresNovos.push({ tipo, setor, categoria, chave: chave || '' });
-        massaLog(`✅ [${i+1}/${pendentes.length}] ${veicLabel} OS ${osLabel}: ${tipo} · ${setor} › ${categoria}`, 'ok');
-      } else {
-        massaLog(`⚠️ [${i+1}/${pendentes.length}] ${veicLabel} OS ${osLabel}: ${setor} → cat. "${data.categoriaSugerida || categoria}" enviada p/ Sugestões`, 'pend');
-        linhaPendente = true;
-      }
+      const tipo = clfResolverTipo(res, r.tipo, linhas.length === 1);
+      if(!tipo){ motivo = `"${linha.slice(0, 35)}" → ${res.setor} › ${res.categoria} (falta Tipo)`; break; }
+      paresNovos.push({ tipo, setor: res.setor, categoria: res.categoria, confianca: res.confianca });
     }
 
-    if(massaCancelado) break;
-
-    // Aplica pares obtidos ao registro
-    if(paresNovos.length){
-      const primeiroPar = paresNovos[0];
-
-      if(item.origin === 'planilha'){
-        // Atualiza override com o primeiro par como valores de topo (compatibilidade)
-        // e pares completos no campo pares
-        const recOriginal = DATA.find(d => String(d._edit_id) === String(item._edit_id));
-        if(recOriginal){
-          const existentes = Array.isArray(overrides[item.key]?.pares) ? overrides[item.key].pares : [];
-          const paresUnicos = [...existentes];
-          paresNovos.forEach(p => {
-            if(!paresUnicos.find(e => e.setor === p.setor && e.categoria === p.categoria)){
-              paresUnicos.push(p);
-            }
-          });
-          overrides[item.key] = {
-            ...(overrides[item.key] || {}),
-            setor: primeiroPar.setor,
-            categoria: primeiroPar.categoria,
-            tipo: primeiroPar.tipo,
-            chave_erro: primeiroPar.chave,
-            pares: paresUnicos,
-          };
-          // Espelha no DATA para que autoClassificar/garantirChaves não sobrescreva
-          Object.assign(recOriginal, overrides[item.key]);
-          alterouOverrides = true;
-        }
-      } else {
-        // manualRecord: atualiza diretamente
-        const mr = manualRecords.find(m => String(m._id) === String(item._id));
-        if(mr){
-          const existentes = Array.isArray(mr.pares) ? mr.pares : [];
-          const paresUnicos = [...existentes];
-          paresNovos.forEach(p => {
-            if(!paresUnicos.find(e => e.setor === p.setor && e.categoria === p.categoria)){
-              paresUnicos.push(p);
-            }
-          });
-          mr.setor     = primeiroPar.setor;
-          mr.categoria = primeiroPar.categoria;
-          mr.tipo      = primeiroPar.tipo || mr.tipo;
-          mr.chave_erro = primeiroPar.chave;
-          mr.pares     = paresUnicos;
-          alterouManual = true;
-        }
-      }
-
-      if(linhaFalhou || linhaPendente) cPend++;
-      else cOk++;
-    } else if(linhaFalhou){
-      cFail++;
-    } else {
+    if(motivo || !paresNovos.length){
       cPend++;
+      logar(`⚠️ ${rot}: ${motivo}`, 'pend');
+      return;
     }
+    cOk++;
+    massaResultados.push({ item, paresNovos });
+    logar(`✅ ${rot}: ` + paresNovos.map(p => `${p.tipo} · ${p.setor} › ${p.categoria} (${pctTxt(p.confianca)})`).join(' | '), 'ok');
+  });
+  if(logados > LIMITE_LOG) massaLog(`… e mais ${logados - LIMITE_LOG} linha(s) não exibidas.`, 'info');
 
-    massaAtualizaStats(cOk, cPend, cFail, cSkip);
-    massaAtualizaProgresso(i+1, pendentes.length);
-  } // fim do loop
+  massaAtualizaStats(cOk, cPend, cSkip);
+  document.getElementById('massa-resumo-texto').innerHTML = pendentes.length
+    ? `<strong>${pendentes.length}</strong> registro(s) sem Setor/Categoria. Com confiança mínima de <strong>${pctTxt(minimo)}</strong>, <strong>${cOk}</strong> podem ser classificados agora. Nada é gravado até você clicar em Aplicar.`
+    : 'Nenhum registro sem classificação encontrado. 🎉';
+  const bAplicar = document.getElementById('massa-btn-aplicar');
+  bAplicar.disabled = !cOk;
+  bAplicar.textContent = cOk ? `Aplicar ${cOk} classificação(ões)` : 'Nada a aplicar';
+}
 
-  // Salva e recalcula
+function abrirClassificacaoPendentes(){
+  if(pcmBloquear('ordens','editar')) return;
+  document.getElementById('massa-modal-overlay').classList.add('open');
+  massaCalcular();
+}
+
+function massaAplicar(){
+  if(!massaResultados.length) return;
+  const bAplicar = document.getElementById('massa-btn-aplicar');
+  bAplicar.disabled = true;
+  let alterouOverrides = false, alterouManual = false, aplicados = 0;
+
+  massaResultados.forEach(({ item, paresNovos }) => {
+    const pares = paresNovos.map(p => ({ tipo: p.tipo, setor: p.setor, categoria: p.categoria, chave: ensureChave(p.tipo, p.setor, p.categoria) || '' }));
+    const primeiro = pares[0];
+    const mesclar = (existentes) => {
+      const unicos = Array.isArray(existentes) ? [...existentes] : [];
+      pares.forEach(p => { if(!unicos.find(e => e.setor === p.setor && e.categoria === p.categoria)) unicos.push(p); });
+      return unicos;
+    };
+
+    if(item.origin === 'planilha'){
+      const original = DATA.find(d => String(d._edit_id) === String(item._edit_id));
+      if(!original) return;
+      overrides[item.key] = {
+        ...(overrides[item.key] || {}),
+        setor: primeiro.setor, categoria: primeiro.categoria, tipo: primeiro.tipo,
+        chave_erro: primeiro.chave,
+        pares: mesclar(overrides[item.key]?.pares),
+      };
+      // Espelha no DATA para que a classificação automática/garantirChaves não sobrescreva
+      Object.assign(original, overrides[item.key]);
+      alterouOverrides = true; aplicados++;
+    } else {
+      const mr = manualRecords.find(m => String(m._id) === String(item._id));
+      if(!mr) return;
+      mr.setor = primeiro.setor; mr.categoria = primeiro.categoria;
+      mr.tipo = primeiro.tipo || mr.tipo; mr.chave_erro = primeiro.chave;
+      mr.pares = mesclar(mr.pares);
+      alterouManual = true; aplicados++;
+    }
+  });
+
   if(alterouOverrides) saveOverrides();
   if(alterouManual)    saveManualRecords(manualRecords);
-
   if(alterouOverrides || alterouManual){
     garantirChavesPorLinha();
     recalcularReincidencias();
@@ -10856,41 +10889,20 @@ async function classificarEmMassaIA(){
     renderAll();
   }
 
-  const total = pendentes.length;
-  addLog('classificacao-massa', 'Classificação em massa via IA',
-    `${cOk} classificados · ${cPend} pendentes · ${cFail} falhas · ${cSkip} ignorados — de ${total} registros sem classificação`);
+  const minimo = parseFloat(document.getElementById('massa-confianca').value) || 0.6;
+  addLog('classificacao-massa', 'Classificação em massa por semelhança',
+    `${aplicados} registro(s) classificado(s) com confiança mínima de ${pctTxt(minimo)}`);
 
-  // Finaliza UI
-  bar.classList.add(cFail > 0 || cPend > 0 ? 'error' : 'done');
-  bar.style.width = '100%';
-  eta.textContent = `Concluído em ${Math.round((Date.now() - tsInicio)/1000)}s`;
-  btnCancelar.style.display = 'none';
-  btnFechar.style.display   = '';
-
-  const resumoFinal = massaCancelado
-    ? `Cancelado. ${cOk} classificados antes do cancelamento.`
-    : `Concluído: ${cOk} classificados, ${cPend} para revisar, ${cFail} com falha, ${cSkip} ignorados.`;
-  document.getElementById('massa-resumo-texto').innerHTML = resumoFinal;
-
-  massaLog(`— ${resumoFinal} —`, cFail ? 'fail' : 'info');
+  massaResultados = [];
+  massaCalcular(); // atualiza a tela: o que sobrou continua pendente
+  massaLog(`— ${aplicados} registro(s) classificado(s) e gravado(s). —`, 'ok');
 }
 
-// Handlers do modal de massa
-document.getElementById('massa-btn-cancelar').onclick = () => { massaCancelado = true; };
-document.getElementById('massa-btn-fechar').onclick   = () => { document.getElementById('massa-modal-overlay').classList.remove('open'); };
-document.getElementById('massa-modal-close').onclick  = () => {
-  massaCancelado = true;
-  document.getElementById('massa-modal-overlay').classList.remove('open');
-};
-
-// Exibe o botão apenas quando IA_PROXY_URL estiver configurada, e conecta o clique
-(function iniciarBotaoMassa(){
-  const btn = document.getElementById('btn-massa-ia');
-  if(IA_PROXY_URL && btn){
-    btn.style.display = '';
-    btn.onclick = classificarEmMassaIA;
-  }
-})();
+document.getElementById('massa-btn-fechar').onclick  = () => { document.getElementById('massa-modal-overlay').classList.remove('open'); };
+document.getElementById('massa-modal-close').onclick = () => { document.getElementById('massa-modal-overlay').classList.remove('open'); };
+document.getElementById('massa-btn-aplicar').onclick = massaAplicar;
+document.getElementById('massa-confianca').addEventListener('change', massaCalcular);
+document.getElementById('btn-massa-class').onclick   = abrirClassificacaoPendentes;
 
 document.getElementById('in-categoria').addEventListener('change', () => {
   // Se a categoria tem um Tipo específico configurado e o campo Tipo ainda
@@ -11852,44 +11864,107 @@ function parseRelatorioOS(text){
 // Local, Tipo Serviço, Placa) em vez de depender de uma ordem/quantidade fixa
 // de colunas. Só Empresa, Nr. Ordem e Placa são obrigatórias — Local e Tipo
 // Serviço são lidas quando existem, e ficam em branco quando não vêm.
-let frotaImportQueue = []; // [{veiculo, placa, empresaRelatorio, local, tipoServico, operacaoSugerida}]
+let frotaImportQueue = []; // novos: [{veiculo, placa, empresaRelatorio, local, tipoServico, ficha, operacaoSugerida}]
+let frotaImportAtualizar = []; // já cadastrados: [{veiculo, ficha, placaRelatorio}] — só a ficha é atualizada
+
+// Colunas do relatório "Equipamentos" -> campos da ficha do veículo. O nome da coluna é
+// comparado SEM acento, sem pontos e em minúsculas, e por NOME EXATO (não mais "começa com"),
+// porque o relatório completo tem várias colunas "Tipo ..." e "Nr. ...".
+const FROTA_COLUNAS_FICHA = {
+  'empresa':'empresa', 'local':'local', 'linha':'linha',
+  'tipo servico':'tipoServico', 'tipo de servico':'tipoServico',
+  'inicio atividade':'inicioAtividade', 'dt inicio de atividade':'inicioAtividade', 'dt inicio atividade':'inicioAtividade',
+  'dt fim de atividade':'fimAtividade', 'dt fim atividade':'fimAtividade', 'fim atividade':'fimAtividade',
+  'nr chassi':'chassi', 'ano chassi':'anoChassi', 'mes chassi':'mesChassi',
+  'tipo chassi':'tipoChassi', 'tipo de chassi':'tipoChassi',
+  'fabriante chassi':'fabChassi', 'fabricante chassi':'fabChassi', 'fabricante do chassi':'fabChassi',
+  'tipo equipamento':'tipoEquipamento', 'tipo de equipamento':'tipoEquipamento',
+  'ano carroceria':'anoCarroceria', 'mes carroceria':'mesCarroceria',
+  'fabricante carroceria':'fabCarroceria', 'fabriante carroceria':'fabCarroceria',
+  'modelo carroceria':'modeloCarroceria',
+  'tipo veiculo':'tipoVeiculo', 'qt portas':'portas', 'quantidade portas':'portas',
+  'tipo combustivel':'combustivel', 'padrao manutencao':'padraoManutencao',
+  'tipo cambio':'cambio', 'tipo motor':'motor', 'posicao motor':'posicaoMotor',
+  'renavam':'renavam',
+};
+// Ordem e rótulos de exibição da ficha (campo -> rótulo)
+const FROTA_ROTULOS_FICHA = [
+  ['empresa','Empresa'], ['local','Local (relatório)'], ['tipoServico','Tipo Serviço'], ['linha','Linha'],
+  ['tipoEquipamento','Tipo de Equipamento'], ['tipoVeiculo','Tipo de Veículo'], ['inicioAtividade','Início de Atividade'],
+  ['fimAtividade','Fim de Atividade'], ['chassi','Nr. Chassi'], ['tipoChassi','Tipo de Chassi'],
+  ['fabChassi','Fabricante do Chassi'], ['anoChassi','Ano do Chassi'], ['mesChassi','Mês do Chassi'],
+  ['fabCarroceria','Fabricante da Carroceria'], ['modeloCarroceria','Modelo da Carroceria'],
+  ['anoCarroceria','Ano da Carroceria'], ['mesCarroceria','Mês da Carroceria'],
+  ['motor','Tipo de Motor'], ['posicaoMotor','Posição do Motor'], ['cambio','Tipo de Câmbio'],
+  ['combustivel','Tipo de Combustível'], ['portas','Qt. de Portas'], ['padraoManutencao','Padrão de Manutenção'],
+  ['renavam','Renavam'],
+];
+function frotaNormCab(s){
+  return String(s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[.:]/g,'').replace(/\s+/g,' ').trim();
+}
+function frotaEsc(s){
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// Separa uma linha CSV por ';' respeitando campos entre aspas
+function frotaSplitCsv(linha){
+  const out = []; let cur = '', aspas = false;
+  for(const ch of String(linha)){
+    if(ch === '"'){ aspas = !aspas; }
+    else if(ch === ';' && !aspas){ out.push(cur.trim()); cur = ''; }
+    else cur += ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
+// "-" ou vazio no relatório = sem informação
+function frotaLimpaValor(v){
+  const t = String(v == null ? '' : v).trim();
+  return /^-?$/.test(t) ? '' : t;
+}
 
 function parseRelatorioFrota(text){
   const linhas = text.split(/\r?\n/);
-  let idxCabecalho = -1;
-  let colEmpresaIdx = -1, colVeiculoIdx = -1, colLocalIdx = -1, colTipoServicoIdx = -1, colPlacaIdx = -1;
+  let idxCabecalho = -1, cols = null;
   for(let i = 0; i < linhas.length; i++){
-    const partes = linhas[i].split(';').map(p => p.trim().toLowerCase());
-    const eIdx = partes.findIndex(p => p === 'empresa');
-    const vIdx = partes.findIndex(p => p.replace(/\./g,'').startsWith('nr'));
-    const pIdx = partes.findIndex(p => p === 'placa');
+    const partes = frotaSplitCsv(linhas[i]).map(frotaNormCab);
+    const eIdx = partes.indexOf('empresa');
+    let vIdx = partes.indexOf('nr ordem');
+    if(vIdx === -1) vIdx = partes.findIndex(p => p.startsWith('nr')); // formato antigo
+    const pIdx = partes.indexOf('placa');
     if(eIdx === -1 || vIdx === -1 || pIdx === -1) continue; // precisa das 3 colunas obrigatórias
     idxCabecalho = i;
-    colEmpresaIdx = eIdx;
-    colVeiculoIdx = vIdx;
-    colPlacaIdx = pIdx;
-    colLocalIdx = partes.findIndex(p => p === 'local');
-    colTipoServicoIdx = partes.findIndex(p => p.startsWith('tipo'));
+    cols = { veiculo: vIdx, placa: pIdx };
+    partes.forEach((nome, idx) => {
+      const campo = FROTA_COLUNAS_FICHA[nome];
+      if(campo && !(campo in cols)) cols[campo] = idx;
+    });
     break;
   }
   if(idxCabecalho === -1) return null; // não achou um cabeçalho reconhecível
-
-  // Campos do relatório vêm entre aspas (ex: "141408") — remove as aspas
-  // externas antes de usar o valor como chave de veículo ou texto.
-  const semAspas = v => (v || '').trim().replace(/^"|"$/g, '').trim();
 
   const registros = [];
   for(let i = idxCabecalho + 1; i < linhas.length; i++){
     const linha = linhas[i];
     if(!linha || !linha.trim()) continue;
-    const partes = linha.split(';');
-    const empresa = semAspas(partes[colEmpresaIdx]);
-    const veiculo = semAspas(partes[colVeiculoIdx]);
-    const placa   = semAspas(partes[colPlacaIdx]);
-    const local = colLocalIdx >= 0 ? semAspas(partes[colLocalIdx]) : '';
-    const tipoServico = colTipoServicoIdx >= 0 ? semAspas(partes[colTipoServicoIdx]) : '';
+    const partes = frotaSplitCsv(linha);
+    const veiculo = (partes[cols.veiculo] || '').trim();
     if(!veiculo) continue;
-    registros.push({ empresaRelatorio: empresa, veiculo, placa, local, tipoServico });
+    const placa = (partes[cols.placa] || '').trim().toUpperCase();
+    // Só entram na ficha as colunas que EXISTEM neste relatório (assim um relatório com
+    // menos campos não apaga o que já foi importado antes).
+    const ficha = {};
+    Object.keys(cols).forEach(campo => {
+      if(campo === 'veiculo' || campo === 'placa') return;
+      ficha[campo] = frotaLimpaValor(partes[cols[campo]]);
+    });
+    registros.push({
+      empresaRelatorio: ficha.empresa || '',
+      veiculo, placa,
+      local: ficha.local || '',
+      tipoServico: ficha.tipoServico || '',
+      ficha,
+    });
   }
   return registros;
 }
@@ -11978,15 +12053,17 @@ function processFrotaImportRows(registros){
   });
 
   frotaImportQueue = novos;
+  // Veículos que já existem: só a FICHA é atualizada. Placa, Operação, Local e vínculo
+  // com empresa NÃO são alterados; divergência de placa só é avisada.
+  frotaImportAtualizar = jaExistentes.map(r => ({ veiculo: r.veiculo, ficha: r.ficha, placaRelatorio: r.placa }));
+  const placasDivergentes = jaExistentes.filter(r => r.placa && frota[r.veiculo].placa && frota[r.veiculo].placa.toUpperCase() !== r.placa);
 
   if(jaExistentes.length){
     existentesArea.style.display = '';
     existentesArea.innerHTML = `
       <div style="background:rgba(var(--amber-rgb,255,180,0),.08);border:1px solid rgba(var(--amber-rgb,255,180,0),.3);border-radius:6px;padding:10px 14px;font-size:12.5px;">
-        <b>${jaExistentes.length}</b> veículo(s) já existiam na Frota e foram ignorados (nada foi alterado neles):
-        <div style="font-family:var(--font-mono);font-size:11.5px;color:var(--dim);margin-top:6px;max-height:120px;overflow-y:auto;">
-          ${jaExistentes.map(r => `${r.veiculo} (${r.placa || '—'})`).join(', ')}
-        </div>
+        <b>${jaExistentes.length}</b> veículo(s) já existiam na Frota: a <b>ficha</b> (empresa, tipo de serviço, chassi, carroceria, motor etc.) será atualizada com os dados do relatório. <b>Placa, Operação e Local não são alterados.</b>
+        ${placasDivergentes.length ? `<div style="margin-top:6px;color:var(--amber,#ffb400);">⚠️ ${placasDivergentes.length} com placa diferente do cadastro (não alterada): ${placasDivergentes.map(r => `${frotaEsc(r.veiculo)} (cadastro ${frotaEsc(frota[r.veiculo].placa)} → relatório ${frotaEsc(r.placa)})`).join(', ')}</div>` : ''}
       </div>`;
   } else {
     existentesArea.style.display = 'none';
@@ -12000,8 +12077,10 @@ function renderFrotaImportPreview(){
   const wrap  = document.getElementById('frota-import-preview-wrap');
   const tbody = document.getElementById('frota-import-preview-tbody');
   const countEl = document.getElementById('frota-import-count');
+  const updEl = document.getElementById('frota-import-upd-count');
+  updEl.textContent = frotaImportAtualizar.length;
 
-  if(!frotaImportQueue.length){
+  if(!frotaImportQueue.length && !frotaImportAtualizar.length){
     wrap.style.display = 'none';
     tbody.innerHTML = '';
     countEl.textContent = '0';
@@ -12056,29 +12135,38 @@ function renderFrotaImportPreview(){
 }
 
 function confirmarImportacaoFrota(){
-  if(!frotaImportQueue.length) return;
+  if(!frotaImportQueue.length && !frotaImportAtualizar.length) return;
+  if(frotaImportAtualizar.length && pcmBloquear('frota','editar')) return;
+  const hoje = new Date().toISOString().slice(0, 10);
   frotaImportQueue.forEach(r => {
     // Cada linha usa o Local de destino escolhido no combo da pré-visualização
-    // (pré-preenchido a partir da coluna "Local" do relatório) — não mais uma
-    // única unidade fixa (a antiga lógica gravava tudo na unidade logada, mesmo
-    // quando o relatório era de outro Local).
+    // (pré-preenchido a partir da coluna "Local" do relatório).
     const unidadeAlvo = r.unidadeIdEscolhida || pcmUnidadePrincipal();
     frota[r.veiculo] = {
       placa: r.placa || '',
       operacao: r.operacaoSugerida || '',
       _unidadeId: unidadeAlvo,
       _unidadeNome: pcmNomeUnidade(unidadeAlvo),
+      ficha: { ...r.ficha, atualizadoEm: hoje },
     };
+  });
+  let atualizadas = 0;
+  frotaImportAtualizar.forEach(r => {
+    const atual = frota[r.veiculo];
+    if(!atual) return;
+    atual.ficha = { ...(atual.ficha || {}), ...r.ficha, atualizadoEm: hoje };
+    atualizadas++;
   });
   const n = frotaImportQueue.length;
   saveFrota(frota);
-  addLog('frota-import', `Importação de ${n} veículo(s) da Frota`, `Relatório de Equipamentos — ${n} veículo(s) novo(s) adicionado(s)`);
+  addLog('frota-import', `Importação da Frota: ${n} novo(s), ${atualizadas} ficha(s) atualizada(s)`, `Relatório de Equipamentos — ${n} veículo(s) novo(s) e ${atualizadas} ficha(s) atualizada(s)`);
   frotaImportQueue = [];
+  frotaImportAtualizar = [];
   renderFrotaImportPreview();
   document.getElementById('frota-import-summary').style.display = 'none';
   document.getElementById('frota-csv-input').value = '';
   renderFrota();
-  alert(`✅ ${n} veículo(s) importado(s) com sucesso!`);
+  alert(`✅ ${n} veículo(s) novo(s) importado(s) e ${atualizadas} ficha(s) atualizada(s).`);
 }
 
 document.getElementById('frota-import-toggle-btn').addEventListener('click', () => {
@@ -12104,6 +12192,7 @@ frotaCsvInput.addEventListener('change', e => {
 });
 document.getElementById('frota-import-cancel-btn').addEventListener('click', () => {
   frotaImportQueue = [];
+  frotaImportAtualizar = [];
   renderFrotaImportPreview();
   document.getElementById('frota-import-summary').style.display = 'none';
   document.getElementById('frota-csv-input').value = '';
