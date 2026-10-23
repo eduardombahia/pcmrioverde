@@ -13345,6 +13345,22 @@ pcmBoot();
     $('dp-canvas').toBlob(async b=>{try{await navigator.clipboard.write([new ClipboardItem({'image/png':b})]);m.textContent='Imagem copiada! Cole (Ctrl+V) no WhatsApp/e-mail.';}catch(e){m.textContent='Não foi possível copiar neste navegador. Use "Baixar PNG".';}});});
   render();
 })();
+
+// ── Links "❓ Como importar" → site de ajuda (pasta /ajuda, mesmo endereço do PCM) ──
+(function(){
+  const mapa = [['Importar ordens de serviço','os'],['Importar Solicitações de Reparo','sr'],['Importar frota','frota'],
+    ['Importar dados (CSV)','planos'],['Importar relatório "Equipamentos"','vinculo'],['Atualizar hodômetros','hodometro']];
+  document.querySelectorAll('h3,.hodo-section-title').forEach(el => {
+    const t = el.textContent.trim();
+    const m = mapa.find(([k]) => t.startsWith(k));
+    if(!m || el.querySelector('.ajuda-link')) return;
+    const a = document.createElement('a');
+    a.className = 'ajuda-link'; a.href = 'ajuda/index.html#' + m[1]; a.target = '_blank'; a.rel = 'noopener';
+    a.textContent = '❓ Como importar';
+    a.style.cssText = 'margin-left:10px;font-size:12px;font-weight:400;color:var(--brand-2);text-decoration:none;';
+    el.appendChild(a);
+  });
+})();
 </script>
 </body>
 </html>
