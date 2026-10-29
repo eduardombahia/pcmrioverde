@@ -2812,7 +2812,7 @@
   <div class="import-area">
     <h3>Importar dados (CSV)</h3>
     <div class="import-grid">
-      <div class="import-field"><label>Base Planos (CSV) — obrigatório</label><input type="file" id="dp-csv-planos" accept=".csv,.txt"></div>
+      <div class="import-field"><label>Base Planos (CSV) — obrigatório · aceita o relatório bruto do sistema ou a planilha tratada</label><input type="file" id="dp-csv-planos" accept=".csv,.txt"></div>
       <div class="import-field"><label>Base Ativos (CSV) — opcional, define a garagem</label><input type="file" id="dp-csv-ativos" accept=".csv,.txt"></div>
      
     </div>
@@ -13106,10 +13106,10 @@ pcmBoot();
   const norm=t=>String(t==null?'':t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   let DP={rows:[],ativos:{},anos:{},sel:new Set()}; 
 
-  function parseCSV(text){
+  function parseCSV(text,dForce){
     text=text.replace(/^\uFEFF/,'');
     const first=text.split(/\r?\n/)[0]||'';
-    const d=(first.split(';').length>first.split(',').length)?';':(first.split('\t').length>first.split(',').length?'\t':',');
+     const d=dForce||((first.split(';').length>first.split(',').length)?';':(first.split('\t').length>first.split(',').length?'\t':','));
     const out=[];let row=[],f='',q=false;
     for(let i=0;i<text.length;i++){
       const c=text[i];
@@ -13152,8 +13152,31 @@ pcmBoot();
     return 'ok';
   }
   const STATUS_LBL={v:'Vencido',k:'Km Estourado',l:'Atingiu limite',ok:'Em dia'};
-
-  function lerPlanos(text){
+  // ── Relatório BRUTO do sistema ──
+  const LIMITE_KM_DIA=800;
+  const RE_VEIC=/^\s*Ve[ií]culo:\s*([^\/\s]+)\/(\S+)/i;
+  function ehBruto(text){ return /(^|\n)\s*"?Ve[ií]culo:\s*[^\/\s]+\/\S+/i.test(text) && /Plano de Manuten/i.test(text); }
+  function dataISO(v){ const m=String(v||'').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/); return m?`${m[3]}-${m[2]}-${m[1]}`:String(v||'').trim(); }
+  function converterBruto(text){
+    const t=parseCSV(text,';'), out=[]; let carro=null, veic=new Set(), estourados=0, semPadrao=0, secaoSemPadrao=false;
+    t.forEach(r=>{
+      const c0=String(r[0]==null?'':r[0]).trim();
+      if(/^Ve[ií]culos sem Padr/i.test(c0)){ secaoSemPadrao=true; return; }
+      if(secaoSemPadrao){ if(r.length>=2&&c0&&!/^Empresa$/i.test(c0))semPadrao++; return; }
+      const mv=r.length<=2&&RE_VEIC.exec(c0); if(mv){ carro=mv[2].trim().replace(/^0+(?=.)/,''); veic.add(mv[1]+'/'+carro); return; }
+      if(!carro||r.length<12||!/^\d+\s*-/.test(c0))return;
+      const intKm=num(r[1])||0, intDias=num(r[2])||0, kmRodado=num(r[7]), dias=num(r[8]), kmDif=num(r[9]);
+      let obs=String(r[12]==null?'':r[12]).trim();
+      if(intKm>0&&kmDif!=null&&kmDif>0&&kmRodado!=null&&(norm(obs)===''||norm(obs)==='vencido')&&kmRodado/Math.max(dias||0,1)>LIMITE_KM_DIA){ obs='Km Estourado'; estourados++; }
+      out.push({carro, plano:c0, intKm, intDias, data:dataISO(r[3]), kmRodado, dias, kmDif, obs, gar:''});
+    });
+    DP.infoBruto={veiculos:veic.size, estourados, semPadrao};
+    if(!out.length)throw new Error('Relatório bruto reconhecido, mas nenhum plano de manutenção foi encontrado.');
+    return out;
+  }
+    function lerPlanos(text){
+    DP.infoBruto=null;
+    if(ehBruto(text))return converterBruto(text);
     const t=parseCSV(text); if(t.length<2)throw new Error('Arquivo vazio.');
     const h=t[0].map(norm), occ={};
     const idx=(n,nth=0)=>{let c=-1;for(let i=0;i<h.length;i++){if(h[i]===n){if(++c===nth)return i;}}return -1;};
@@ -13258,7 +13281,8 @@ pcmBoot();
 
   $('dp-csv-planos').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
     lerArquivo(f,t=>{DP.rows=lerPlanos(t);aplicarAtivos();atualizarSelectPlanos();
-            msg(`${DP.rows.length.toLocaleString('pt-BR')} planos importados.`+avisoSemGaragem());render();});});
+            const ib=DP.infoBruto, extra=ib?` Relatório bruto detectado e tratado automaticamente: ${ib.veiculos.toLocaleString('pt-BR')} veículos, ${ib.estourados.toLocaleString('pt-BR')} plano(s) marcados como Km Estourado`+(ib.semPadrao?`, ${ib.semPadrao} veículo(s) sem padrão de manutenção ignorados`:'')+'.':'';
+msg(`${DP.rows.length.toLocaleString('pt-BR')} planos importados.`+extra+avisoSemGaragem());render();});});
   $('dp-csv-ativos').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
         lerArquivo(f,t=>{DP.ativos=lerAtivos(t);aplicarAtivos();msg(`${Object.keys(DP.ativos).length} carros vinculados a garagens.`+avisoSemGaragem());render();});});
   ['dp-garagem','dp-plano','dp-status'].forEach(id=>$(id).addEventListener('change',render));
