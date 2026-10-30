@@ -13372,6 +13372,33 @@ msg(`${DP.rows.length.toLocaleString('pt-BR')} planos importados.`+extra+avisoSe
     $('dp-img-wrap').style.display='block'; m.textContent=cand.length+' carros na imagem.';
     if(quiet!==true)cv.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
+    // ── Botões da imagem de preventivas ──
+  $('dp-img-gerar').addEventListener('click',()=>{
+    try{ gerarImagem(); }
+    catch(err){ console.error('Erro ao gerar imagem:',err); alert('Não foi possível gerar a imagem: '+(err&&err.message||err)); }
+  });
+  $('dp-img-down').addEventListener('click',()=>{
+    const cv=$('dp-canvas'), m=$('dp-img-msg');
+    if(!cv.width){ m.textContent='Gere a imagem primeiro.'; return; }
+    cv.toBlob(b=>{
+      if(!b){ m.textContent='Não foi possível criar o PNG.'; return; }
+      const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+      a.download='preventivas-do-dia-'+(dI.value||'')+'.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+      m.textContent='PNG baixado.';
+    },'image/png');
+  });
+  $('dp-img-copy').addEventListener('click',()=>{
+    const cv=$('dp-canvas'), m=$('dp-img-msg');
+    if(!cv.width){ m.textContent='Gere a imagem primeiro.'; return; }
+    if(!(navigator.clipboard&&window.ClipboardItem)){ m.textContent='Seu navegador não permite copiar imagem. Use "Baixar PNG".'; return; }
+    cv.toBlob(b=>{
+      navigator.clipboard.write([new ClipboardItem({'image/png':b})])
+        .then(()=>{ m.textContent='Imagem copiada.'; })
+        .catch(()=>{ m.textContent='Não foi possível copiar. Use "Baixar PNG".'; });
+    },'image/png');
+  });
   // garante que as fontes do site estejam carregadas no canvas; se a imagem já estiver na tela, redesenha
   if(document.fonts&&document.fonts.load)Promise.all(['600 21px Oswald','600 12px Inter','14px Inter','600 14px "IBM Plex Mono"','11px "IBM Plex Mono"'].map(f=>document.fonts.load(f))).then(()=>{if($('dp-img-wrap').style.display==='block'&&DP.sel.size)gerarImagem(true);}).catch(()=>{});
 
