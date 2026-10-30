@@ -13375,6 +13375,8 @@ msg(`${DP.rows.length.toLocaleString('pt-BR')} planos importados.`+extra+avisoSe
   // garante que as fontes do site estejam carregadas no canvas; se a imagem já estiver na tela, redesenha
   if(document.fonts&&document.fonts.load)Promise.all(['600 21px Oswald','600 12px Inter','14px Inter','600 14px "IBM Plex Mono"','11px "IBM Plex Mono"'].map(f=>document.fonts.load(f))).then(()=>{if($('dp-img-wrap').style.display==='block'&&DP.sel.size)gerarImagem(true);}).catch(()=>{});
 
+})();
+
 // ── Links "❓ Como importar" → site de ajuda (pasta /ajuda, mesmo endereço do PCM) ──
 (function(){
   const mapa = [['Importar ordens de serviço','os'],['Importar Solicitações de Reparo','sr'],['Importar frota','frota'],
