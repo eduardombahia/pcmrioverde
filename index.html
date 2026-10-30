@@ -13329,46 +13329,51 @@ msg(`${DP.rows.length.toLocaleString('pt-BR')} planos importados.`+extra+avisoSe
     const m=$('dp-img-msg'); if(!cand.length){alert('Selecione ao menos um carro (ou clique em "Sugerir carros").');return;}
     const kmL=re=>{const v=DP.rows.filter(r=>re.test(r.plano)&&r.intKm>0).map(r=>r.intKm);return v.length?Math.min(...v):0;};
     const insKm=kmL(/^601-/);
-    const cols=[{w:90,t:'Carro',f:'#dce6f1'},{w:130,t:'GARAGEM',f:'#dce6f1'},{w:100,t:String(insKm||''),f:'#dce6f1'}]
-      .concat(COLS.map(c=>({w:150,t:c.t,f:c.y?'#ffff00':'#dce6f1',km:kmL(c.re)?kmL(c.re)/1000+' MIL':''})))
-      .concat([{w:90,t:'Ano',f:'#dce6f1'}]);
-    const W=cols.reduce((a,c)=>a+c.w,0), TH=36, KH=20, HH=84, RH=26, N=Math.max(cand.length,10), S=2, OB=($('dp-img-obs').value||'').trim(), mc=document.createElement('canvas').getContext('2d');
-    mc.font='14px Calibri, Arial, sans-serif';
-    const obL=OB?OB.split(/\n/).flatMap(l=>quebrar(mc,l,W-28)):[], OH=obL.length?obL.length*19+34:0, H=TH+KH+HH+RH*N+OH;
+    // paleta e fontes do site (mesmas variáveis do :root)
+    const P={bg:'#1D2025',bg2:'#1A1D21',head:'#23262C',line:'#33373E',chalk:'#E9E7E0',dim:'#9296A0',amber:'#F5A623'};
+    const FS='Inter, Calibri, Arial, sans-serif', FM='"IBM Plex Mono", Consolas, monospace', FD='Oswald, "Arial Narrow", Arial, sans-serif';
+    const cols=[{w:90,t:'Carro'},{w:130,t:'GARAGEM'},{w:100,t:String(insKm||'')}]
+      .concat(COLS.map(c=>({w:150,t:c.t,y:c.y,km:kmL(c.re)?kmL(c.re)/1000+' MIL':''})))
+      .concat([{w:90,t:'Ano'}]);
+    const W=cols.reduce((a,c)=>a+c.w,0), TH=46, KH=20, HH=84, RH=28, N=Math.max(cand.length,10), S=2, OB=($('dp-img-obs').value||'').trim(), mc=document.createElement('canvas').getContext('2d');
+    mc.font='14px '+FS;
+    const obL=OB?OB.split(/\n/).flatMap(l=>quebrar(mc,l,W-34)):[], OH=obL.length?obL.length*19+34:0, H=TH+KH+HH+RH*N+OH;
     const cv=$('dp-canvas'); cv.width=W*S; cv.height=H*S; const x=cv.getContext('2d'); x.scale(S,S);
-    const F='Calibri, Arial, sans-serif';
-    x.fillStyle='#fff'; x.fillRect(0,0,W,H); x.strokeStyle='#000'; x.lineWidth=1; x.textAlign='center'; x.textBaseline='middle';
+    const ls=v=>{if('letterSpacing' in x)x.letterSpacing=v;};
+    x.fillStyle=P.bg; x.fillRect(0,0,W,H); x.strokeStyle=P.line; x.lineWidth=1; x.textAlign='center'; x.textBaseline='middle';
     const dt=dI.value.split('-').reverse().join('/');
-    x.fillStyle='#000'; x.font='bold 18px '+F; x.fillText('Preventivas do dia '+dt,W/2,TH/2); x.strokeRect(.5,.5,W-1,TH);
+    x.fillStyle=P.amber; x.font='600 21px '+FD; ls('1.5px'); x.fillText(('Preventivas do dia '+dt).toUpperCase(),W/2,TH/2+2); ls('0px');
     let px=0;
     cols.forEach((c,i)=>{
-      if(c.km){x.fillStyle='#333';x.font='11px '+F;x.fillText(c.km,px+c.w/2,TH+KH/2);}
-      const y0=TH+KH; x.fillStyle=c.f; x.fillRect(px,y0,c.w,HH); x.strokeRect(px+.5,y0+.5,c.w-1,HH);
-      x.fillStyle='#000'; x.font='bold 14px '+F; const ln=quebrar(x,c.t,c.w-12); ln.forEach((l,k)=>x.fillText(l,px+c.w/2,y0+HH/2+(k-(ln.length-1)/2)*17));
+      if(c.km){x.fillStyle=P.dim;x.font='11px '+FM;x.fillText(c.km,px+c.w/2,TH+KH/2);}
+      const y0=TH+KH; x.fillStyle=P.head; x.fillRect(px,y0,c.w,HH); x.strokeRect(px+.5,y0+.5,c.w-1,HH);
+      if(c.y){x.fillStyle=P.amber; x.fillRect(px,y0,c.w,3);}
+      x.fillStyle=c.y?P.amber:P.dim; x.font='600 12px '+FS; ls('.4px');
+      const ln=quebrar(x,c.t.toUpperCase(),c.w-14); ln.forEach((l,k)=>x.fillText(l,px+c.w/2,y0+HH/2+(k-(ln.length-1)/2)*16)); ls('0px');
       for(let r=0;r<N;r++){
         const y=y0+HH+r*RH, d=cand[r];
-        x.fillStyle=(i===1||c.t==='RODÍZIO DE BATERIAS')?'#e7e6e6':(i===0||i===cols.length-1)?'#dce6f1':'#fff'; x.fillRect(px,y,c.w,RH); x.strokeRect(px+.5,y+.5,c.w-1,RH);
-        if(!d)continue; x.fillStyle='#000'; x.font=(i===0?'bold ':'')+'14px '+F;
+        x.fillStyle=r%2?P.bg2:P.bg; x.fillRect(px,y,c.w,RH); x.strokeRect(px+.5,y+.5,c.w-1,RH);
+        if(!d)continue;
         const v=i===0?d.carro:i===1?d.gar:i===2?'X':i===cols.length-1?(DP.anos[chave(d.carro)]||''):(d.flags[i-3]?'x':'');
-        if(v)x.fillText(v,px+c.w/2,y+RH/2+1);
+        if(!v)continue;
+        if(i===0){x.fillStyle=P.chalk;x.font='600 14px '+FM;}
+        else if(i===1){x.fillStyle=P.dim;x.font='13px '+FS;}
+        else if(i===cols.length-1){x.fillStyle=P.dim;x.font='13px '+FM;}
+        else{x.fillStyle=P.amber;x.font='600 16px '+FM;}
+        x.fillText(v,px+c.w/2,y+RH/2+1);
       }
       px+=c.w;
     });
-    if(obL.length){const y=TH+KH+HH+RH*N; x.fillStyle='#fff2cc'; x.fillRect(0,y,W,OH); x.strokeRect(.5,y+.5,W-1,OH-1);
-      x.textAlign='left'; x.fillStyle='#000'; x.font='bold 14px '+F; x.fillText('OBSERVAÇÃO:',14,y+17);
-      x.font='14px '+F; obL.forEach((l,k)=>x.fillText(l,14,y+36+k*19)); x.textAlign='center';}
+    if(obL.length){const y=TH+KH+HH+RH*N; x.fillStyle=P.head; x.fillRect(0,y,W,OH); x.strokeRect(.5,y+.5,W-1,OH-1);
+      x.fillStyle=P.amber; x.fillRect(0,y,3,OH);
+      x.textAlign='left'; x.fillStyle=P.amber; x.font='600 14px '+FD; ls('1px'); x.fillText('OBSERVAÇÃO:',16,y+17); ls('0px');
+      x.fillStyle=P.chalk; x.font='14px '+FS; obL.forEach((l,k)=>x.fillText(l,16,y+36+k*19)); x.textAlign='center';}
+    x.strokeStyle=P.line; x.strokeRect(.5,.5,W-1,H-1);
     $('dp-img-wrap').style.display='block'; m.textContent=cand.length+' carros na imagem.';
     if(quiet!==true)cv.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
-  $('dp-img-gerar').addEventListener('click',()=>gerarImagem());
-  $('dp-img-margem').addEventListener('input',()=>{prevRender();if($('dp-img-wrap').style.display==='block'&&DP.sel.size)gerarImagem(true);});
-  $('dp-img-obs').addEventListener('input',()=>{if($('dp-img-wrap').style.display==='block'&&DP.sel.size)gerarImagem(true);});
-  const nome=()=>'preventivas_'+dI.value.split('-').reverse().join('-')+'.png';
-  $('dp-img-down').addEventListener('click',()=>{$('dp-canvas').toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nome();a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);});});
-  $('dp-img-copy').addEventListener('click',()=>{const m=$('dp-img-msg');
-    $('dp-canvas').toBlob(async b=>{try{await navigator.clipboard.write([new ClipboardItem({'image/png':b})]);m.textContent='Imagem copiada! Cole (Ctrl+V) no WhatsApp/e-mail.';}catch(e){m.textContent='Não foi possível copiar neste navegador. Use "Baixar PNG".';}});});
-  render();
-})();
+  // garante que as fontes do site estejam carregadas no canvas; se a imagem já estiver na tela, redesenha
+  if(document.fonts&&document.fonts.load)Promise.all(['600 21px Oswald','600 12px Inter','14px Inter','600 14px "IBM Plex Mono"','11px "IBM Plex Mono"'].map(f=>document.fonts.load(f))).then(()=>{if($('dp-img-wrap').style.display==='block'&&DP.sel.size)gerarImagem(true);}).catch(()=>{});
 
 // ── Links "❓ Como importar" → site de ajuda (pasta /ajuda, mesmo endereço do PCM) ──
 (function(){
